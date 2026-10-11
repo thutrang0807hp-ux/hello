@@ -1,3 +1,13 @@
+# Toolkit bản cài hiện tại + cầu nối Freelance Desk
+
+Dùng [Toolkit-Installed-Build-Bridge.zip](Toolkit-Installed-Build-Bridge.zip) cho bản Chrome Web Store 1.6.0 người dùng đã gửi. Gói giữ mã lấy job của bản đó và thêm phần chuyển cache sang web trên máy bạn.
+
+[Hướng dẫn Windows](../toolkit-bridge/INSTALL-WINDOWS.txt) · [Mã nguồn tương ứng](Toolkit-Installed-Build-Source.zip) · [Mã cầu nối và kiểm thử](../toolkit-bridge/README.md).
+
+Các gói `Upwork-Toolkit-Webhook.zip` và `Upwork-Toolkit-Source.zip` dưới đây là bản build GitHub khác, có Mobile alerts sẵn; không cần cài chúng khi dùng cầu nối bản hiện tại.
+
+---
+
 UPWORK TOOLKIT KẾT NỐI FREELANCE DESK
 
 Đây là bản build từ mã nguồn upstream, không phải bản cập nhật Chrome Web Store.

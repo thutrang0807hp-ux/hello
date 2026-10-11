@@ -62,18 +62,25 @@ Khi hai biến của một kênh đã có, job mới sẽ được đưa vào h�
 
 ## Nối với Upwork Toolkit
 
-Mã nguồn đã tham khảo: [neeilya/upwork-toolkit](https://github.com/neeilya/upwork-toolkit), HEAD `e75003468d373353e69ff46c1c54cec02100ae41`. Phiên bản này có **Mobile notifications → Webhook**. Bản Chrome Web Store đang cài trên máy bạn có thể khác phiên bản.
+Bản Chrome Web Store 1.6.0 người dùng cung cấp không có Mobile alerts/Webhook. Gói [Toolkit-Installed-Build-Bridge.zip](downloads/Toolkit-Installed-Build-Bridge.zip) giữ các bundle lấy job của đúng bản đó, thêm cầu nối đọc job đã lưu trong `chrome.storage.local.__JOBS` và gửi tới Freelance Desk trên cùng máy. Không thêm yêu cầu tới Upwork, không đọc cookie/khóa AI, không đổi lịch lấy job. Cầu nối gửi dữ liệu ngay khi cache cập nhật, không phụ thuộc lịch thông báo desktop.
 
-1. Trong web này, mở **Hồ sơ & kết nối**, sao chép URL webhook. Đây là đường dẫn có token bí mật, không chia sẻ công khai.
-2. Trong tiện ích Chrome, mở **Mobile notifications → Webhook**, dán URL, Save, cấp quyền truy cập địa chỉ web và bật Webhook.
-3. Nhấn **Send test**, kiểm tra job thử ở **Cơ hội công việc**; nếu Slack/Telegram đã cấu hình, nó cũng tạo thông báo tới các kênh đó.
-4. Giữ Chrome, tiện ích và phiên đăng nhập Upwork hoạt động. Nếu dùng lịch làm việc của toolkit, webhook cũng phụ thuộc lịch này.
+1. Giải nén gói, tắt các bản Toolkit khác (giữ lại để quay về), bật Developer mode ở `chrome://extensions`, Load unpacked thư mục `toolkit-desk-bridge` có `manifest.json`.
+2. Trong tùy chọn bản mới, bấm nút tím **Kết nối Freelance Desk**.
+3. Mở web bằng `start-windows.bat`, vào **Hồ sơ & kết nối**, sao chép URL; dán vào trang cầu nối và bấm **Lưu & kết nối**.
+4. Khi Toolkit có job, kiểm tra tab **Công việc**. Nút **Gửi job hiện có** dùng job thật trong cache, không tạo job mẫu.
+5. Giữ Chrome và web mở. Hàng đợi lưu bền, thử lại mỗi phút; giới hạn 500 job / khoảng 4 MB và báo khi đầy. Web chống trùng ID khi gửi lại.
+
+Bản sao có ID riêng, không tự chuyển cài đặt hay lịch sử từ bản cũ; chọn lại Feed source/lịch/âm thanh trong Settings. Chỉ cache của bản sao được chuyển (Toolkit giữ tối đa 50 job hiện tại). Cầu nối này chỉ chấp nhận URL `http://127.0.0.1` hoặc `http://localhost`. Việc dùng Toolkit và quy định Upwork không được xác nhận bởi các kiểm thử cầu nối.
+
+Hướng dẫn đầy đủ: [INSTALL-WINDOWS.txt](toolkit-bridge/INSTALL-WINDOWS.txt). Mã cầu nối/đóng gói: [toolkit-bridge](toolkit-bridge). Mã nguồn gốc bản Web Store theo release ID `4be0325640df585fb9030a5ddffa756ea0effce0`: [source ZIP](downloads/Toolkit-Installed-Build-Source.zip), từ [neeilya/upwork-toolkit](https://github.com/neeilya/upwork-toolkit), GPL-3.0.
+
+Bản GitHub khác tại commit `e75003468d373353e69ff46c1c54cec02100ae41` có **Mobile alerts → Webhook** sẵn. Nếu đang dùng bản đó: dán URL → Save/cấp quyền → bật Webhook → Send test. Không bật đồng thời với bản cầu nối để tránh hai bản cùng lấy job.
 
 Nếu chạy web trên máy cá nhân cùng Chrome, địa chỉ nội bộ trong phần kết nối dùng được trên máy đó. Nếu chạy web trên máy chủ, cần địa chỉ HTTPS mà Chrome trên máy bạn truy cập được. **Publish môi trường Codex không tự tạo địa chỉ web công khai.**
 
 Ứng dụng này nhận JSON từ tiện ích, không gọi API Upwork, giữ cookie Upwork hoặc thay đổi cách tiện ích lấy job. Định dạng nhận: POST tới đường dẫn bí mật, `Content-Type: application/json`, body có `event: "new_jobs"` và `jobs` gồm `id`, `title`, `url`, `description`, `budget`, `skills`, `client`, `postedAt`. Chống trùng theo `id`; gửi lại cùng ID không ghi đè các ghi chú hoặc trạng thái bạn đã chỉnh. ID job đã xóa vẫn được ghi nhớ để không tự xuất hiện lại ở lần gửi sau.
 
-Toolkit hiện cắt phần mô tả webhook còn 350 ký tự. Web hiển thị phần nhận được; mở job trên Upwork và bổ sung mô tả đầy đủ trước khi dùng AI. Thông tin quốc gia, chi tiêu, rating của khách hàng từ feed chưa đủ để tự tạo một khách hàng CRM có danh tính, nên bạn liên kết khách hàng khi đã xác định được họ.
+Bản GitHub có Webhook cắt mô tả còn 350 ký tự; cầu nối bản cài đọc toàn bộ mô tả đang có trong cache, tối đa 20.000 ký tự. Web hiển thị phần nhận được; mở job trên Upwork và bổ sung mô tả đầy đủ trước khi dùng AI. Thông tin quốc gia, chi tiêu, rating của khách hàng từ feed chưa đủ để tự tạo một khách hàng CRM có danh tính, nên bạn liên kết khách hàng khi đã xác định được họ.
 
 
 ## Proposal Studio và kho thư đã gửi

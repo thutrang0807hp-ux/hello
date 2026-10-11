@@ -1,0 +1,10 @@
+{
+  "manifest.json": "0904576c9b00486a915501c5b31bc56a5b99246db6521efa2e37d2a3376bd8ea",
+  "background.js": "bd06995b83fb68b7dbbfb0d1f72993bd199ed25abad249f3355537c2d3ea2f4b",
+  "options.html": "da0ee383d1b7b674767368be3257cd5bd88b63ef81b168b45ca4df71510d775b",
+  "chunks/format-DNvPYJ9a.js": "2d82d594b51177f75341b7a1e397d8fe07ab5f95660f556c0b39148edd99903e",
+  "chunks/_virtual_wxt-plugins-0cApLIR1.js": "2352665a0c1d2952caabfd2d27f98203252d798ccec2a9580b898a5728db1ba9",
+  "chunks/options-C_2cwbE3.js": "945b35508ae7d8a255b4ec4ebe4329d8cd9ef14a369d6cbec699e090b8c317c6",
+  "content-scripts/content.js": "8e4f83d43c0ccf1e3636dd9754d0bb1e6f64fdd6eb928bf16ded39b03a7ff5e7",
+  "request_modifier.json": "129f5e4211f696af871cfa498e19036ba93293e8e47e7ef55f47dab32015891c"
+}
