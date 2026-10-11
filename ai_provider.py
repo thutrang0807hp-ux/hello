@@ -2,7 +2,8 @@
 import os
 import json
 import urllib.error
-from urllib.parse import quote
+import urllib.request
+from urllib.parse import quote, urlencode
 
 DEFAULT_MODELS = {'openai': 'gpt-4.1-mini', 'gemini': 'gemini-2.5-flash'}
 
@@ -94,3 +95,58 @@ def request(payload, transport):
         return {'status': 'completed', 'output': [{'type': 'message', 'content': [{'type': 'output_text', 'text': output}]}]}
     except (KeyError, IndexError, TypeError, AttributeError, ValueError):
         raise ServiceError('Gemini chưa trả về nội dung hợp lệ. Thử lại; bản nháp hiện tại được giữ nguyên.', 502) from None
+
+
+def gemini_models():
+    """Discover only models offering generateContent; credentials remain in headers."""
+    from services import ServiceError
+    key = os.environ.get('FREELANCE_AI_KEY', '')
+    if provider() != 'gemini' or not key:
+        raise ServiceError('Chọn Gemini và nhập khóa API trong công cụ cấu hình trước.', 503)
+    models, token = {}, ''
+    for _ in range(20):
+        url = 'https://generativelanguage.googleapis.com/v1beta/models?' + urlencode({'pageSize':100, **({'pageToken':token} if token else {})})
+        req = urllib.request.Request(url, headers={'x-goog-api-key':key})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as response:
+                data = json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code in (400,401,403):
+                raise ServiceError('Gemini không cho lấy danh sách model. Kiểm tra khóa API và quyền của dự án trong Google AI Studio.', 502) from None
+            if error.code == 429:
+                raise ServiceError('Gemini đang giới hạn lượt gọi. Chờ một lúc rồi lấy lại danh sách.', 429) from None
+            raise ServiceError('Không lấy được danh sách Gemini. Thử lại sau.', 502) from None
+        except (OSError, ValueError):
+            raise ServiceError('Không kết nối được Gemini để lấy model. Kiểm tra mạng rồi thử lại.', 502) from None
+        if not isinstance(data,dict):
+            raise ServiceError('Danh sách Gemini trả về không hợp lệ.', 502)
+        for entry in data.get('models', []):
+            if not isinstance(entry,dict) or 'generateContent' not in entry.get('supportedGenerationMethods', []): continue
+            name = entry.get('name','')
+            if not isinstance(name,str) or not name.startswith('models/'): continue
+            ident = name.removeprefix('models/')
+            models[ident] = {'id':ident, 'label':str(entry.get('displayName') or ident)}
+        token = data.get('nextPageToken')
+        if not token: break
+    else:
+        raise ServiceError('Danh sách model quá dài. Thử lại sau.', 502)
+    if not models:
+        raise ServiceError('Khóa này chưa có model hỗ trợ viết nội dung. Kiểm tra dự án trong Google AI Studio.', 502)
+    return sorted(models.values(), key=lambda m:('flash' not in m['id'], m['id']))
+
+
+def select_gemini_model(ident):
+    from services import ServiceError
+    from local_config import config_path, save
+    if not isinstance(ident,str) or ident not in {m['id'] for m in gemini_models()}:
+        raise ServiceError('Model không nằm trong danh sách Gemini hỗ trợ. Lấy lại danh sách rồi chọn.')
+    path = config_path()
+    try:
+        values = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+        if not isinstance(values,dict) or any(not isinstance(v,str) for v in values.values()): raise ValueError()
+        values['FREELANCE_AI_MODEL'] = ident
+        save(values)
+    except (OSError,ValueError):
+        raise ServiceError('Không lưu được model. Kiểm tra quyền ghi thư mục data.', 500) from None
+    os.environ['FREELANCE_AI_MODEL'] = ident
+    return ident

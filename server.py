@@ -441,6 +441,12 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/ai/models':
+                from ai_provider import gemini_models
+                return self.reply(200, {'models':gemini_models()})
+            if path == '/api/ai/model':
+                from ai_provider import select_gemini_model
+                return self.reply(200, {'model':select_gemini_model(item.get('model'))})
             if path == '/api/jobs/read-batch':
                 ids = item.get('ids')
                 if not isinstance(ids,list) or any(type(ident) is not int for ident in ids):
