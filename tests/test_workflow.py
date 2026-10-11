@@ -320,21 +320,19 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(assessment['budgetScore'],20)
             self.assertEqual(send.call_count,2)
 
-    def test_job_worker_retries_cached_error_and_preserves_success(self):
-        with patch.dict(os.environ,{'FREELANCE_AI_KEY':'test-key','FREELANCE_AI_PROVIDER':'openai','FREELANCE_AI_AUTO_JOBS':'1'}),patch.object(server,'job_review_cooldown',0),patch('server.time.sleep'):
+    def test_manual_assessment_only_once_even_with_legacy_auto_config(self):
+        with patch.dict(os.environ,{'FREELANCE_AI_KEY':'test-key','FREELANCE_AI_PROVIDER':'openai','FREELANCE_AI_AUTO_JOBS':'1'}),patch('server.time.sleep'):
             server.import_jobs({'event':'new_jobs','jobs':[job()]})
             record=next(r for r in server.records() if r['kind']=='job')
-            with server.connect() as db:
-                db.execute('INSERT INTO job_reviews VALUES (?,?,?)',(record['id'],server.job_signature(record),json.dumps({'error':'Old billing error'})))
-            review={'summary':'Updated','budgetScore':20,'clarityScore':18,'safetyScore':14,'priceComment':'OK','clarityComment':'OK','riskComment':'OK','warnings':[]}
+            review={'summary':'Đã đánh giá','budgetScore':20,'clarityScore':18,'safetyScore':14,'priceComment':'Phù hợp','clarityComment':'Rõ ràng','riskComment':'Cần kiểm tra','warnings':[]}
             with patch('server.job_radar.evaluate',return_value=review) as evaluate:
-                server.process_job_reviews();server.process_job_reviews()
+                server.process_job_reviews()
+                self.assertEqual(evaluate.call_count,0)
+                self.call('/api/jobs/retry',{'id':record['id']})
+                self.call('/api/jobs/retry',{'id':record['id']})
+                self.call('/api/records')
                 self.assertEqual(evaluate.call_count,1)
             self.assertEqual(next(r for r in server.records() if r['kind']=='job')['jobAssessment']['state'],'completed')
-            with server.connect() as db:db.execute('DELETE FROM job_reviews')
-            with patch('server.job_radar.evaluate',side_effect=services.ServiceError('Rate limited',429)) as evaluate:
-                server.process_job_reviews();server.process_job_reviews()
-                self.assertEqual(evaluate.call_count,1)
 
     def test_ai_failure_and_partial_output(self):
         with patch.dict(os.environ, {'FREELANCE_AI_KEY': 'test-placeholder'}):

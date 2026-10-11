@@ -85,13 +85,13 @@ class GeminiProviderTests(unittest.TestCase):
         self.assertEqual(result['readCount'], 12)
         self.assertEqual(send.call_count, 3)
 
-    def test_manual_job_scoring_default_and_explicit_override(self):
+    def test_manual_job_scoring_even_with_legacy_automatic_setting(self):
         self.assertFalse(ai_provider.automatic_jobs())
         self.assertEqual(job_radar.present({'name': 'Dashboard'}, None)['state'], 'not_evaluated')
         with patch.dict(os.environ, {'FREELANCE_AI_AUTO_JOBS': '1'}):
-            self.assertTrue(ai_provider.automatic_jobs())
+            self.assertFalse(ai_provider.automatic_jobs())
         with patch.dict(os.environ, {'FREELANCE_AI_PROVIDER': 'openai', 'FREELANCE_AI_AUTO_JOBS': ''}):
-            self.assertTrue(ai_provider.automatic_jobs())
+            self.assertFalse(ai_provider.automatic_jobs())
 
     def test_model_name_encoded_and_optional_models_prefix_removed(self):
         with patch.dict(os.environ, {'FREELANCE_AI_MODEL': 'models/gemini-2.5-flash-lite'}):

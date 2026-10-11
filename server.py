@@ -71,6 +71,7 @@ def job_signature(job):
 
 
 job_review_cooldown = 0
+job_assessment_lock = threading.Lock()
 
 def process_job_reviews():
     global job_review_cooldown
@@ -463,23 +464,7 @@ class Handler(BaseHTTPRequestHandler):
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
             if path == '/api/ai/auto-jobs':
-                from local_config import config_path, save
-                if type(item.get('enabled')) is not bool: raise ServiceError('Chế độ tự đánh giá không hợp lệ.')
-                path_config = config_path()
-                try:
-                    values = json.loads(path_config.read_text(encoding='utf-8')) if path_config.exists() else {}
-                    if not isinstance(values,dict): raise ValueError()
-                    value = '1' if item['enabled'] else '0'
-                    values['FREELANCE_AI_AUTO_JOBS'] = value
-                    save(values)
-                except (OSError,ValueError): raise ServiceError('Không lưu được cấu hình.',500) from None
-                os.environ['FREELANCE_AI_AUTO_JOBS'] = value
-                if item['enabled']:
-                    with connect() as db:
-                        for row in db.execute('SELECT record_id,body FROM job_reviews').fetchall():
-                            if json.loads(row['body']).get('error'):
-                                db.execute('DELETE FROM job_reviews WHERE record_id=?',(row['record_id'],))
-                return self.reply(200, {'ok':True})
+                raise ServiceError('Đánh giá AI hiện chỉ chạy khi bấm Đánh giá AI trên job. Điểm sao khách không dùng API.')
             if path == '/api/channels/configure':
                 from local_config import config_path, save
                 names = {'slack':('FREELANCE_SLACK_TOKEN','FREELANCE_SLACK_CHANNEL'),'telegram':('FREELANCE_TELEGRAM_TOKEN','FREELANCE_TELEGRAM_CHAT_ID')}
@@ -587,11 +572,17 @@ class Handler(BaseHTTPRequestHandler):
                 except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None
                 job = next((r for r in records() if r['kind']=='job' and r['id']==ident),None)
                 if not job: raise ServiceError('Không tìm thấy job.',404)
-                if path.endswith('/retry') and not ai_auto_jobs():
-                    review = job_radar.evaluate(job)
-                    with connect() as db:
-                        db.execute('INSERT OR REPLACE INTO job_reviews VALUES (?,?,?)',
-                                   (ident, job_signature(job), json.dumps(review,ensure_ascii=False)))
+                if path.endswith('/retry'):
+                    with job_assessment_lock:
+                        signature = job_signature(job)
+                        with connect() as db:
+                            cached = db.execute('SELECT signature,body FROM job_reviews WHERE record_id=?',(ident,)).fetchone()
+                        if cached and cached['signature']==signature and not json.loads(cached['body']).get('error'):
+                            return self.reply(200, {'ok':True, 'cached':True})
+                        review = job_radar.evaluate(job)
+                        with connect() as db:
+                            db.execute('INSERT OR REPLACE INTO job_reviews VALUES (?,?,?)',
+                                       (ident, signature, json.dumps(review,ensure_ascii=False)))
                     return self.reply(200, {'ok':True})
                 with connect() as db:
                     if path.endswith('/retry'):
@@ -686,5 +677,4 @@ if __name__ == '__main__':
     http = ThreadingHTTPServer((BIND, port), Handler)
     print(f'Freelance Desk listening on port {port}', flush=True)
     threading.Thread(target=notification_worker, daemon=True).start()
-    threading.Thread(target=job_worker, daemon=True).start()
     http.serve_forever()

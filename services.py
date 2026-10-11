@@ -48,7 +48,7 @@ def normalize_job(raw):
         'notes': text(raw.get('description')), 'jobType': text(raw.get('type'), 200),
         'proposalsTier': text(raw.get('proposalsTier'), 200), 'engagement': text(raw.get('engagement'), 200), 'duration': text(raw.get('duration'), 200),
         'skills': [text(s, 200) for s in skills], 'postedAt': text(raw.get('postedAt'), 200),
-        'clientInfo': {k: client.get(k) for k in ('rating', 'country', 'totalSpent', 'paymentVerified', 'totalHires')},
+        'clientInfo': {k: client.get(k) for k in ('rating', 'country', 'totalSpent', 'paymentVerified', 'totalHires', 'hireRate', 'totalJobsPosted', 'ratingCount')},
         'receivedAt': datetime.now(timezone.utc).isoformat(), 'unread': True,
     }
     return merge(job, activity)

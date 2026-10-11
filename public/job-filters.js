@@ -6,7 +6,7 @@ const JobFilters = (() => {
   rating:[['high','4,8–5 sao'],['good','4,5–dưới 4,8'],['low','Dưới 4,5 sao'],['unknown','Chưa có đánh giá']],
   sent:[['sent','Đã gửi thư'],['unsent','Chưa gửi thư']],
  };
- const titles={time:'Thời gian đăng',country:'Quốc gia khách',keywords:'Từ khóa',budget:'Ngân sách',proposals:'Số proposal trên job',rating:'Sao của khách',sent:'Thư của bạn'};
+ const titles={time:'Thời gian đăng',country:'Quốc gia khách',keywords:'Từ khóa',budget:'Ngân sách',proposals:'Số proposal trên job',rating:'Sao Upwork của khách',sent:'Thư của bạn'};
  const defaults=()=>({time:{enabled:false,values:['24h']},country:{enabled:false,values:[]},keywords:{enabled:false,include:'',exclude:'',mode:'any'},budget:{enabled:false,type:'fixed',min:'',max:'',unknown:false},proposals:{enabled:false,values:['under5','5-10']},rating:{enabled:false,values:['high']},sent:{enabled:false,values:['unsent']}});
  const normalizeText=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
  const words=v=>String(v||'').split(/[,;\n]/).map(s=>normalizeText(s.trim())).filter(Boolean);
@@ -82,7 +82,24 @@ const JobFilters = (() => {
   if(state.sent.enabled&&!state.sent.values.includes(job.proposalSent===true?'sent':'unsent'))return false;
   return true;
  }
+
+ function customerStars(job){
+  const c=job.clientInfo||{}, reasons=[],missing=[];
+  const number=v=>v===null||v===undefined||v===''||!['number','string'].includes(typeof v)?null:Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
+  const rating=number(c.rating),hires=number(c.totalHires),posted=number(c.totalJobsPosted);
+  let rate=number(c.hireRate);
+  if(rate!==null&&rate>100)rate=null;
+  if(rate===null&&hires!==null&&posted!==null&&posted>0&&hires<=posted)rate=100*hires/posted;
+  const components=[];
+  if(rating!==null&&rating>0&&rating<=5){components.push([rating,.45]);reasons.push(`Sao Upwork: ${rating}/5`);}else missing.push('sao Upwork');
+  if(hires!==null){const score=hires>=50?5:hires>=20?4:hires>=5?3:hires>=1?2:1;components.push([score,.25]);reasons.push(`Đã thuê: ${hires}`);}else missing.push('lịch sử thuê');
+  if(rate!==null){const score=rate>=80?5:rate>=60?4:rate>=40?3:rate>=20?2:1;components.push([score,.2]);reasons.push(`Tỷ lệ thuê: ${Math.round(rate)}%`);}else missing.push('tỷ lệ thuê');
+  if(typeof c.paymentVerified==='boolean'){components.push([c.paymentVerified?5:1,.1]);reasons.push(c.paymentVerified?'Đã xác minh thanh toán':'Chưa xác minh thanh toán');}else missing.push('xác minh thanh toán');
+  const enough=components.length>=2&&(hires!==null||rate!==null);
+  const stars=enough?Math.max(1,Math.min(5,Math.round(components.reduce((sum,[score,weight])=>sum+score*weight,0)/components.reduce((sum,[,weight])=>sum+weight,0)))):null;
+  return {stars,reasons,missing,explanation:`Điểm tổng hợp theo dữ liệu, không phải sao Upwork hay bảo đảm an toàn. ${reasons.join(' · ')}${missing.length?' · Thiếu: '+missing.join(', '):''}. Ngân sách được lọc riêng, không cộng vào điểm khách.`};
+ }
  const count=state=>Object.keys(titles).filter(k=>state[k].enabled).length;
- return {options,titles,defaults,sanitize,validate,matches,budget,proposalBucket,count};
+ return {options,titles,defaults,sanitize,validate,matches,budget,proposalBucket,count,customerStars};
 })();
 if(typeof module!=='undefined')module.exports=JobFilters;

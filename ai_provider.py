@@ -25,9 +25,8 @@ def model():
 
 
 def automatic_jobs():
-    """Gemini defaults to on-demand job scoring so writing retains its free quota."""
-    value = os.environ.get('FREELANCE_AI_AUTO_JOBS', '').strip().lower()
-    return value in ('1', 'true', 'yes') if value else provider() == 'openai'
+    """Customer stars are free; AI assessments require an explicit button press."""
+    return False
 
 
 def request(payload, transport):

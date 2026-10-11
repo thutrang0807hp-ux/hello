@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const F=require('../public/job-filters.js');
+const high={clientInfo:{rating:5,totalHires:50,hireRate:90,paymentVerified:true},budget:'$100'};
+assert.equal(F.customerStars(high).stars,5);
+assert.equal(F.customerStars({...high,budget:'$10000'}).stars,5);
+assert.equal(F.customerStars({clientInfo:{rating:3,totalHires:5,hireRate:40,paymentVerified:true}}).stars,3);
+assert.equal(F.customerStars({clientInfo:{rating:1,totalHires:0,hireRate:0,paymentVerified:false}}).stars,1);
+assert.equal(F.customerStars({clientInfo:{rating:5}}).stars,null);
+assert.equal(F.customerStars({clientInfo:{totalHires:null,rating:null,hireRate:null}}).stars,null);
+assert.equal(F.customerStars({clientInfo:{rating:5,totalHires:50,totalJobsPosted:50}}).stars,5);
+assert.ok(F.customerStars({clientInfo:{rating:5,totalHires:50}}).missing.includes('tỷ lệ thuê'));
+assert.equal(F.customerStars({clientInfo:{rating:5,totalHires:50,hireRate:101}}).missing.includes('tỷ lệ thuê'),true);
+console.log('PASS customer stars, unknown data, derived hire rate, budget independence');

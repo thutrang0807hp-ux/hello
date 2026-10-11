@@ -48,7 +48,7 @@ Trên máy cá nhân, dùng công cụ cấu hình như hướng dẫn phía tr�
 | `FREELANCE_AI_PROVIDER` | `gemini` hoặc `openai`; cấu hình cũ thiếu biến này vẫn dùng OpenAI |
 | `FREELANCE_AI_KEY` | Khóa API của nhà cung cấp đã chọn; chỉ gửi trong header, không nằm trong URL/web |
 | `FREELANCE_AI_MODEL` | Để trống: Gemini dùng `gemini-2.5-flash`, OpenAI dùng `gpt-4.1-mini` |
-| `FREELANCE_AI_AUTO_JOBS` | Để trống: Gemini chấm thủ công, OpenAI tự chấm; `1` bật tự chấm, `0` chấm thủ công |
+| `FREELANCE_AI_AUTO_JOBS` | Thiết lập cũ, không còn bật tự chấm. AI chỉ chạy khi bấm **Đánh giá AI** để kiểm soát credit. |
 | `FREELANCE_SLACK_TOKEN` | Bot token của Slack app, dùng với `slack.com` |
 | `FREELANCE_SLACK_CHANNEL` | ID kênh Slack nhận job |
 | `FREELANCE_TELEGRAM_TOKEN` | Bot token Telegram, dùng với `api.telegram.org` |
@@ -255,3 +255,10 @@ Nút Kho thư mở bảng kho bên cạnh workspace. Node kho có hai chế đ�
 ## Job chưa xem trên tab Chrome
 
 Biểu tượng tab là vòng tròn đỏ có số job chưa xem; trên 99 hiển thị `99+`, tiêu đề tab vẫn hiện tổng số chính xác. Khi không còn job chưa xem, biểu tượng trở về logo xanh. Dữ liệu đồng bộ mỗi 10 giây khi web đang mở. Mở **Xem chi tiết** đánh dấu job đã xem, lưu vào dữ liệu và giảm số ngay; chỉ chuyển sang danh sách hoặc xem tóm tắt không tự xóa số chưa đọc. Biểu tượng được phục vụ cùng nguồn nên không cần bật quyền thông báo hệ điều hành.
+
+
+### Điểm khách và bộ lọc sao không dùng AI
+
+Danh sách có bộ lọc Tất cả, 4–5 sao, 3 sao, 1–2 sao và Chưa đủ dữ liệu; điểm cao được xếp trước. Điểm khách tổng hợp khác với sao Upwork: sao Upwork chiếm 45%, số lần thuê 25%, tỷ lệ thuê 20%, xác minh thanh toán 10%; chỉ tính các thành phần có dữ liệu. Cần ít nhất hai thành phần, trong đó có lịch sử hoặc tỷ lệ thuê. Thiếu dữ liệu không tự cho 1 sao. Số lần thuê quy đổi 0/1/5/20/50 thành mức 1/2/3/4/5; tỷ lệ thuê 0/20/40/60/80% thành mức 1/2/3/4/5. Nếu nguồn cung cấp số job đăng và số lần thuê phù hợp, có thể tính tỷ lệ; nếu không, ghi rõ thiếu tỷ lệ thuê. Webhook nhận `client.hireRate` theo phần trăm 0–100 hoặc `client.totalJobsPosted`. Ngân sách dùng bộ lọc riêng, không quyết định chất lượng khách.
+
+Rê chuột không mở bảng đánh giá. Bấm **Đánh giá AI** mới gọi API cho job chưa có kết quả; đánh giá thành công được lưu trong SQLite, mở lại chỉ đọc cache. Chế độ tự chấm cũ bị tắt. Điểm sao không dùng token và không phải bảo đảm an toàn hay khả năng nhận hợp đồng.
