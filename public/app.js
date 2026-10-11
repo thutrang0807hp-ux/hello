@@ -90,6 +90,16 @@ function openEditor(kind, item = {}) {
 }
 async function changeView(next) {
   view = next; $('#search').value = ''; render(); window.scrollTo({top:0,behavior:'instant'});
+  if (next === 'job') {
+    const ids = records.filter(r => r.kind === 'job' && r.unread).map(r => r.id);
+    if (ids.length) try {
+      await post('/api/jobs/read-batch', {ids});
+      const seen = new Set(ids);
+      records.forEach(r => {if (r.kind === 'job' && seen.has(r.id)) r.unread = false;});
+      updateTabBadge();
+      await refresh(true);
+    } catch (error) {notice(error.message);}
+  }
   if (view === 'settings') {$('#content').innerHTML = '<p>Đang tải kết nối…</p>'; try {config = await api('/api/settings'); if (view === 'settings') renderSettings();} catch (error) {notice(error.message);}}
 }
 function renderSettings() {

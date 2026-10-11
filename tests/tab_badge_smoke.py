@@ -34,14 +34,15 @@ with tempfile.TemporaryDirectory(dir='/tmp') as data:
                 svg=r.read().decode();assert '#e53935' in svg and '>3</text>' in svg
             page.locator('#appSidebar').hover();page.wait_for_function("()=>document.querySelector('#appSidebar').getBoundingClientRect().width>=244")
             page.locator('[data-view=job]').click();page.mouse.move(1000,100)
-            for count in [2,1,0]:
-                page.locator('.job-unread-dot').first.locator('xpath=ancestor::article').locator('[data-job-open]').first.click()
-                page.wait_for_function('n=>tabUnread===n',arg=count)
-                page.locator('#closeJobDetail').click()
+            page.wait_for_function('()=>tabUnread===0')
             assert page.title()=='Freelance Desk'
             page.reload();page.wait_for_function('()=>initialized');assert page.title()=='Freelance Desk'
+            body=json.dumps({'event':'new_jobs','jobs':[{'id':'tab-later','title':'Later job','url':'https://www.upwork.com/jobs/~later','description':'New arrival'}]}).encode()
+            urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8774/api/webhook/'+token,data=body,headers={'Content-Type':'application/json'})).close()
+            page.evaluate('refresh()');page.wait_for_function('()=>tabUnread===1')
+            page.evaluate("changeView('job')");page.wait_for_function('()=>tabUnread===0')
             with urllib.request.urlopen('http://127.0.0.1:8774/favicon.svg?unread=120') as r:assert '>99+</text>' in r.read().decode()
             with urllib.request.urlopen('http://127.0.0.1:8774/favicon.svg?unread=%3Cscript%3E') as r:assert '#e53935' not in r.read().decode()
-            print('PASS red tab icon/count, actual detail read decreases immediately, persists after reload, 99+ and invalid input')
+            print('PASS red tab icon/count, opening job feed clears existing unread jobs, persists after reload, 99+ and invalid input')
             browser.close()
     finally:process.terminate();process.wait(timeout=10)

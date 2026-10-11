@@ -441,6 +441,19 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/jobs/read-batch':
+                ids = item.get('ids')
+                if not isinstance(ids,list) or any(type(ident) is not int for ident in ids):
+                    raise ServiceError('Danh sách job không hợp lệ.')
+                with connect() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    for ident in set(ids):
+                        row = db.execute("SELECT body FROM records WHERE id=? AND kind='job'",(ident,)).fetchone()
+                        if not row: continue
+                        saved = json.loads(row['body'])
+                        saved['unread'] = False
+                        db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(saved,ensure_ascii=False),ident))
+                return self.reply(200, {'ok':True})
             if path == '/api/jobs/read':
                 try: ident = int(item.get('id'))
                 except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None
