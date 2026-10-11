@@ -70,20 +70,41 @@ def job_signature(job):
     return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+job_review_cooldown = 0
+
+def process_job_reviews():
+    global job_review_cooldown
+    if time.time() < job_review_cooldown: return
+    if not os.environ.get('FREELANCE_AI_KEY') or not ai_auto_jobs(): return
+    for job in records():
+        if job['kind'] != 'job': continue
+        if not ai_auto_jobs(): break
+        signature = job_signature(job)
+        with connect() as db:
+            old = db.execute('SELECT signature,body FROM job_reviews WHERE record_id=?',(job['id'],)).fetchone()
+        previous = json.loads(old['body']) if old and old['signature']==signature else {}
+        if old and old['signature']==signature:
+            if not previous.get('error'): continue
+            if previous.get('attempts',0)>=3 or previous.get('nextRetry',0)>time.time(): continue
+        rate_limited = False
+        try: review = job_radar.evaluate(job)
+        except ServiceError as error:
+            rate_limited = getattr(error,'status',None)==429
+            attempts = previous.get('attempts',0)+1
+            review = {'error':str(error),'attempts':attempts,'nextRetry':time.time()+60*(2**(attempts-1))}
+        with connect() as db:
+            db.execute('INSERT OR REPLACE INTO job_reviews VALUES (?,?,?)',(job['id'],signature,json.dumps(review,ensure_ascii=False)))
+        # Leave room for writing requests instead of bursting through all jobs.
+        time.sleep(2)
+        if rate_limited:
+            job_review_cooldown = time.time()+60
+            break
+
+
 def job_worker():
     while True:
         try:
-            if os.environ.get('FREELANCE_AI_KEY') and ai_auto_jobs():
-                for job in records():
-                    if job['kind'] != 'job': continue
-                    signature = job_signature(job)
-                    with connect() as db:
-                        old = db.execute('SELECT signature FROM job_reviews WHERE record_id=?',(job['id'],)).fetchone()
-                    if old and old['signature'] == signature: continue
-                    try: review = job_radar.evaluate(job)
-                    except ServiceError as error: review = {'error':str(error)}
-                    with connect() as db:
-                        db.execute('INSERT OR REPLACE INTO job_reviews VALUES (?,?,?)',(job['id'],signature,json.dumps(review,ensure_ascii=False)))
+            process_job_reviews()
             time.sleep(3)
         except Exception:
             time.sleep(5)
@@ -441,6 +462,24 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/ai/auto-jobs':
+                from local_config import config_path, save
+                if type(item.get('enabled')) is not bool: raise ServiceError('Chế độ tự đánh giá không hợp lệ.')
+                path_config = config_path()
+                try:
+                    values = json.loads(path_config.read_text(encoding='utf-8')) if path_config.exists() else {}
+                    if not isinstance(values,dict): raise ValueError()
+                    value = '1' if item['enabled'] else '0'
+                    values['FREELANCE_AI_AUTO_JOBS'] = value
+                    save(values)
+                except (OSError,ValueError): raise ServiceError('Không lưu được cấu hình.',500) from None
+                os.environ['FREELANCE_AI_AUTO_JOBS'] = value
+                if item['enabled']:
+                    with connect() as db:
+                        for row in db.execute('SELECT record_id,body FROM job_reviews').fetchall():
+                            if json.loads(row['body']).get('error'):
+                                db.execute('DELETE FROM job_reviews WHERE record_id=?',(row['record_id'],))
+                return self.reply(200, {'ok':True})
             if path == '/api/channels/configure':
                 from local_config import config_path, save
                 names = {'slack':('FREELANCE_SLACK_TOKEN','FREELANCE_SLACK_CHANNEL'),'telegram':('FREELANCE_TELEGRAM_TOKEN','FREELANCE_TELEGRAM_CHAT_ID')}
