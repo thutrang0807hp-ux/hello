@@ -98,7 +98,7 @@ class GeminiProviderTests(unittest.TestCase):
             self.assertEqual(ai_provider.model(), 'gemini-2.5-flash-lite')
 
     def test_google_404_diagnostics_redact_key(self):
-        detail={'error':{'message':'Model unavailable for fake-key'}}
+        detail={'error':{'message':'Model unavailable for fake-key-for-tests'}}
         error=urllib.error.HTTPError('https://test.invalid',404,'Not found',{},io.BytesIO(json.dumps(detail).encode()))
         with patch('services.post_json',side_effect=error),self.assertRaises(services.ServiceError) as caught:
             services.generate_proposal({'requirements':'Dashboard'}, {})
