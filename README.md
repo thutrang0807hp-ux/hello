@@ -1,0 +1,238 @@
+# Freelance Desk
+
+Web dùng riêng cho freelancer: quản lý khách hàng, nhận job từ Upwork Toolkit trên Chrome, soạn proposal bằng AI và nhận thông báo trong web, Slack, Telegram.
+
+## Tải về và chạy trên Windows
+
+1. Trên GitHub, chọn **Code → Download ZIP**, sau đó giải nén toàn bộ.
+2. Cài [Python 3.12](https://www.python.org/downloads/windows/), tích **Add python.exe to PATH**.
+3. Mở **start-windows.bat**. Lần đầu nhập mật khẩu riêng; AI, Slack và Telegram có thể bỏ qua rồi cấu hình sau.
+4. Trình duyệt tự mở ứng dụng. Giữ cửa sổ chạy app mở trong lúc dùng.
+
+Hướng dẫn chi tiết: [HUONG-DAN-WINDOWS.txt](HUONG-DAN-WINDOWS.txt). **demo.html** chỉ là mô phỏng; muốn lưu dữ liệu thật, chạy **start-windows.bat**. Gemini/Muse chưa được tích hợp; API AI hiện dùng OpenAI.
+
+## Chạy
+
+Python 3.10+; ứng dụng không cần gói ngoài.
+
+**Máy cá nhân (lựa chọn hiện tại):** tải và giải nén gói ứng dụng. Mở `demo.html` để xem thử thiết kế và thao tác bằng dữ liệu / AI mẫu, không cần Python; tải lại demo sẽ đặt lại dữ liệu. Windows: cài Python 3.10+ từ python.org, bật tùy chọn thêm Python vào PATH, rồi mở `start-windows.bat`. macOS/Linux: chạy `sh start.sh` trong thư mục ứng dụng. Trình duyệt sẽ tự mở; giữ cửa sổ chạy ứng dụng và Chrome đang dùng Upwork Toolkit hoạt động.
+
+Lần đầu, công cụ hỏi mật khẩu riêng, khóa AI và cấu hình Slack/Telegram. Có thể nhấn Enter để bỏ qua kênh chưa dùng; token và mật khẩu không hiển thị khi nhập. Các giá trị được lưu trong `data/local-config.json`, không mã hóa, với quyền tệp riêng trên hệ thống hỗ trợ. Giữ kín thư mục này. Để chỉnh cấu hình: Windows mở `configure-windows.bat`; macOS/Linux chạy `python3 configure.py`, rồi khởi động lại ứng dụng. Enter giữ giá trị cũ; dấu `-` xóa một giá trị.
+
+Chạy máy chủ thủ công (không mở trình duyệt):
+
+```sh
+cd /workspace/hello
+python3 server.py
+```
+
+Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng. `FREELANCE_DATA_DIR` đổi thư mục lưu dữ liệu, mặc định `data/`. Sao lưu toàn bộ thư mục dữ liệu khi máy chủ đã dừng, gồm SQLite và token webhook. Nút xuất JSON xuất các bản ghi để bạn lưu thêm; chưa có chức năng nhập lại JSON.
+
+## Luồng làm việc
+
+1. Nhập dịch vụ, kinh nghiệm thực tế và portfolio tại **Hồ sơ & kết nối**.
+2. Nối Webhook từ Upwork Toolkit để job mới xuất hiện trong **Cơ hội công việc**.
+3. Chọn **Xem chi tiết** để đọc mô tả và thông tin khách; nếu thiếu nội dung, dùng **Bổ sung mô tả**. Vào tab **Proposal Studio**, chọn job trong node thông tin công việc để soạn thư.
+4. Nối node job và các node mẫu vào thư nháp; nhập cách giải quyết, giá, thời hạn và nhấn viết AI.
+5. Chạy node **AI đánh giá**, xem điểm / điểm mạnh / điểm yếu, rồi hoàn thiện node **Thư cuối**.
+6. Sao chép thư để gửi trên Upwork. Sau khi thực sự gửi, chọn **Tôi đã gửi → Lưu vào kho**; cập nhật kết quả ở **Thư đã gửi**.
+
+AI viết/chấm thư chỉ được gọi khi bạn nhấn nút. Khi đã cấu hình khóa AI, job được tự động đọc và đánh giá trong nền; kết quả được lưu, chỉ gọi lại khi thông tin đánh giá thay đổi hoặc bạn bấm thử lại sau lỗi. Hồ sơ, mô tả job và thông tin thư được gửi cho OpenAI; `store: false` được dùng trong request Responses API. API có chi phí riêng theo tài khoản nhà cung cấp. Ứng dụng không tự gửi proposal lên Upwork.
+
+## Cấu hình AI, Slack và Telegram
+
+Trên máy cá nhân, dùng công cụ cấu hình như hướng dẫn phía trên. Không cần Publish môi trường cloud để chạy trên máy bạn. Nếu sau này chạy trong Codex cloud, các yêu cầu dưới đây cũng đã được lưu vào cấu hình nháp; nhập giá trị qua cài đặt môi trường, lưu và Publish rồi khởi động lại ứng dụng. Không gửi khóa trong chat hoặc commit vào Git. Người dùng kỹ thuật có thể truyền các biến tương ứng qua môi trường của tiến trình; giá trị đã có trong môi trường được ưu tiên hơn cấu hình local. Mẫu tên biến có trong `.env.example` (ứng dụng không tự đọc tệp `.env`).
+
+| Biến | Công dụng |
+| --- | --- |
+| `FREELANCE_AI_KEY` | Khóa API OpenAI, dùng với `api.openai.com` |
+| `FREELANCE_AI_MODEL` | Model, mặc định `gpt-4.1-mini` |
+| `FREELANCE_SLACK_TOKEN` | Bot token của Slack app, dùng với `slack.com` |
+| `FREELANCE_SLACK_CHANNEL` | ID kênh Slack nhận job |
+| `FREELANCE_TELEGRAM_TOKEN` | Bot token Telegram, dùng với `api.telegram.org` |
+| `FREELANCE_TELEGRAM_CHAT_ID` | ID cuộc trò chuyện nhận job |
+| `FREELANCE_PASSWORD` | Mật khẩu đăng nhập web, được đọc trực tiếp bởi máy chủ |
+| `FREELANCE_COOKIE_SECURE` | Đặt `1` khi truy cập qua HTTPS |
+| `FREELANCE_BIND` | Mặc định `127.0.0.1`; địa chỉ bên ngoài chỉ được chấp nhận khi có mật khẩu |
+| `FREELANCE_WEBHOOK_TOKEN` | Tùy chọn: token dài tối thiểu 24 ký tự; mặc định ứng dụng tự tạo và giữ trong `data/` |
+
+Slack: tạo Slack app trong workspace của bạn, thêm quyền bot `chat:write`, cài app vào workspace và mời bot vào kênh nhận thông báo. Lấy bot token và channel ID trong cấu hình Slack. Telegram: tạo bot qua BotFather, gửi `/start` cho bot, lấy chat ID bằng `getUpdates` hoặc công cụ quản trị của bạn. Token được giữ phía máy chủ, không đưa vào giao diện web.
+
+Khi hai biến của một kênh đã có, job mới sẽ được đưa vào hàng đợi của kênh đó. Job cũ không được gửi lại khi bạn mới cấu hình kênh. Thông báo lỗi được thử lại tối đa 5 lần với thời gian chờ tăng dần; lịch sử và nút thử lại nằm trong **Hồ sơ & kết nối**. Trường hợp mạng bị ngắt sau khi nhà cung cấp đã nhận thông báo có thể tạo thông báo lặp khi thử lại; chống trùng job trong cơ sở dữ liệu vẫn được giữ.
+
+## Nối với Upwork Toolkit
+
+Mã nguồn đã tham khảo: [neeilya/upwork-toolkit](https://github.com/neeilya/upwork-toolkit), HEAD `e75003468d373353e69ff46c1c54cec02100ae41`. Phiên bản này có **Mobile notifications → Webhook**. Bản Chrome Web Store đang cài trên máy bạn có thể khác phiên bản.
+
+1. Trong web này, mở **Hồ sơ & kết nối**, sao chép URL webhook. Đây là đường dẫn có token bí mật, không chia sẻ công khai.
+2. Trong tiện ích Chrome, mở **Mobile notifications → Webhook**, dán URL, Save, cấp quyền truy cập địa chỉ web và bật Webhook.
+3. Nhấn **Send test**, kiểm tra job thử ở **Cơ hội công việc**; nếu Slack/Telegram đã cấu hình, nó cũng tạo thông báo tới các kênh đó.
+4. Giữ Chrome, tiện ích và phiên đăng nhập Upwork hoạt động. Nếu dùng lịch làm việc của toolkit, webhook cũng phụ thuộc lịch này.
+
+Nếu chạy web trên máy cá nhân cùng Chrome, địa chỉ nội bộ trong phần kết nối dùng được trên máy đó. Nếu chạy web trên máy chủ, cần địa chỉ HTTPS mà Chrome trên máy bạn truy cập được. **Publish môi trường Codex không tự tạo địa chỉ web công khai.**
+
+Ứng dụng này nhận JSON từ tiện ích, không gọi API Upwork, giữ cookie Upwork hoặc thay đổi cách tiện ích lấy job. Định dạng nhận: POST tới đường dẫn bí mật, `Content-Type: application/json`, body có `event: "new_jobs"` và `jobs` gồm `id`, `title`, `url`, `description`, `budget`, `skills`, `client`, `postedAt`. Chống trùng theo `id`; gửi lại cùng ID không ghi đè các ghi chú hoặc trạng thái bạn đã chỉnh. ID job đã xóa vẫn được ghi nhớ để không tự xuất hiện lại ở lần gửi sau.
+
+Toolkit hiện cắt phần mô tả webhook còn 350 ký tự. Web hiển thị phần nhận được; mở job trên Upwork và bổ sung mô tả đầy đủ trước khi dùng AI. Thông tin quốc gia, chi tiêu, rating của khách hàng từ feed chưa đủ để tự tạo một khách hàng CRM có danh tính, nên bạn liên kết khách hàng khi đã xác định được họ.
+
+
+## Proposal Studio và kho thư đã gửi
+
+- **Canvas node:** kéo đầu node để đổi vị trí; kéo vùng trống để di chuyển canvas, dùng +/− hoặc Vừa khung để đổi mức phóng. Bấm cổng ● bên phải của nguồn rồi cổng ● bên trái của đích để nối. Chọn node để chỉnh nội dung trong bảng bên phải; có thể nối hoặc bỏ đầu vào tại đây.
+- **Job → mẫu → thư nháp → AI đánh giá → thư cuối:** thông tin job và các mẫu đều nối vào thư nháp. Có thể thêm nhiều mẫu, thêm nhánh đánh giá, hoặc viết nội dung thủ công. AI chỉ sử dụng các node đầu vào trong luồng được nối; tối đa 30 node, 100 kết nối và không có vòng lặp.
+- **Mẫu tham khảo:** chọn một mẫu đã lưu hoặc một thư trong kho đã gửi; thư có hợp đồng được gắn nhãn. Nhấn Lưu thành mẫu để dùng ở workspace khác. Thư thành công là dữ liệu tham khảo, không đảm bảo một mẫu sẽ luôn thắng job.
+- **AI đánh giá:** điểm 0–100, bốn tiêu chí (phù hợp job, độ tin cậy, phạm vi / báo giá, bước tiếp theo), điểm mạnh, điểm yếu, đề xuất sửa. Đây là điểm đánh giá nội dung, không phải xác suất nhận hợp đồng. Nếu yêu cầu job, thư đầu vào, giá hoặc hồ sơ đổi, đánh giá được đánh dấu cần chấm lại. Node cuối có thể dùng nguyên thư nháp hoặc nhờ AI hoàn thiện theo phản hồi.
+- **Lưu workspace:** nút Lưu giữ tên, vị trí node, các kết nối, nội dung và đánh giá trong SQLite. Những proposal cũ mở được trong workspace mới, giữ nội dung đã có. Có cảnh báo khi rời trang với thay đổi chưa lưu.
+- **Thư đã gửi:** chỉ ghi nhận khi bạn xác nhận đã gửi trên Upwork. Nội dung, graph và thời điểm được lưu thành snapshot; sửa workspace hoặc cập nhật kết quả không sửa bản nguyên văn. Cùng workspace và cùng nội dung không tạo thêm snapshot trùng. Muốn ghi nhận một lần gửi khác, thay nội dung thư cuối.
+- **Kết quả:** đang chờ, có hợp đồng, không có hợp đồng hoặc không phản hồi; thêm giá trị hợp đồng và ghi chú. Thống kê tỷ lệ thắng chỉ tính những thư đã chốt có / không có hợp đồng. Nút Dùng làm node mẫu đưa thư đã gửi vào workspace hiện tại và nối nó vào thư nháp.
+
+## Thông báo trong web
+
+Khi web đang mở, danh sách cập nhật mỗi 10 giây; job mới được đánh dấu chưa đọc trên tổng quan và danh sách công việc. Nhấn **Bật thông báo trình duyệt** để cho phép thông báo desktop nếu trình duyệt hỗ trợ. Khi đóng web, Slack/Telegram vẫn nhận được nếu máy chủ và tiện ích Chrome vẫn chạy; thông báo trình duyệt của web không chạy khi đóng trang. Nhắc liên hệ lại hiện nằm trong trang tổng quan, chưa tự gửi tới Slack/Telegram.
+
+## Đăng nhập và triển khai
+
+`FREELANCE_PASSWORD` bật đăng nhập riêng; phiên hết hạn sau 24 giờ hoặc khi khởi động lại máy chủ. Token webhook chỉ cho phép nhận job, không đọc hoặc sửa dữ liệu khác. Nhật ký máy chủ không ghi URL chứa token. Khi triển khai ngoài máy cá nhân, dùng reverse proxy HTTPS, bật mật khẩu và `FREELANCE_COOKIE_SECURE=1`, giữ cổng ứng dụng nội bộ và cấu hình reverse proxy không ghi token webhook trong access log. Máy chủ Python hiện phù hợp bản dùng riêng; chưa cung cấp hosting hoặc tên miền.
+
+## Kiểm thử
+
+```sh
+python3 -m unittest discover -s tests -v
+node --check public/app.js
+node --check public/studio.js
+```
+
+14 kiểm thử backend kiểm tra đăng nhập, quyền webhook, chống trùng kể cả gửi đồng thời, nhập batch nguyên tử, CRUD và giữ metadata, hồ sơ AI, xử lý lỗi AI, hàng đợi và payload Slack/Telegram. Kiểm thử mới bao gồm graph không có vòng lặp, snapshot thư đã gửi giữ nguyên sau khi sửa workspace, chống ghi nhận trùng một nội dung, mẫu đầu vào AI và chấm điểm có cấu trúc. Các nhà cung cấp bên ngoài được mô phỏng; kết quả không chứng minh AI hoặc thông báo thật đã hoạt động.
+
+Kiểm thử giao diện bổ sung (cần Playwright và `/usr/bin/chromium`):
+
+```sh
+python3 tests/browser_smoke.py
+```
+
+Kiểm thử này dùng dữ liệu tạm, kiểm tra đăng nhập, tạo khách hàng, hồ sơ, nhận job, luồng node viết nháp / chấm điểm, cảnh báo đánh giá cũ, thêm mẫu và nối node, kéo thả / lưu / tải lại, kho thư đã gửi, kết quả hợp đồng, tái sử dụng thư có hợp đồng, giao diện điện thoại và đăng xuất. Phản hồi AI được mô phỏng. Dữ liệu thật không bị thay đổi.
+
+## Cơ hội công việc: quan tâm và đánh giá
+
+Tab công việc dùng danh sách gọn, không có các ô thống kê tổng quan. Bấm **Quan tâm** để giữ job trong bộ lọc riêng tối đa 7 ngày; bấm lần nữa để bỏ quan tâm. Bấm lưu lại khi đang quan tâm không kéo dài hạn. Hết hạn tự bỏ dấu quan tâm, vẫn giữ job, thư và lịch sử. Hạn được kiểm tra bằng đồng hồ máy chủ khi đọc dữ liệu; web cập nhật mỗi 10 giây khi mở.
+
+Di chuột lên job hoặc bấm **Đánh giá** (dùng được trên điện thoại) để xem tóm tắt tiếng Việt, nhận xét ngân sách, độ rõ của phạm vi và dấu hiệu rủi ro. Điểm gồm giá/phạm vi 25, mô tả rõ 20, ít dấu hiệu rủi ro 15, độ mới 15, cạnh tranh 10, lịch sử thuê 10, đánh giá khách 5. Các điểm thời gian được tính lại khi đọc danh sách, không gọi AI lại. Xanh cần ít nhất 80 điểm và các tiêu chí chính tốt; vàng cần cân nhắc/thiếu dữ liệu; đỏ khi giá quá thấp hoặc có dấu hiệu rủi ro rõ trong đánh giá. Điểm không phải xác nhận job an toàn hoặc xác suất có hợp đồng.
+
+Toolkit cung cấp `proposalsTier`, thời điểm đăng/làm mới, sao và chi tiêu của khách. Chi tiêu dương là dấu hiệu đã dùng dịch vụ, không phải số lần thuê; số lần thuê chỉ dùng khi nguồn thực sự có `totalHires`. Dữ liệu thiếu được ghi rõ và không cộng điểm. Toolkit có thể cắt mô tả ở 350 ký tự; hãy bổ sung mô tả đầy đủ ở **Xem chi tiết → Bổ sung mô tả** để đánh giá lại. Ngày nhận webhook không được giả làm ngày đăng. Khi chưa cấu hình AI, job giữ màu vàng chưa đủ đánh giá, không tạo tóm tắt hay điểm AI giả. Lỗi AI được lưu để tránh tự gọi lặp tốn phí; bấm **Thử đánh giá lại** sau khi xử lý cấu hình/hạn mức.
+
+Thẻ job có **Quan tâm**, **Đánh giá** và **Xem chi tiết**. Chi tiết là bảng đọc, không phải biểu mẫu chỉnh sửa: mô tả, kỹ năng, ngân sách, số người nộp, thời điểm nguồn và thông tin khách. Nút **Bổ sung mô tả** chỉ mở ô chỉnh nội dung khi cần; bấm hủy không ghi dữ liệu. Soạn thư tại tab Proposal Studio.
+
+## Quốc gia, thời gian đăng và hoạt động khách
+
+Thẻ công việc hiển thị quốc gia khách, thời gian đăng/làm mới tương đối và lần khách xem hoặc hoạt động gần nhất nếu có dữ liệu. Thời gian nguồn toolkit là `renewedOn ?? createdOn`, nên không coi đó chắc chắn là ngày đăng lần đầu; ngày nhận webhook không thay thế ngày đăng.
+
+Webhook toolkit hiện tại **chưa chuyển hoạt động khách** dù dữ liệu chi tiết upstream có trường `clientActivity.lastBuyerActivity`. App không tự truy cập tài khoản Upwork để lấy trường này. Khi thiếu dữ liệu, giao diện ghi rõ chưa có. Bạn có thể vào **Xem chi tiết → Bổ sung lần khách xem job từ Upwork**, ghi nhận thời điểm “Last viewed by client” do Upwork hiển thị. Thời điểm xem được lưu riêng với thời điểm bạn ghi nhận, và luôn được ghi nguồn thủ công.
+
+Nếu nguồn bổ sung dữ liệu trong tương lai, webhook hỗ trợ `clientActivity.lastViewedAt` hoặc `clientLastViewedAt` cho lần xem; `clientActivity.lastBuyerActivity` hoặc `lastActivityAt` cho hoạt động chung. Giá trị là ISO 8601 có múi giờ, không ở tương lai. Hoạt động chung không được gọi là lượt xem. Webhook lặp lại cùng ID cập nhật các mốc hoạt động, giữ mô tả bạn bổ sung và không gửi lại thông báo job mới. Lịch sử giữ tối đa 30 mốc khác nhau; đó là các mốc ứng dụng ghi nhận, không phải toàn bộ lịch sử truy cập của Upwork. Dữ liệu cũ hơn không làm lùi lần hoạt động mới nhất.
+
+Khi dữ liệu hoạt động vừa được ghi nhận trong 30 phút và lần xem/hoạt động gần nhất đã cách ít nhất 5 giờ, job bị trừ 10 điểm ưu tiên, giữ nhóm vàng nếu chưa có lý do khác để đỏ. Không kết luận job bị bỏ hoặc là scam. Khi dữ liệu ghi nhận đã cũ hơn 30 phút, app nhắc cập nhật, không áp dụng phạt do thiếu hoạt động vì khách có thể đã quay lại. Những thay đổi này được tính theo thời gian khi đọc dữ liệu, không gọi AI lại.
+
+## Mác đã gửi thư báo giá
+
+Góc trên bên phải mỗi thẻ job có mác trắng khi chưa đánh dấu gửi thư. Tích vào chuyển xanh và ghi nhận thời điểm đánh dấu; tích lại để bỏ dấu. Trạng thái lưu trên máy, giữ qua tải lại và không hết hạn cùng dấu Quan tâm. Tab **Tổng quan** có số **Job đã gửi thư** và danh sách các job đã đánh dấu, mỗi job xuất hiện một lần. Có thể bỏ dấu ngay trong danh sách này.
+
+Mác là xác nhận thủ công bạn đã gửi thư trên Upwork. Nó không gửi thư, không tạo bản thư giả trong kho **Thư đã gửi**, và không thay đổi nội dung thư đã lưu. Khi xác nhận **Tôi đã gửi → Lưu vào kho** trong Studio cho job được liên kết, app cũng bật mác job đó.
+
+## Danh sách job gọn
+
+Tab **Cơ hội công việc** chỉ nhận job tự động từ toolkit, không có nút nhập job thủ công. Tìm kiếm và bộ lọc nằm chung một thanh, bộ lọc có số lượng kết quả. Thẻ job dùng bố cục thống nhất: nội dung ở trái, ngân sách và thời điểm nguồn ở phải, thông tin hoạt động khách và các nút ở hàng dưới. Mô tả danh sách giới hạn hai dòng; bấm tên job hoặc **Xem chi tiết** để đọc toàn bộ phần mô tả đã nhận. Mác đã gửi thư, quan tâm 7 ngày, đánh giá AI và đồng bộ Tổng quan vẫn hoạt động. Trên điện thoại, giá/thời gian chuyển xuống một hàng riêng và bộ lọc vẫn hiện đầy đủ.
+
+## Phễu lọc công việc
+
+Bấm **Lọc** cạnh ô tìm kiếm để tích chọn thời gian đăng/làm mới, quốc gia khách, từ khóa, ngân sách, số proposal của job, sao của khách và trạng thái bạn đã/chưa gửi thư. Có thể bật nhiều nhóm cùng lúc: job phải đáp ứng tất cả nhóm đang bật; nhiều lựa chọn trong cùng nhóm được kết hợp theo “hoặc”. Từ khóa hỗ trợ khớp bất kỳ/tất cả cụm từ và loại trừ; tìm trong tiêu đề, mô tả và kỹ năng, không phân biệt dấu tiếng Việt hay chữ hoa.
+
+Khoảng giá tính bằng USD, chọn riêng giá trọn gói hoặc theo giờ; toàn bộ khoảng giá của job phải nằm trong giới hạn đã nhập. Không so sánh giá theo giờ với giá trọn gói. Dữ liệu thiếu có lựa chọn riêng và không được tự xem là đáp ứng tiêu chí. Thời gian dùng mốc đăng/làm mới từ nguồn, không dùng ngày nhận webhook.
+
+Bảng lọc hiển thị số kết quả trước khi áp dụng. **Hủy** giữ nguyên lựa chọn đã áp dụng; **Đặt lại** chỉ đặt lại bản nháp trong bảng. Sau khi áp dụng, có thể bỏ từng nhóm qua các nhãn dưới thanh tìm kiếm hoặc **Xóa điều kiện** để bỏ toàn bộ điều kiện nâng cao. Lựa chọn được lưu riêng trong trình duyệt và giữ qua tải lại trang; khi trình duyệt không cho lưu, bộ lọc vẫn hoạt động trong phiên hiện tại.
+
+Kiểm thử logic lọc: `node tests/job_filters.test.js`. Kiểm thử trình duyệt bao gồm kết hợp điều kiện, xem trước kết quả, khoảng giá sai, lưu qua tải lại, hủy thay đổi và giao diện điện thoại.
+
+Danh sách quốc gia có đầy đủ lựa chọn, hiển thị tên tiếng Việt và tiếng Anh, hỗ trợ tìm không dấu và cuộn để chọn nhiều nước. Tìm kiếm quốc gia không bỏ các nước đã tích. Tiêu đề và nút áp dụng luôn hiện khi cuộn phần điều kiện.
+
+## Quản lý dự án và số liệu tháng/năm
+
+Khi đánh dấu gửi thư ở thẻ job hoặc lưu thư đã gửi từ Studio, app tạo một bản theo dõi dự án cho job đó, không trùng khi gửi lại. Tab **Quản lý dự án** tách **Theo dõi thư đã gửi** theo tháng và **Kho hợp đồng** lưu tất cả job đã chốt, không giới hạn tháng. Bộ chọn tháng/năm dạng danh sách, nút tháng trước/sau và Tháng này dùng được trên máy tính và điện thoại. Danh sách theo dõi có nhóm Tất cả/Đang chờ và ô tích **Đã chốt hợp đồng**. Tích ghi ngày chốt; tích lại không đổi ngày. Bỏ tích đưa về đang chờ và bỏ ngày chốt. Kết quả đồng bộ với các thư lưu gắn cùng job; cập nhật kết quả trong kho thư cũng cập nhật dự án.
+
+Số job gửi tính theo tháng gửi đầu tiên; hợp đồng tính theo tháng xác nhận chốt, múi giờ Asia/Bangkok (giờ Việt Nam). Danh sách theo dõi tháng chỉ gồm job gửi tháng đó. Kho hợp đồng luôn gồm tất cả job đã chốt, dù bạn đang chọn tháng nào. Ô đã chốt trong nhóm tháng tính các job gửi tháng đó đã có hợp đồng; Tổng quan vẫn thống kê hợp đồng theo ngày chốt. Số đang chờ tính trong nhóm job gửi tháng đó, không phải tổng lịch sử. Không lấy ngân sách job làm doanh thu và không suy đoán thư bị từ chối khi khách im lặng.
+
+Sang tháng mới mặc định chuyển kỳ theo dõi, không xóa dữ liệu; có thể chọn lại tháng cũ. **Tổng quan** giữ tổng năm và bảng 12 tháng, chọn năm để xem lịch sử. Bỏ dấu gửi thư ở tab job không xóa bản theo dõi đã tạo hay kết quả hợp đồng. Job đã đánh dấu trước khi nâng cấp được đưa vào tab khi khởi động app. Dự án giữ tên/ngân sách/quốc gia lúc bắt đầu theo dõi dù job nguồn sau này thay đổi.
+
+## Khách hàng: một bảng, ba nhóm
+
+Tab **Khách hàng** có ba nhóm **Đang trao đổi**, **Hợp đồng đang mở**, **Lưu trữ**. Khách ở giai đoạn test vẫn thuộc Đang trao đổi; khách mất liên lạc nhưng còn hợp đồng thuộc Hợp đồng đang mở. Mỗi khách chỉ có một thẻ, chuyển nhóm trong hồ sơ mà không tạo khách mới. Các trạng thái cũ được hiển thị trong nhóm phù hợp, không xóa dữ liệu.
+
+Thẻ ghi tình hình/milestone hiện tại, việc tiếp theo, ngày cần liên hệ và lần khách phản hồi gần nhất. Bấm **Vừa phản hồi** ghi ngày hôm nay theo giờ Việt Nam; chọn ngày khác trong hồ sơ. Số ngày tự tính, không tự kết luận Ghost. Hồ sơ gom ghi chú và các job/dự án/thư đã liên kết. Tìm kiếm và nút **Cần liên hệ** lọc các khách đến hạn, không nhắc khách lưu trữ.
+
+**Gmail hiện là thiết kế luồng, chưa có tích hợp Gmail thật.** App thật hiện Chưa kết nối và giải thích cần cấu hình Google OAuth. Bản demo riêng dùng email mẫu để thử chọn khách và ghi nhận phản hồi, có nhãn Email mẫu. Không đọc Gmail, không tạo phiên Google hay gửi thông báo thật. Việc tự nhận email, nhận diện Upwork, khớp khách và lưu quy tắc liên kết cần triển khai ở bước tích hợp OAuth sau.
+
+## Tổng quan: biểu đồ và việc cần xử lý
+
+Tổng quan không lặp danh sách job mới hay job đã gửi thư. Biểu đồ cột 12 tháng so sánh số job gửi thư (xanh) và hợp đồng chốt (vàng); bấm cột hoặc dùng bàn phím để chọn tháng. Nút mở dự án chuyển đến đúng tháng đang chọn. Chọn năm để xem lịch sử; không có dữ liệu hiển thị số 0, không nội suy. Số hợp đồng tính theo tháng/năm chốt, số thư theo lần gửi đầu tiên của job. Tỷ lệ chốt tính trên nhóm job gửi trong năm đã chọn, vì hợp đồng chốt trong năm có thể được gửi từ năm trước; đó là tỷ lệ hiện tại của nhóm, không phải dự báo.
+
+**Việc cần làm** lấy từ lịch liên hệ đến hạn trong hồ sơ khách, loại trừ khách lưu trữ và việc đã đánh dấu hoàn thành. Bấm Hoàn thành giữ thông tin khách và lưu dấu cho lịch hẹn đó; sửa việc tiếp theo hoặc ngày hẹn sẽ bật lại theo dõi. **Cần quan tâm** hiển thị khách trong nhóm Hợp đồng đang mở có lần phản hồi ghi nhận cách ít nhất 7 ngày. Không suy đoán khách chưa có ngày phản hồi và không tự đánh dấu Ghost. Hoàn thành việc liên hệ không giả làm khách đã phản hồi. Các nhắc việc hiện trong Tổng quan; không tự gửi email/Slack/Telegram mới.
+
+## Menu thu gọn
+
+Trên máy tính, menu mặc định là dải biểu tượng rộng 76px; rê chuột hoặc đưa tiêu điểm bàn phím vào sẽ mở kèm nhãn. Bấm chọn tab vẫn giữ menu mở khi chuột còn trong menu. Rời menu tự thu gọn; nút trong menu cho phép giữ mở/thu lại. Menu mở phủ lên mép workspace, không làm thay đổi kích thước biểu đồ hoặc canvas. Trên điện thoại, nút menu mở ngăn điều hướng; chọn trang, bấm nền hoặc Escape để đóng. Người dùng bật giảm chuyển động sẽ không có hiệu ứng chuyển cảnh.
+
+**Thư đã gửi** nằm trong Proposal Studio, có thanh chuyển giữa Không gian viết thư / Thư đã gửi và mục con trong menu mở rộng. **Hồ sơ & kết nối** ở cuối menu. Các trang và dữ liệu vẫn được giữ nguyên, chỉ gộp vị trí điều hướng.
+
+## Tổng quan theo ưu tiên tuần
+
+Bên cạnh biểu đồ là một ưu tiên chính và tối đa hai ưu tiên tiếp theo, dựa trên dữ liệu ghi nhận và sức tải bạn chọn. Tuần tính từ thứ Hai đến Chủ nhật theo giờ Việt Nam; phần Tuần trước dùng tuần đã kết thúc, không dùng 7 ngày trượt. Số khách đang trao đổi là trạng thái hiện tại, không giả làm lịch sử khách theo tuần.
+
+Sức tải Chưa xác nhận / Còn thời gian tìm khách / Đang bận bàn giao được lưu theo tuần trong trình duyệt. Chỉ khi bạn xác nhận còn thời gian, có tối đa một khách đang trao đổi và tuần trước không có hợp đồng chốt, app gợi ý tìm thêm khách. Bận bàn giao không được nhắc tìm thêm bằng mọi giá. Việc đến hạn được ưu tiên, không lặp một khách vào nhiều gợi ý chính. Không có dữ liệu phản hồi theo từng thư thì không tính tỷ lệ phản hồi hoặc kết luận proposal kém. Gợi ý hiện dùng quy tắc, không phải nhận xét AI.
+
+Bốn chỉ số năm, biểu đồ 12 tháng và ưu tiên tuần luôn hiện trên trang. Việc đến hạn và khách cần quan tâm được gộp thành một danh sách, không lặp cùng khách ở hai nhóm. Có bản xem báo cáo tháng trong web và tải Excel .xlsx. Báo cáo tách kết quả tháng khỏi trạng thái khách hiện tại; chưa có lịch sử chuyển nhóm để nhận xét khách theo tháng. **AI đánh giá báo cáo, lịch gửi cuối tháng và gửi Gmail chưa được triển khai**; giao diện ghi rõ Chưa tích hợp và không gửi email thật.
+
+Kiểm thử gợi ý tuần: `node tests/focus.test.js`.
+
+Trong Quản lý dự án, bấm tên job để mở/thu mô tả nhanh (tối đa 650 ký tự). Ưu tiên mô tả của job đang lưu; dự án mới giữ thêm bản mô tả dự phòng khi job nguồn bị xóa.
+
+Menu Công việc gom hai tab con Tìm cơ hội và Theo dõi đã gửi. Tab Theo dõi đã gửi giữ nguyên chọn tháng, mô tả nhanh và Kho hợp đồng.
+
+Các workspace dùng chung lề, cỡ tiêu đề và vị trí thanh tab; thanh cuộn giữ chỗ để tránh đổi bề rộng khi chuyển trang. Chuyển trang luôn về đầu; thông báo trạng thái nổi để không đẩy nội dung.
+
+Khách hàng giữ ba nhóm, có trạng thái chọn ngay trên thẻ: khách mới/đang trao đổi, đang làm/chờ giao việc, đã đóng có/không có hợp đồng. Chọn trạng thái đóng chuyển khách sang Lưu trữ và ngừng nhắc liên hệ; có thể mở lại. Hồ sơ có đánh giá hợp tác tùy chọn: ổn/cần cân nhắc/nên tránh. Khách lưu trữ cũ chưa rõ hợp đồng giữ nhãn chưa phân loại.
+
+Mỗi cột khách hàng có bộ lọc trạng thái riêng; bộ chọn trên thẻ chỉ thuộc nhóm hiện tại, nút Đóng chuyển sang Lưu trữ. Với Khách mới, ghi ngày gửi tin hỏi bằng nút Đã gửi tin hỏi hoặc trong hồ sơ. Từ đủ 14 ngày chưa có phản hồi vào/sau ngày hỏi, lần cập nhật dữ liệu tiếp theo sẽ lưu trữ khách (không xóa). Không áp dụng khi thiếu ngày hỏi, đã phản hồi hoặc đã chuyển sang đang trao đổi/hợp đồng.
+
+Có thể kéo tay nắm ⠿ của thẻ khách sang cột khác trên máy tính. Nút Có hợp đồng chuyển khách đang trao đổi sang hợp đồng mở; Đóng ghi trạng thái trước đó; Mở lại khôi phục khách có hợp đồng về nhóm đang mở và trạng thái đang làm/chờ giao việc. Khách đóng không có hợp đồng mở lại về đang trao đổi; ngày hỏi cũ được bỏ để tránh tự lưu trữ lại ngay. Các nút là lựa chọn tương đương trên điện thoại; chỉ đổi hồ sơ CRM, không thay đổi hợp đồng Upwork hay kết quả dự án.
+
+## Phân tích công việc
+
+Trong Tổng quan có hai tab con Tổng quan / Phân tích. Trang chính chỉ thêm một nhận xét ngắn; trang Phân tích có kỳ 7, 30 hoặc 90 ngày, theo giờ Việt Nam:
+
+- Nhịp job: biểu đồ từng ngày, bảng số liệu ngày và bảng màu thứ/giờ. Chọn riêng giờ đăng/làm mới do Upwork cung cấp hoặc giờ toolkit nhận. Có tùy chọn chỉ job xanh/vàng đã chấm. Không lấy giờ nhận thay cho giờ đăng còn thiếu; chỉ phản ánh job đã thu thập và còn trong kho.
+- Các mốc chốt khách: nhóm job gửi lần đầu trong kỳ, không đếm lặp một job vì vừa có dự án vừa có thư lưu. Lượt xem của thư đã lưu có tổng riêng. Thư được xem / khách phản hồi chỉ tính thông tin đã ghi nhận; chưa biết để riêng. Job thắng chưa có mốc phản hồi vẫn được tính thắng, không tự bịa lượt xem.
+- Mẫu thư: dùng đồ thị chụp lúc gửi, chỉ tính mẫu nối tới node thư cuối; bản lưu mới giữ cả ID thư cuối. Workspace sửa sau khi gửi không thay số liệu. Một thư có nhiều mẫu được tính vào từng mẫu, không cộng các hàng thành tổng thư. Tỷ lệ chốt chỉ tính kết quả đã kết thúc, loại trừ đang chờ; ít dữ liệu có nhãn cảnh báo.
+- Trao đổi: từ các thao tác mới, hệ thống lưu ngày bắt đầu trao đổi và lần đầu ghi nhận hợp đồng; đóng/mở lại không đổi ngày chốt cũ. Hồ sơ cũ chưa có mốc không được đoán thành lịch sử theo kỳ. Khách đang trao đổi tách khỏi khách không chốt.
+- Lý do không chốt là tùy chọn trên thẻ lưu trữ không có hợp đồng hoặc trong hồ sơ. Trong Thư đã gửi → Xem thư & kết quả có tùy chọn Chưa rõ / Chưa được xem / Đã xem / Khách phản hồi; không bắt nhập và không có kết nối tự lấy lượt xem Upwork. Cập nhật chỉ sửa thông tin theo dõi, không sửa nguyên văn thư hay đồ thị đã gửi.
+
+Gợi ý tuần tới dùng quy tắc có số liệu và ngưỡng tối thiểu, tối đa ba nhận xét; chưa phải AI gọi nhà cung cấp. Nhắc tìm thêm khách chỉ khi sức tải tuần đã chọn còn thời gian. Không có thống kê Connects hoặc doanh thu. Dữ liệu mẫu trong demo là giả lập, tải lại sẽ đặt lại.
+
+Kiểm tra bổ sung: `node tests/analytics.test.js` và `python -m unittest discover -s tests -p 'test_client_lifecycle.py'`. Browser smoke kiểm tra tab Phân tích, lưu quan sát thư, tải lại, kỳ phân tích và bố cục điện thoại.
+
+Báo cáo tháng tải file Excel .xlsx thật (tạo trong trình duyệt, không gửi ra ngoài), gồm Tổng hợp / Công việc / Khách hàng / Thư đã gửi. Có tiêu đề xanh, dòng đầu cố định, bộ lọc và số liệu kiểu số; hỗ trợ tiếng Việt. Khách hàng là toàn bộ trạng thái hiện tại, được ghi rõ trong sheet Tổng hợp. Kiểm tra: `node tests/excel.test.js`.
+
+### Giờ và ngày lễ Mỹ
+Tổng quan có đồng hồ theo múi giờ khách (mặc định New York), tự cập nhật và tự tính giờ mùa hè. Múi giờ được nhớ trên trình duyệt. Lịch bao gồm các lễ liên bang, ngày nghỉ bù, Ngày của Mẹ, Ngày của Cha, Valentine, Halloween và Black Friday; thông báo dịp gần nhất và nhấn mạnh khi còn tối đa 7 ngày. Giải thích tiếng Việt giúp chuẩn bị lịch liên hệ; việc khách có nghỉ hay không tùy doanh nghiệp. Lịch tính trực tiếp, không cần kết nối dịch vụ ngoài. Kiểm tra quy tắc ngày lễ bằng `node tests/us_calendar.test.js`.
+
+### Bố cục Tổng quan
+Trang chia thành hai vùng: ưu tiên tuần và việc cần xử lý ở trên, kết quả năm và biểu đồ ở dưới. Giờ Mỹ, lịch lễ và số liệu tuần trước nằm ở cột bối cảnh riêng. Các ưu tiên bổ sung và nhận xét dữ liệu mở khi cần. Trên điện thoại, các khối chuyển thành một cột; chọn tháng, xem hồ sơ, hoàn thành nhiệm vụ và tải Excel vẫn dùng cùng dữ liệu.
+
+### Proposal Studio · thao tác canvas
+Bảng nội dung có thể mở bằng cách chọn node hoặc nút Nội dung node; đóng bảng để dùng toàn bộ chiều rộng canvas. Kéo nền để di chuyển, Ctrl/Cmd + lăn chuột để zoom theo con trỏ, hoặc dùng nút +/− và Vừa khung. Có thể kéo cổng ra sang cổng vào để nối, hoặc bấm hai cổng lần lượt; các quy tắc chống vòng lặp và kiểm tra loại node vẫn áp dụng. Xếp luồng sắp node theo kết nối từ trái sang phải, không thay đổi nội dung hay kết nối. Bản đồ nhỏ giúp đi đến node. Nút Mở rộng mở rộng workspace, Escape thu gọn. Chọn node bằng Tab và Enter; khi canvas có focus, dùng +/− để zoom và 0 để vừa khung. Nhấn Lưu workspace để giữ vị trí mới.
+
+Node có nút × để xóa trực tiếp; các đường nối liên quan được gỡ cùng node. Bấm đường nối để bỏ nối trực tiếp; dấu × hiện khi rê chuột lên đường nối và luôn hiện trên thiết bị cảm ứng. Để đổi đích, bỏ nối cũ rồi kéo cổng sang node mới. Chọn kiểu cong, thẳng hay gấp khúc ở thanh canvas. Hoàn tác khôi phục lần xóa node/bỏ nối gần nhất trong workspace hiện tại. Có thể lưu workspace trống và thêm node lại sau; kiểu đường nối cũng được lưu. Kiểm tra quy tắc workspace trống và mức zoom bằng `python -m unittest discover -s tests -p test_workspace_editing.py`.
+
+### Viết thư từ một cơ hội công việc
+Trong chi tiết job, nhấn **Viết thư cho job này**. Studio mở workspace liên kết với job, đưa mô tả và ngân sách vào node Thông tin công việc và nối sẵn vào luồng thư nháp → đánh giá → thư cuối. Quay lại cùng job giữ nguyên bản đang viết; nếu đã lưu, ứng dụng mở lại workspace đó. Chuyển sang job khác khi workspace có thay đổi chưa lưu sẽ hỏi để tránh mất nội dung. Nội dung node đã chỉnh không bị ghi đè tự động khi job nguồn thay đổi. Nhấn Lưu workspace để lưu bản mới; mở workspace không đánh dấu đã gửi thư.
+
+### Kho mẫu trong Proposal Studio
+Nút Kho thư mở bảng kho bên cạnh workspace. Node kho có hai chế độ: AI tự chắt lọc (mặc định) đọc mọi thư được cho phép, hoặc Tôi chọn mẫu chỉ đọc những thư đã tích. Thư đến từ kho đã gửi và mẫu ngoài; có tìm kiếm, lọc nguồn, ghim ưu tiên, thêm mẫu mới. Không giới hạn kho ở 10 và không dừng phân tích ở 8 thư: backend đọc toàn bộ nguồn được chọn theo nhóm có giới hạn kích thước, rồi tổng hợp kết quả các nhóm trước khi viết nháp. Có thể chắt lọc cách mở đầu, giải pháp và câu hỏi từ nhiều mẫu; kinh nghiệm, danh tính và giá dùng hồ sơ thật của bạn. Chỉ node kho nối vào luồng viết mới được dùng. Một nút Chắt lọc & viết nháp chạy cả hai bước; phần kết quả chắt lọc và nguồn AI chọn được lưu cùng node viết. Chế độ thủ công cần ít nhất một mẫu; thư được chọn đã bị xóa thì không tự tìm thư khác để thay thế. Lỗi AI không thay nội dung bản nháp hiện tại. Để chạy thật cần khóa AI đã cấu hình; demo dùng phản hồi giả lập, không gọi nhà cung cấp. Kiểm tra đọc theo nhóm và tổng hợp bằng `python -m unittest discover -s tests -p test_reference_synthesis.py`.

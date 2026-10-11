@@ -1,0 +1,58 @@
+"""Archive unanswered new leads using an explicitly recorded inquiry date."""
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+
+def archive_unanswered(client, today=None):
+    if client.get('clientGroup') != 'talk' or client.get('clientStage') != 'new':
+        return None
+    today = today or datetime.now(ZoneInfo('Asia/Bangkok')).date()
+    try:
+        asked = date.fromisoformat(client.get('clientInquiryDate', ''))
+    except (ValueError, TypeError):
+        return None
+    if (today - asked).days < 14:
+        return None
+    reply = client.get('lastReplyDate')
+    if reply:
+        try:
+            if date.fromisoformat(reply) >= asked:
+                return None
+        except (ValueError, TypeError):
+            return None  # Unknown reply date is insufficient evidence of silence.
+    return dict(client, clientGroup='archive', clientStage='closed-no-contract',
+                status='Đã hoàn thành', clientHadContract='no',
+                clientArchivedDate=today.isoformat(), clientLostReason='silent',
+                clientArchiveReason='Khách mới chưa phản hồi sau 14 ngày từ tin hỏi.')
+
+
+def record_client_events(update, previous=None, now=None):
+    """Record new CRM transitions without inventing historical events."""
+    previous = previous or {}
+    result = dict(previous, **update)
+    now = now or datetime.now(ZoneInfo('Asia/Bangkok')).isoformat()
+    if not previous:
+        result.setdefault('clientCreatedAt', now)
+    old_group = previous.get('clientGroup')
+    group = result.get('clientGroup')
+    stage = result.get('clientStage')
+    starts_talk = (group == 'talk' and stage == 'discussing' and
+                   (old_group != 'talk' or previous.get('clientStage') != 'discussing'))
+    new_contract = group == 'active' and old_group not in ('active', 'archive')
+    if not result.get('clientTalkAt'):
+        reply = update.get('lastReplyDate')
+        if reply and group == 'talk':
+            try:
+                reply_date = date.fromisoformat(reply)
+                result['clientTalkAt'] = reply_date.isoformat()+'T00:00:00+07:00'
+            except (ValueError, TypeError):
+                pass
+        elif starts_talk or new_contract:
+            result['clientTalkAt'] = now
+    if new_contract and not result.get('clientContractAt'):
+        result['clientContractAt'] = now
+    if group == 'archive' and old_group in ('talk', 'active'):
+        result['clientPreviousGroup'] = old_group
+        result['clientPreviousStage'] = previous.get('clientStage', '')
+        result.setdefault('clientArchivedDate', now[:10])
+    return result

@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const c=require('../public/us-context.js');
+const find=(y,name)=>c.holidays(y).find(h=>h.name===name).date;
+assert.equal(find(2026,'Ngày của Mẹ · Mother’s Day'),'2026-05-10');
+assert.equal(find(2027,'Ngày của Mẹ · Mother’s Day'),'2027-05-09');
+assert.equal(find(2026,'Ngày của Cha · Father’s Day'),'2026-06-21');
+assert.equal(find(2026,'Memorial Day'),'2026-05-25');
+assert.equal(find(2026,'Lễ Tạ ơn · Thanksgiving'),'2026-11-26');
+assert.equal(find(2026,'Ngày Độc lập · Independence Day · nghỉ bù'),'2026-07-03');
+assert.equal(find(2022,'Năm mới · nghỉ bù'),'2021-12-31');
+assert.equal(c.upcoming(new Date('2021-12-31T17:00:00Z'),'America/New_York')[0].date,'2021-12-31');
+assert.equal(c.localDate(new Date('2026-05-10T02:00:00Z'),'America/Los_Angeles'),'2026-05-09');
+assert.equal(c.localDate(new Date('2026-05-10T02:00:00Z'),'America/New_York'),'2026-05-09');
+assert.equal(c.upcoming(new Date('2026-05-10T17:00:00Z'),'America/New_York')[0].days,0);
+console.log('US calendar: holiday rules, observed dates and timezone boundaries passed.');

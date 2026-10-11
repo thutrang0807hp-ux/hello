@@ -1,0 +1,35 @@
+﻿FREELANCE DESK — CHẠY THẬT TRÊN WINDOWS
+
+1. Cài Python 3.12 từ https://www.python.org/downloads/windows/
+   Tích “Add python.exe to PATH”.
+2. Giải nén toàn bộ ZIP vào thư mục riêng, ví dụ Documents\FreelanceDesk.
+   Không mở file BAT trực tiếp bên trong ZIP.
+3. Mở start-windows.bat. Lần đầu nhập mật khẩu riêng cho web.
+   Có thể nhấn Enter để bỏ qua AI, Slack và Telegram, cấu hình sau.
+4. Trình duyệt tự mở web. Giữ cửa sổ chạy ứng dụng mở khi dùng.
+5. Trong Hồ sơ & kết nối, nhập thông tin thật và sao chép webhook để dán vào
+   Upwork Toolkit → Mobile notifications → Webhook → Send test.
+
+CHỈNH CẤU HÌNH
+Dừng ứng dụng bằng Ctrl+C. Mở configure-windows.bat, chỉnh cấu hình rồi chạy
+start-windows.bat lại. AI hiện hỗ trợ OpenAI API; Gemini/Muse chưa tích hợp.
+Không cần gói Python bên ngoài. Đây là web chạy bằng Python, không phải EXE.
+Các file *demo.html dùng dữ liệu mẫu và tải lại sẽ reset.
+
+DỮ LIỆU THẬT
+Bản chạy thật lưu trong thư mục data cạnh server.py; tải lại không mất dữ liệu.
+Sao lưu: dừng app và sao chép toàn bộ data. Thư mục này có cấu hình riêng và
+khóa/token; không chia sẻ hoặc đưa lên GitHub.
+Mỗi lần mở web bắt đầu ở chế độ sáng; chọn tối trong menu nếu muốn.
+
+CHẠY QUA INTERNET
+Có thể đưa cùng mã nguồn lên VPS hoặc dịch vụ Python có ổ lưu dữ liệu bền vững.
+Cần mật khẩu, HTTPS, FREELANCE_BIND và sao lưu data. Gói này chỉ chạy trên máy
+của bạn; chưa được triển khai lên Internet.
+Toolkit vẫn chạy trong Chrome trên máy bạn; khi Chrome/toolkit ngừng thu thập,
+web trên máy chủ không tự có job mới.
+
+AI, SLACK, TELEGRAM
+Nhập khóa qua configure-windows.bat, không gửi khóa trong chat.
+API AI tính phí riêng. Chưa kiểm tra gửi thông báo/API với tài khoản thật.
+README.md có chi tiết cấu hình, quyền truy cập và thông tin webhook.

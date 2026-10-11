@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),lib=require('../public/template-library.js');
+const records=Array.from({length:80},(_,i)=>({id:i+1,kind:i%2?'template':'sentproposal',name:i<30?'Figma dashboard design '+i:'Accounting tax preparation '+i,body:(i<30?'Figma SaaS dashboard user flows wireframes':'Payroll tax accounting receipts')+' example '+i,outcome:i===0?'won':'pending'}));
+const node={id:'library',type:'template',libraryMode:true,libraryPinned:[],libraryExcluded:[]};
+let result=lib.choose(records,[node],'Design a SaaS dashboard in Figma');assert.equal(result.total,80);assert.equal(result.selected.length,8);assert(result.selected.every(r=>r.name.includes('dashboard')));
+node.libraryPinned=['t-80'];result=lib.choose(records,[node],'Design a SaaS dashboard in Figma');assert.equal(result.selected[0].id,'t-80');
+node.libraryExcluded=['t-80'];result=lib.choose(records,[node],'Design a SaaS dashboard in Figma');assert(!result.selected.some(r=>r.id==='t-80'));
+assert.equal(lib.choose(records,[],'Figma').selected.length,0);
+assert.equal(lib.choose(records,[{...node,libraryPinned:[]}],'Completely unrelated astrophysics').selected.length,0);
+assert.equal(lib.choose(records,[{id:'legacy',type:'template',content:'Use a specific opening',title:'Custom'}],'Figma').selected[0].reason,'Mẫu nối riêng vào luồng');
+console.log('PASS: 80-entry library, bounded relevant shortlist, pin/exclude, disconnected library, unrelated job and legacy node.');
