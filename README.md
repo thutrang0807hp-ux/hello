@@ -262,3 +262,8 @@ Biểu tượng tab là vòng tròn đỏ có số job chưa xem; trên 99 hiể
 Danh sách có bộ lọc Tất cả, 4–5 sao, 3 sao, 1–2 sao và Chưa đủ dữ liệu; điểm cao được xếp trước. Điểm khách tổng hợp khác với sao Upwork: sao Upwork chiếm 45%, số lần thuê 25%, tỷ lệ thuê 20%, xác minh thanh toán 10%; chỉ tính các thành phần có dữ liệu. Cần ít nhất hai thành phần, trong đó có lịch sử hoặc tỷ lệ thuê. Thiếu dữ liệu không tự cho 1 sao. Số lần thuê quy đổi 0/1/5/20/50 thành mức 1/2/3/4/5; tỷ lệ thuê 0/20/40/60/80% thành mức 1/2/3/4/5. Nếu nguồn cung cấp số job đăng và số lần thuê phù hợp, có thể tính tỷ lệ; nếu không, ghi rõ thiếu tỷ lệ thuê. Webhook nhận `client.hireRate` theo phần trăm 0–100 hoặc `client.totalJobsPosted`. Ngân sách dùng bộ lọc riêng, không quyết định chất lượng khách.
 
 Rê chuột không mở bảng đánh giá. Bấm **Đánh giá AI** mới gọi API cho job chưa có kết quả; đánh giá thành công được lưu trong SQLite, mở lại chỉ đọc cache. Chế độ tự chấm cũ bị tắt. Điểm sao không dùng token và không phải bảo đảm an toàn hay khả năng nhận hợp đồng.
+
+
+### Khung chi tiết công việc và AI
+
+Nút **Xem chi tiết** và **Đánh giá AI** cùng mở một dialog có nền sau tối nhẹ. Phần AI ở đầu, tiếp theo là mô tả gốc và thông tin khách. Mở khung không gọi API; bấm **Phân tích bằng AI** mới xử lý job chưa có cache. Kết quả đã lưu hiện ngay khi mở lại. Có thể đóng bằng Escape, nút Đóng hoặc bấm ngoài khung; thanh Quan tâm, Viết thư và Upwork luôn ở dưới.
