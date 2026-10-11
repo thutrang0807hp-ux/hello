@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from reference_synthesis import library_pool
+from ai_provider import model as ai_model, provider as ai_provider, automatic_jobs as ai_auto_jobs
 import job_radar
 import job_activity
 from client_lifecycle import archive_unanswered, record_client_events
@@ -66,13 +67,13 @@ with connect() as db:
 
 
 def job_signature(job):
-    return hashlib.sha256(json.dumps(job_radar.context(job), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def job_worker():
     while True:
         try:
-            if os.environ.get('FREELANCE_AI_KEY'):
+            if os.environ.get('FREELANCE_AI_KEY') and ai_auto_jobs():
                 for job in records():
                     if job['kind'] != 'job': continue
                     signature = job_signature(job)
@@ -263,7 +264,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/settings':
                 with connect() as db:
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
-                return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': os.environ.get('FREELANCE_AI_MODEL', 'gpt-4.1-mini'), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'deliveries': delivery})
+                return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'deliveries': delivery})
             return self.reply(404, {'error': 'Không tìm thấy.'})
         files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css'}
         if path in files:
@@ -439,6 +440,12 @@ class Handler(BaseHTTPRequestHandler):
                 except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None
                 job = next((r for r in records() if r['kind']=='job' and r['id']==ident),None)
                 if not job: raise ServiceError('Không tìm thấy job.',404)
+                if path.endswith('/retry') and not ai_auto_jobs():
+                    review = job_radar.evaluate(job)
+                    with connect() as db:
+                        db.execute('INSERT OR REPLACE INTO job_reviews VALUES (?,?,?)',
+                                   (ident, job_signature(job), json.dumps(review,ensure_ascii=False)))
+                    return self.reply(200, {'ok':True})
                 with connect() as db:
                     if path.endswith('/retry'):
                         db.execute('DELETE FROM job_reviews WHERE record_id=?',(ident,))

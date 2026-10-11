@@ -1,4 +1,5 @@
 """Batch all eligible references, then reduce findings before drafting."""
+from ai_provider import model as ai_model, request as ai_request
 import json
 import os
 from services import ServiceError, post_json, text
@@ -40,7 +41,7 @@ def distill(samples, requirements, profile):
     key = os.environ.get('FREELANCE_AI_KEY')
     if not key:
         raise ServiceError('Chưa cấu hình khóa AI để chắt lọc kho mẫu.', 503)
-    model = os.environ.get('FREELANCE_AI_MODEL', 'gpt-4.1-mini')
+    model = ai_model()
     schema = {'type': 'object', 'properties': {'plan': {'type': 'string'}, 'sourceIds': {'type': 'array', 'items': {'type': 'string'}}}, 'required': ['plan', 'sourceIds'], 'additionalProperties': False}
     def ask(items, reduce=False):
         allowed = {ident for item in items for ident in (item.get('sourceIds', []) if reduce else [item['id']])}
@@ -49,7 +50,7 @@ def distill(samples, requirements, profile):
                    'input': json.dumps({'requirements': requirements, 'verified_profile': profile, 'group_findings' if reduce else 'references': items}, ensure_ascii=False),
                    'text': {'format': {'type': 'json_schema', 'name': 'reference_synthesis', 'strict': True, 'schema': schema}}}
         try:
-            response = post_json('https://api.openai.com/v1/responses', payload, {'Authorization': 'Bearer ' + key})
+            response = ai_request(payload, post_json)
             output = '\n'.join(p['text'] for x in response.get('output', []) if x.get('type') == 'message' for p in x.get('content', []) if p.get('type') == 'output_text')
             data = json.loads(output)
             if response.get('status') != 'completed' or not isinstance(data, dict) or not isinstance(data.get('sourceIds'), list):

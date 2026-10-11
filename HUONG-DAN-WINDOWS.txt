@@ -8,11 +8,14 @@
    Có thể nhấn Enter để bỏ qua AI, Slack và Telegram, cấu hình sau.
 4. Trình duyệt tự mở web. Giữ cửa sổ chạy ứng dụng mở khi dùng.
 5. Trong Hồ sơ & kết nối, nhập thông tin thật và sao chép webhook để dán vào
-   Upwork Toolkit → Mobile notifications → Webhook → Send test.
+   trang Kết nối Freelance Desk của bản Toolkit cầu nối → Lưu & kết nối.
 
 CHỈNH CẤU HÌNH
 Dừng ứng dụng bằng Ctrl+C. Mở configure-windows.bat, chỉnh cấu hình rồi chạy
-start-windows.bat lại. AI hiện hỗ trợ OpenAI API; Gemini/Muse chưa tích hợp.
+start-windows.bat lại. AI hỗ trợ Gemini và OpenAI; Muse chưa tích hợp.
+Chọn 1 = Gemini, tạo khóa tại https://aistudio.google.com/apikey rồi dán khóa.
+Model để trống dùng gemini-2.5-flash. Nhấn Enter giữ mật khẩu/Slack/Telegram cũ.
+Gemini mặc định chỉ chấm job khi bấm Đánh giá để tiết kiệm quota viết thư.
 Không cần gói Python bên ngoài. Đây là web chạy bằng Python, không phải EXE.
 Các file *demo.html dùng dữ liệu mẫu và tải lại sẽ reset.
 
@@ -31,5 +34,6 @@ web trên máy chủ không tự có job mới.
 
 AI, SLACK, TELEGRAM
 Nhập khóa qua configure-windows.bat, không gửi khóa trong chat.
-API AI tính phí riêng. Chưa kiểm tra gửi thông báo/API với tài khoản thật.
+Gemini có mức miễn phí tùy model/tài khoản và có quota; kiểm tra trong AI Studio.
+OpenAI API tính phí riêng. Chưa kiểm tra gửi thông báo/API với tài khoản thật.
 README.md có chi tiết cấu hình, quyền truy cập và thông tin webhook.

@@ -9,7 +9,7 @@ Web dùng riêng cho freelancer: quản lý khách hàng, nhận job từ Upwork
 3. Mở **start-windows.bat**. Lần đầu nhập mật khẩu riêng; AI, Slack và Telegram có thể bỏ qua rồi cấu hình sau.
 4. Trình duyệt tự mở ứng dụng. Giữ cửa sổ chạy app mở trong lúc dùng.
 
-Hướng dẫn chi tiết: [HUONG-DAN-WINDOWS.txt](HUONG-DAN-WINDOWS.txt). **demo.html** chỉ là mô phỏng; muốn lưu dữ liệu thật, chạy **start-windows.bat**. Gemini/Muse chưa được tích hợp; API AI hiện dùng OpenAI.
+Hướng dẫn chi tiết: [HUONG-DAN-WINDOWS.txt](HUONG-DAN-WINDOWS.txt). **demo.html** chỉ là mô phỏng; muốn lưu dữ liệu thật, chạy **start-windows.bat**. AI hỗ trợ Gemini và OpenAI; Muse chưa được tích hợp.
 
 ## Chạy
 
@@ -37,7 +37,7 @@ Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng
 5. Chạy node **AI đánh giá**, xem điểm / điểm mạnh / điểm yếu, rồi hoàn thiện node **Thư cuối**.
 6. Sao chép thư để gửi trên Upwork. Sau khi thực sự gửi, chọn **Tôi đã gửi → Lưu vào kho**; cập nhật kết quả ở **Thư đã gửi**.
 
-AI viết/chấm thư chỉ được gọi khi bạn nhấn nút. Khi đã cấu hình khóa AI, job được tự động đọc và đánh giá trong nền; kết quả được lưu, chỉ gọi lại khi thông tin đánh giá thay đổi hoặc bạn bấm thử lại sau lỗi. Hồ sơ, mô tả job và thông tin thư được gửi cho OpenAI; `store: false` được dùng trong request Responses API. API có chi phí riêng theo tài khoản nhà cung cấp. Ứng dụng không tự gửi proposal lên Upwork.
+AI viết/chấm thư chỉ được gọi khi bạn nhấn nút. OpenAI mặc định tự đọc và đánh giá job trong nền khi đã cấu hình khóa. Gemini mặc định chỉ chấm job khi bạn bấm **Đánh giá → Đánh giá bằng AI** để dành quota cho viết thư; kết quả được lưu, chỉ gọi lại khi thông tin đánh giá thay đổi hoặc bạn bấm thử lại sau lỗi. Hồ sơ, mô tả job và thông tin thư được gửi tới nhà cung cấp bạn chọn. OpenAI dùng Responses API với `store: false`; Gemini dùng GenerateContent API. Gemini có mức miễn phí cho một số model/tài khoản, có giới hạn và thay đổi theo chính sách Google; ứng dụng không cam kết mọi lượt gọi miễn phí. OpenAI API tính phí riêng. Ứng dụng không tự gửi proposal lên Upwork.
 
 ## Cấu hình AI, Slack và Telegram
 
@@ -45,8 +45,10 @@ Trên máy cá nhân, dùng công cụ cấu hình như hướng dẫn phía tr�
 
 | Biến | Công dụng |
 | --- | --- |
-| `FREELANCE_AI_KEY` | Khóa API OpenAI, dùng với `api.openai.com` |
-| `FREELANCE_AI_MODEL` | Model, mặc định `gpt-4.1-mini` |
+| `FREELANCE_AI_PROVIDER` | `gemini` hoặc `openai`; cấu hình cũ thiếu biến này vẫn dùng OpenAI |
+| `FREELANCE_AI_KEY` | Khóa API của nhà cung cấp đã chọn; chỉ gửi trong header, không nằm trong URL/web |
+| `FREELANCE_AI_MODEL` | Để trống: Gemini dùng `gemini-2.5-flash`, OpenAI dùng `gpt-4.1-mini` |
+| `FREELANCE_AI_AUTO_JOBS` | Để trống: Gemini chấm thủ công, OpenAI tự chấm; `1` bật tự chấm, `0` chấm thủ công |
 | `FREELANCE_SLACK_TOKEN` | Bot token của Slack app, dùng với `slack.com` |
 | `FREELANCE_SLACK_CHANNEL` | ID kênh Slack nhận job |
 | `FREELANCE_TELEGRAM_TOKEN` | Bot token Telegram, dùng với `api.telegram.org` |
@@ -55,6 +57,12 @@ Trên máy cá nhân, dùng công cụ cấu hình như hướng dẫn phía tr�
 | `FREELANCE_COOKIE_SECURE` | Đặt `1` khi truy cập qua HTTPS |
 | `FREELANCE_BIND` | Mặc định `127.0.0.1`; địa chỉ bên ngoài chỉ được chấp nhận khi có mật khẩu |
 | `FREELANCE_WEBHOOK_TOKEN` | Tùy chọn: token dài tối thiểu 24 ký tự; mặc định ứng dụng tự tạo và giữ trong `data/` |
+
+Gemini trên Windows: mở `configure-windows.bat`, chọn **1 = Gemini**, tạo khóa tại [Google AI Studio](https://aistudio.google.com/apikey), dán khóa khi được hỏi, để trống model để dùng mặc định rồi khởi động lại app. Khóa không hiện khi dán. Kiểm tra model/quota của tài khoản trong AI Studio; có thể nhập tên model khác mà tài khoản hỗ trợ. Chọn nhà cung cấp khác sẽ xóa khóa/model cũ khỏi cấu hình đang dùng để tránh gửi nhầm khóa. Nhấn Enter giữ mật khẩu và các token thông báo đã có.
+
+Gemini hỗ trợ viết thư, sửa đoạn được chọn, chấm thư, chắt lọc toàn bộ kho mẫu theo batch và chấm job. Quota lỗi báo rõ, không tự chuyển sang API khác. Chắt lọc kho lớn có thể cần nhiều lượt gọi; các lượt đã xử lý vẫn có thể tiêu quota nếu bước sau thất bại. Chỉ phản hồi kết thúc hoàn chỉnh được áp dụng; nội dung nháp cũ được giữ khi lỗi.
+
+Kiểm chứng giao thức Gemini dựa trên SDK chính thức [googleapis/python-genai](https://github.com/googleapis/python-genai), gồm `responseJsonSchema` cho kết quả có cấu trúc. Kiểm thử dùng phản hồi mô phỏng cho cả hai nhà cung cấp và các endpoint ứng dụng; chưa xác nhận bằng khóa Gemini thật.
 
 Slack: tạo Slack app trong workspace của bạn, thêm quyền bot `chat:write`, cài app vào workspace và mời bot vào kênh nhận thông báo. Lấy bot token và channel ID trong cấu hình Slack. Telegram: tạo bot qua BotFather, gửi `/start` cho bot, lấy chat ID bằng `getUpdates` hoặc công cụ quản trị của bạn. Token được giữ phía máy chủ, không đưa vào giao diện web.
 
@@ -109,7 +117,7 @@ node --check public/app.js
 node --check public/studio.js
 ```
 
-14 kiểm thử backend kiểm tra đăng nhập, quyền webhook, chống trùng kể cả gửi đồng thời, nhập batch nguyên tử, CRUD và giữ metadata, hồ sơ AI, xử lý lỗi AI, hàng đợi và payload Slack/Telegram. Kiểm thử mới bao gồm graph không có vòng lặp, snapshot thư đã gửi giữ nguyên sau khi sửa workspace, chống ghi nhận trùng một nội dung, mẫu đầu vào AI và chấm điểm có cấu trúc. Các nhà cung cấp bên ngoài được mô phỏng; kết quả không chứng minh AI hoặc thông báo thật đã hoạt động.
+Bộ kiểm thử backend kiểm tra đăng nhập, quyền webhook, chống trùng kể cả gửi đồng thời, nhập batch nguyên tử, CRUD và giữ metadata, hồ sơ AI, xử lý lỗi AI, hàng đợi và payload Slack/Telegram. Kiểm thử mới bao gồm graph không có vòng lặp, snapshot thư đã gửi giữ nguyên sau khi sửa workspace, chống ghi nhận trùng một nội dung, mẫu đầu vào AI và chấm điểm có cấu trúc. Các nhà cung cấp bên ngoài được mô phỏng; kết quả không chứng minh AI hoặc thông báo thật đã hoạt động.
 
 Kiểm thử giao diện bổ sung (cần Playwright và `/usr/bin/chromium`):
 

@@ -1,3 +1,9 @@
+# Cập nhật Gemini cho web Windows
+
+[FreelanceDesk-Gemini-Update.zip](FreelanceDesk-Gemini-Update.zip): tắt server, chép các file trong ZIP đè vào **thư mục web cũ**, giữ nguyên thư mục `data`. Mở `configure-windows.bat`, chọn **1 = Gemini**, nhập khóa lấy từ https://aistudio.google.com/apikey rồi khởi động lại. Hướng dẫn chi tiết ở `CAP-NHAT-GEMINI.txt` trong ZIP. Không cần cài lại Toolkit khi giữ nguyên thư mục dữ liệu.
+
+---
+
 # Toolkit bản cài hiện tại + cầu nối Freelance Desk
 
 Dùng [Toolkit-Installed-Build-Bridge.zip](Toolkit-Installed-Build-Bridge.zip) cho bản Chrome Web Store 1.6.0 người dùng đã gửi. Gói giữ mã lấy job của bản đó và thêm phần chuyển cache sang web trên máy bạn.

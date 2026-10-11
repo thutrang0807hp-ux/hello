@@ -276,6 +276,26 @@ class WorkflowTests(unittest.TestCase):
             self.call('/api/ai/proposal', {'requirements': 'Build a website'})
         self.assertEqual(error.exception.code, 503)
 
+    def test_gemini_settings_draft_and_manual_job_assessment(self):
+        assessment = {'summary':'Dashboard', 'priceComment':'Unknown', 'clarityComment':'Clear', 'riskComment':'Unknown',
+                      'budgetScore':20, 'clarityScore':15, 'safetyScore':12, 'warnings':[]}
+        def reply(body):
+            return {'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':body}]}}]}
+        with patch.dict(os.environ, {'FREELANCE_AI_PROVIDER':'gemini','FREELANCE_AI_KEY':'test-key','FREELANCE_AI_MODEL':'','FREELANCE_AI_AUTO_JOBS':''}):
+            config = self.call('/api/settings')
+            self.assertEqual(config['aiProvider'],'gemini')
+            self.assertFalse(config['aiAutoJobs'])
+            self.assertNotIn('test-key',json.dumps(config))
+            with patch('services.post_json',return_value=reply('Hi, I can design the dashboard.')):
+                result=self.call('/api/ai/proposal',{'requirements':'Design dashboard'})
+            self.assertEqual(result['model'],'gemini-2.5-flash')
+            self.call('/api/webhook/'+server.WEBHOOK_TOKEN,{'event':'new_jobs','jobs':[{'id':'gemini-job','title':'Dashboard','url':'https://www.upwork.com/jobs/~test','description':'Design dashboard','budget':'$800'}]})
+            job=next(r for r in server.records() if r['kind']=='job')
+            self.assertEqual(job['jobAssessment']['state'],'not_evaluated')
+            with patch('job_radar.post_json',return_value=reply(json.dumps(assessment))):
+                self.call('/api/jobs/retry',{'id':job['id']})
+            self.assertEqual(server.records()[0]['jobAssessment']['state'],'completed')
+
     def test_ai_payload_and_response(self):
         response = {'status': 'completed', 'output': [{'type': 'message', 'content': [{'type': 'output_text', 'text': 'Hi, I can help with your dashboard.'}]}]}
         with patch.dict(os.environ, {'FREELANCE_AI_KEY': 'test-placeholder'}), patch('services.post_json', return_value=response) as send:
