@@ -263,3 +263,5 @@ html[data-theme=dark] .dashboard-workspace .overview-context-column .us-context{
 html[data-theme=dark] .dashboard-workspace .overview-context-column .us-next{background:transparent;border-color:#385347}
 html[data-theme=dark] .overview-context-column .us-next>span{color:#9cb9ca}
 html[data-theme=dark] .overview-context-column .us-next .us-holiday-vietnamese{color:#b7cbd3}
+
+.ai-key-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.ai-key-actions button{margin:0}

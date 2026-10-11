@@ -441,6 +441,30 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/ai/configure':
+                from local_config import config_path, save
+                selected = item.get('provider')
+                key = item.get('key')
+                if selected not in ('gemini','openai') or not isinstance(key,str) or not key.strip() or len(key)>4096 or any(c.isspace() for c in key.strip()):
+                    raise ServiceError('Chọn nhà cung cấp và dán API key hợp lệ (không có khoảng trắng).')
+                key = key.strip()
+                path_config = config_path()
+                try:
+                    values = json.loads(path_config.read_text(encoding='utf-8')) if path_config.exists() else {}
+                    if not isinstance(values,dict) or any(not isinstance(v,str) for v in values.values()): raise ValueError()
+                    changed = os.environ.get('FREELANCE_AI_PROVIDER','openai') != selected
+                    values.update(FREELANCE_AI_PROVIDER=selected,FREELANCE_AI_KEY=key)
+                    if changed:
+                        values.pop('FREELANCE_AI_MODEL',None)
+                        values.pop('FREELANCE_AI_AUTO_JOBS',None)
+                    save(values)
+                except (OSError,ValueError):
+                    raise ServiceError('Không lưu được cấu hình. Kiểm tra quyền ghi thư mục data.',500) from None
+                os.environ.update(FREELANCE_AI_PROVIDER=selected,FREELANCE_AI_KEY=key)
+                if changed:
+                    os.environ.pop('FREELANCE_AI_MODEL',None)
+                    os.environ.pop('FREELANCE_AI_AUTO_JOBS',None)
+                return self.reply(200, {'ok':True})
             if path == '/api/ai/test':
                 from ai_provider import request as provider_request
                 from services import post_json
