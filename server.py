@@ -282,7 +282,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/settings':
                 with connect() as db:
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
-                return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'deliveries': delivery})
+                return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
             return self.reply(404, {'error': 'Không tìm thấy.'})
         files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css'}
         if path in files:
@@ -441,6 +441,37 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/channels/configure':
+                from local_config import config_path, save
+                names = {'slack':('FREELANCE_SLACK_TOKEN','FREELANCE_SLACK_CHANNEL'),'telegram':('FREELANCE_TELEGRAM_TOKEN','FREELANCE_TELEGRAM_CHAT_ID')}
+                channel = item.get('channel')
+                if channel not in names: raise ServiceError('Kênh thông báo không hợp lệ.')
+                token_name, target_name = names[channel]
+                disconnect = item.get('disconnect') is True
+                token, target = item.get('token',''), item.get('target','')
+                if not isinstance(token,str) or not isinstance(target,str) or len(token)>4096 or len(target)>200:
+                    raise ServiceError('Thông tin kết nối không hợp lệ.')
+                token, target = token.strip(), target.strip()
+                if not disconnect:
+                    token = token or os.environ.get(token_name,'')
+                    if not token or not target or any(c.isspace() for c in token+target):
+                        raise ServiceError('Cần bot token và ID nhận thông báo. Token trống chỉ giữ khóa đã lưu.')
+                path_config = config_path()
+                try:
+                    values = json.loads(path_config.read_text(encoding='utf-8')) if path_config.exists() else {}
+                    if not isinstance(values,dict) or any(not isinstance(v,str) for v in values.values()): raise ValueError()
+                    if disconnect:
+                        values.pop(token_name,None);values.pop(target_name,None)
+                    else:
+                        values.update({token_name:token,target_name:target})
+                    save(values)
+                except (OSError,ValueError):
+                    raise ServiceError('Không lưu được cấu hình. Kiểm tra quyền ghi thư mục data.',500) from None
+                if disconnect:
+                    os.environ.pop(token_name,None);os.environ.pop(target_name,None)
+                else:
+                    os.environ.update({token_name:token,target_name:target})
+                return self.reply(200, {'ok':True})
             if path == '/api/ai/configure':
                 from local_config import config_path, save
                 selected = item.get('provider')
