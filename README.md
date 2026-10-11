@@ -197,6 +197,8 @@ Lần đầu chọn khách (hoặc tạo khách từ thư). App lưu liên kết
 
 Thông tin OAuth và refresh token chỉ lưu trong `data/gmail-private.json` trên máy chủ (không trả token về trình duyệt; không nằm trong ZIP cập nhật). Giữ thư mục `data` riêng tư. **Ngắt kết nối** xóa token khỏi app và dừng đọc; thu hồi quyền hoàn toàn tại [quyền tài khoản Google](https://myaccount.google.com/connections). Google có thể làm token hết hạn sau 7 ngày khi OAuth còn ở Testing; bấm kết nối lại khi app báo hết phiên. `redirect_uri_mismatch` nghĩa là URI trong Google Cloud chưa khớp chính xác với URI app hiển thị. Kết nối Google thực tế cần Client ID/Secret của bạn; kiểm thử tự động chỉ mô phỏng phản hồi Google, không chứng nhận một tài khoản thật đã kết nối.
 
+**Sau khi chép cập nhật:** dừng CMD bằng Ctrl + C, chạy lại start-windows.bat rồi Ctrl + F5 trên web. Máy chủ cũ đang chạy có thể đọc được giao diện mới nhưng chưa có route Gmail, khiến nút không mở được; bản mới hiện hướng dẫn khởi động lại nếu thiếu phần hộp thư.
+
 #### Thử ngay bằng thư thật, chưa cần OAuth
 
 Trong Gmail, mở thông báo Upwork → dấu **⋮ của thư** → **Tải thư xuống**. Trong app chọn **Nhập một thư → Chọn tệp thư .eml**, rồi liên kết khách. Tệp tối đa 700 KB. App chỉ đọc tệp bạn chọn, không có quyền vào Gmail; đây là nhập thủ công, không tự nhận thư mới. Nội dung nhập và thư Gmail lưu trong SQLite, chống nhập trùng theo ID thư. Ngắt Google không xóa lịch sử thư đã lưu.
