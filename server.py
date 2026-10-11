@@ -16,6 +16,7 @@ from reference_synthesis import library_pool
 from ai_provider import model as ai_model, provider as ai_provider, automatic_jobs as ai_auto_jobs
 import job_radar
 import job_activity
+import upwork_mail
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
 from services import ServiceError, channels, evaluate_proposal, generate_proposal, normalize_job, send_notification, text
@@ -65,6 +66,8 @@ with connect() as db:
     db.execute('CREATE TABLE IF NOT EXISTS job_interest (record_id INTEGER PRIMARY KEY, expires REAL NOT NULL)')
     db.execute('CREATE TABLE IF NOT EXISTS job_reviews (record_id INTEGER PRIMARY KEY, signature TEXT NOT NULL, body TEXT NOT NULL)')
 
+
+upwork_mail.init(connect)
 
 def job_signature(job):
     return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'assessmentVersion':job_radar.ASSESSMENT_VERSION, 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
@@ -276,6 +279,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlsplit(self.path).path
+        if path == '/api/mail/callback':
+            try:
+                cookie = SimpleCookie(self.headers.get('Cookie', ''))
+                upwork_mail.callback(parse_qs(urlsplit(self.path).query), cookie['gmail_oauth'].value if cookie.get('gmail_oauth') else '')
+                self.send_response(302)
+                self.send_header('Location', '/?gmail=connected')
+                self.send_header('Set-Cookie', 'gmail_oauth=; HttpOnly; SameSite=Lax; Path=/api/mail/callback; Max-Age=0')
+                self.send_header('Cache-Control','no-store')
+                self.send_header('Referrer-Policy','no-referrer')
+                self.end_headers()
+            except ServiceError as error:
+                return self.reply(error.status, {'error':str(error)})
+            return
         if path == '/favicon.svg':
             try:
                 count = max(0, min(1000000000, int(parse_qs(urlsplit(self.path).query).get('unread', ['0'])[0])))
@@ -299,6 +315,11 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/api/'):
             if not self.guard():
                 return
+            if path == '/api/mail':
+                try:
+                    return self.reply(200, dict(upwork_mail.status(), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))
+                except ServiceError as error:
+                    return self.reply(error.status, {'error':str(error)})
             if path == '/api/records':
                 return self.reply(200, records())
             if path == '/api/settings':
@@ -306,7 +327,7 @@ class Handler(BaseHTTPRequestHandler):
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
                 return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
             return self.reply(404, {'error': 'Không tìm thấy.'})
-        files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css'}
+        files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
         if path in files:
             file = ROOT / 'public' / files[path]
             raw = file.read_bytes()
@@ -369,6 +390,33 @@ class Handler(BaseHTTPRequestHandler):
             item = self.read_json()
             if not isinstance(item, dict):
                 raise ServiceError('Dữ liệu phải là đối tượng JSON.')
+            if path == '/api/mail/configure':
+                return self.reply(200, upwork_mail.configure(item))
+            if path == '/api/mail/connect':
+                if urlsplit('http://'+self.headers.get('Host','')).hostname != '127.0.0.1':
+                    raise ServiceError('Mở trang bằng địa chỉ 127.0.0.1 rồi kết nối Google.')
+                # Fixed loopback URI: never construct OAuth redirects from an untrusted Host.
+                flow = upwork_mail.begin(f'http://127.0.0.1:{self.server.server_port}/api/mail/callback')
+                return self.reply(200, {'url':flow['url']}, {'Set-Cookie':f"gmail_oauth={flow['cookie']}; HttpOnly; SameSite=Lax; Path=/api/mail/callback; Max-Age=600"})
+            if path == '/api/mail/sync':
+                return self.reply(200, upwork_mail.sync(connect))
+            if path == '/api/mail/disconnect':
+                return self.reply(200, upwork_mail.disconnect())
+            if path == '/api/mail/import':
+                import base64
+                try:
+                    raw = base64.b64decode(text(item.get('raw'), 1000000), validate=True)
+                except ValueError:
+                    raise ServiceError('Tệp email không hợp lệ.') from None
+                mail = upwork_mail.parse(raw)
+                if not mail:
+                    raise ServiceError('Chỉ nhận thư “sent you a message” từ room_…@email.upwork.com. Thư này không khớp mẫu Upwork.')
+                added=upwork_mail.store(connect,mail)
+                return self.reply(200, {'ok':True,'added':int(added)})
+            if path == '/api/mail/link':
+                return self.reply(200, upwork_mail.link(connect,item))
+            if path == '/api/mail/seen':
+                return self.reply(200, upwork_mail.seen(connect,text(item.get('id'),500)))
             if path == '/api/proposals/send':
                 ident = item.get('id')
                 if type(ident) is not int:
@@ -677,4 +725,5 @@ if __name__ == '__main__':
     http = ThreadingHTTPServer((BIND, port), Handler)
     print(f'Freelance Desk listening on port {port}', flush=True)
     threading.Thread(target=notification_worker, daemon=True).start()
+    threading.Thread(target=upwork_mail.worker, args=(connect,), daemon=True).start()
     http.serve_forever()
