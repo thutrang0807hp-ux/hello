@@ -37,7 +37,26 @@ def request(payload, transport):
     if not key:
         raise ServiceError('Chưa có khóa AI. Mở configure-windows.bat, chọn Gemini hoặc OpenAI và nhập khóa rồi khởi động lại.', 503)
     if provider() == 'openai':
-        return transport('https://api.openai.com/v1/responses', payload, {'Authorization': 'Bearer ' + key})
+        try:
+            return transport('https://api.openai.com/v1/responses', payload, {'Authorization': 'Bearer ' + key})
+        except urllib.error.HTTPError as error:
+            try:
+                detail = json.loads(error.read(65536)).get('error', {})
+                code = detail.get('code') or detail.get('type')
+            except (ValueError,OSError,AttributeError):
+                code = None
+            if code in ('insufficient_quota','billing_hard_limit_reached','billing_not_active'):
+                raise ServiceError('OpenAI: tài khoản API chưa có credit, đã hết credit hoặc chạm giới hạn chi tiêu. Kiểm tra Billing và Usage trên platform.openai.com. Gói ChatGPT không bao gồm tiền API; bản nháp được giữ nguyên.', 429) from None
+            if error.code == 429:
+                raise ServiceError('OpenAI HTTP 429: đang giới hạn lượt gọi hoặc hạn mức. Kiểm tra Usage và Billing; chờ rồi thử lại nếu còn credit.', 429) from None
+            if error.code in (401,403):
+                raise ServiceError('OpenAI: khóa API không hợp lệ, bị thu hồi hoặc không có quyền dùng model. Cập nhật khóa trong Hồ sơ & kết nối.', 502) from None
+            if error.code == 404:
+                raise ServiceError('OpenAI HTTP 404: không tìm thấy model hoặc tài khoản chưa có quyền sử dụng. Kiểm tra model đã cấu hình.', 502) from None
+            if error.code == 400:
+                raise ServiceError('OpenAI HTTP 400: model từ chối tham số hoặc định dạng yêu cầu. Báo lại lỗi này để kiểm tra phần tích hợp.', 502) from None
+            raise ServiceError('OpenAI HTTP '+str(error.code)+': dịch vụ chưa xử lý được yêu cầu. Bản nháp được giữ nguyên; thử lại sau.', 502) from None
+
     generation = {'maxOutputTokens': payload.get('max_output_tokens', 2200)}
     schema = payload.get('text', {}).get('format', {}).get('schema')
     if schema:

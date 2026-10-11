@@ -97,6 +97,13 @@ class GeminiProviderTests(unittest.TestCase):
         with patch.dict(os.environ, {'FREELANCE_AI_MODEL': 'models/gemini-2.5-flash-lite'}):
             self.assertEqual(ai_provider.model(), 'gemini-2.5-flash-lite')
 
+    def test_openai_billing_error_is_preserved_during_distillation(self):
+        error=urllib.error.HTTPError('https://test.invalid',429,'quota',{},io.BytesIO(json.dumps({'error':{'code':'insufficient_quota'}}).encode()))
+        with patch.dict(os.environ,{'FREELANCE_AI_PROVIDER':'openai'}),patch('reference_synthesis.post_json',side_effect=error),self.assertRaises(services.ServiceError) as caught:
+            distill([{'id':'t-1','sourceId':1,'name':'Example','body':'Sample'}],'Job',{})
+        self.assertIn('credit',str(caught.exception))
+        self.assertNotIn('fake-key',str(caught.exception))
+
     def test_google_404_diagnostics_redact_key(self):
         detail={'error':{'message':'Model unavailable for fake-key-for-tests'}}
         error=urllib.error.HTTPError('https://test.invalid',404,'Not found',{},io.BytesIO(json.dumps(detail).encode()))
