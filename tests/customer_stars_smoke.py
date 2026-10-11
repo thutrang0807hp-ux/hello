@@ -16,9 +16,9 @@ with tempfile.TemporaryDirectory() as tmp:
    page.locator('[data-radar-job]').first.hover();page.wait_for_timeout(700);assert page.locator('.job-popover').count()==0;assert evaluate.call_count==0
    for group in ['high','mid','low','unknown']:
     page.locator('[data-customer-star-filter='+group+']').click();assert page.locator('[data-radar-job]').count()==1
-   page.locator('[data-customer-star-filter=high]').click();page.locator('[data-job-detail]').click();page.wait_for_selector('#jobDetailDialog[open]');assert evaluate.call_count==0;page.locator('#runJobAnalysis').click();page.wait_for_selector('.job-ai-saved');assert evaluate.call_count==1
-   page.locator('#closeJobDetail').click();page.locator('[data-job-detail]').click();page.wait_for_selector('.job-ai-saved');assert evaluate.call_count==1
+   page.locator('[data-customer-star-filter=high]').click();page.locator('.primary[data-job-open]').click();page.wait_for_selector('#jobDetailDialog[open]');assert evaluate.call_count==0;assert page.locator('#jobAiContent').is_hidden();assert page.locator('[data-job-detail]').count()==0;page.locator('#runJobAnalysis').click();page.wait_for_selector('.job-ai-saved');assert evaluate.call_count==1
+   page.locator('#runJobAnalysis').click();assert page.locator('#jobAiContent').is_hidden();page.locator('#runJobAnalysis').click();assert page.locator('#jobAiContent').is_visible();assert evaluate.call_count==1;page.locator('#closeJobDetail').click();page.locator('.primary[data-job-open]').click();assert page.locator('#jobAiContent').is_hidden();page.locator('#runJobAnalysis').click();page.wait_for_selector('.job-ai-saved');assert evaluate.call_count==1
    page.locator('#closeJobDetail').click();page.locator('[data-customer-star-filter=all]').click();assert page.locator('[data-radar-job]').count()==4
    page.evaluate("document.documentElement.dataset.theme='dark'");assert page.locator('[data-radar-job]').count()==4;assert not errors,errors
-   b.close();print('PASS no hover popup; detail opens without API; explicit analysis once; cached analysis at top; reopening uses no call')
+   b.close();print('PASS single job analysis button; AI collapsed on open; explicit request once; collapse and cached reopening use no API')
  finally:http.shutdown();http.server_close()

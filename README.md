@@ -266,4 +266,4 @@ Rê chuột không mở bảng đánh giá. Bấm **Đánh giá AI** mới gọi
 
 ### Khung chi tiết công việc và AI
 
-Nút **Xem chi tiết** và **Đánh giá AI** cùng mở một dialog có nền sau tối nhẹ. Phần AI ở đầu, tiếp theo là mô tả gốc và thông tin khách. Mở khung không gọi API; bấm **Phân tích bằng AI** mới xử lý job chưa có cache. Kết quả đã lưu hiện ngay khi mở lại. Có thể đóng bằng Escape, nút Đóng hoặc bấm ngoài khung; thanh Quan tâm, Viết thư và Upwork luôn ở dưới.
+Danh sách chỉ có nút **Phân tích công việc**, mở khung có nền sau tối nhẹ. Nút **Phân tích bằng AI** nằm trên cùng; phần kết quả thu gọn mặc định và chỉ sổ xuống khi bấm. Mở khung không gọi API; bấm nút AI mới xử lý job chưa có cache. Kết quả đã lưu được dùng lại khi mở phần AI, không gọi API lần nữa. Mô tả và thông tin khách nằm trong hai thẻ riêng, hoạt động khách được thu gọn. Có thể đóng bằng Escape, nút Đóng hoặc bấm ngoài khung; thanh Quan tâm, Viết thư và Upwork luôn ở dưới.
