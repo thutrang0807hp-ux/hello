@@ -441,6 +441,11 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/ai/test':
+                from ai_provider import request as provider_request
+                from services import post_json
+                provider_request({'instructions':'Reply with OK only.', 'input':'Connection test', 'max_output_tokens':64}, post_json)
+                return self.reply(200, {'ok':True, 'model':ai_model()})
             if path == '/api/ai/models':
                 from ai_provider import gemini_models
                 return self.reply(200, {'models':gemini_models()})

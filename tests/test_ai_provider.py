@@ -97,8 +97,16 @@ class GeminiProviderTests(unittest.TestCase):
         with patch.dict(os.environ, {'FREELANCE_AI_MODEL': 'models/gemini-2.5-flash-lite'}):
             self.assertEqual(ai_provider.model(), 'gemini-2.5-flash-lite')
 
+    def test_google_404_diagnostics_redact_key(self):
+        detail={'error':{'message':'Model unavailable for fake-key'}}
+        error=urllib.error.HTTPError('https://test.invalid',404,'Not found',{},io.BytesIO(json.dumps(detail).encode()))
+        with patch('services.post_json',side_effect=error),self.assertRaises(services.ServiceError) as caught:
+            services.generate_proposal({'requirements':'Dashboard'}, {})
+        self.assertIn('Model unavailable',str(caught.exception))
+        self.assertNotIn('fake-key',str(caught.exception))
+
     def test_errors_do_not_expose_keys_or_fall_back_to_other_provider(self):
-        for status, expected in [(429, 'hạn mức'), (403, 'khóa API'), (404, 'model'), (500, 'gặp lỗi')]:
+        for status, expected in [(429, 'hạn mức'), (403, 'khóa API'), (404, 'proxy'), (500, 'gặp lỗi')]:
             error = urllib.error.HTTPError('https://test.invalid/private', status, 'private key details', {}, io.BytesIO())
             with patch('services.post_json', side_effect=error) as send, self.assertRaises(services.ServiceError) as caught:
                 services.generate_proposal({'requirements': 'Dashboard'}, {})

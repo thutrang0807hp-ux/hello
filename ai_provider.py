@@ -1,6 +1,7 @@
 """Provider adapter. Credentials stay in headers, never URLs or frontend data."""
 import os
 import json
+import re
 import urllib.error
 import urllib.request
 from urllib.parse import quote, urlencode
@@ -59,6 +60,7 @@ def request(payload, transport):
             reasons = {str(d.get('reason', '')) for d in detail.get('details', []) if isinstance(d, dict)}
         except (ValueError, OSError, AttributeError, TypeError):
             message, reasons = '', set()
+            detail = {}
         if 'API_KEY_INVALID' in reasons or 'api key not valid' in message or 'api key expired' in message:
             raise ServiceError('Gemini: khóa API không hợp lệ hoặc đã hết hiệu lực. Mở configure-windows.bat, chọn 1 = Gemini và dán khóa mới từ Google AI Studio.', 502) from None
         if 'API_KEY_SERVICE_BLOCKED' in reasons or 'SERVICE_DISABLED' in reasons:
@@ -68,7 +70,15 @@ def request(payload, transport):
         if error.code in (401, 403):
             raise ServiceError('Gemini từ chối khóa API. Kiểm tra khóa, quyền truy cập và khu vực tài khoản trong Google AI Studio.', 502) from None
         if error.code == 404:
-            raise ServiceError('Gemini: không tìm thấy model hoặc model không hỗ trợ generateContent (HTTP 404). Đặt Model AI thành gemini-2.5-flash trong configure-windows.bat rồi khởi động lại.', 502) from None
+            explanation = str(detail.get('message', '')).replace('\n',' ')
+            # Provider diagnostics may echo request values; remove locally configured secrets.
+            for name, secret in os.environ.items():
+                if name.startswith('FREELANCE_') and any(word in name for word in ('KEY','TOKEN','PASSWORD')) and secret:
+                    explanation = explanation.replace(secret, '[ẩn]')
+            explanation = re.sub(r'(?:AIza|AQ\.)[A-Za-z0-9_-]+', '[ẩn]', explanation)[:600]
+            if explanation:
+                raise ServiceError('Gemini HTTP 404 — Google trả lời: '+explanation+' Chọn model khác trong Hồ sơ & kết nối và kiểm tra kết nối.', 502) from None
+            raise ServiceError('Gemini HTTP 404 nhưng không có nội dung lỗi JSON từ Google. Có thể đường gọi bị proxy hoặc phần mềm mạng chặn. Thử tắt VPN/proxy hoặc dùng mạng khác rồi kiểm tra kết nối.', 502) from None
         if error.code == 400:
             if 'thinking' in message:
                 reason = 'cấu hình thinking không được model chấp nhận'
