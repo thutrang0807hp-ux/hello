@@ -1,8 +1,59 @@
-"""Interactive configuration on the user's own computer. Never echoes tokens."""
+"""Interactive configuration on the user's own computer. Secrets stay local; Windows entry is masked unless revealed."""
 import getpass
 import json
+import sys
 from local_config import config_path, save
 from ai_provider import DEFAULT_MODELS
+
+
+def secret_input(label):
+    if sys.platform != 'win32':
+        return getpass.getpass(label + ': ')
+    try:
+        import tkinter as tk
+        from tkinter import ttk
+        root = tk.Tk()
+    except Exception:
+        print('Không mở được hộp nhập. Thử chạy cấu hình trong Windows Terminal.')
+        return getpass.getpass(label + ': ')
+    root.title('Freelance Desk — nhập thông tin riêng tư')
+    root.geometry('560x230')
+    root.minsize(460, 230)
+    root.attributes('-topmost', True)
+    frame = ttk.Frame(root, padding=20)
+    frame.pack(fill='both', expand=True)
+    ttk.Label(frame, text=label, wraplength=500).pack(anchor='w')
+    value = tk.StringVar()
+    entry = ttk.Entry(frame, textvariable=value, show='•')
+    entry.pack(fill='x', pady=(12, 8))
+    status = ttk.Label(frame, text='Dán bằng Ctrl+V hoặc nút Dán. Để trống để giữ/bỏ qua.')
+    status.pack(anchor='w')
+    buttons = ttk.Frame(frame)
+    buttons.pack(fill='x', pady=16)
+    result = ['']
+    def paste():
+        try:
+            value.set(root.clipboard_get().strip())
+            status.configure(text='Đã dán khóa.' if value.get() else 'Clipboard đang trống.')
+            entry.focus_set()
+        except tk.TclError:
+            status.configure(text='Clipboard chưa có chữ. Hãy sao chép khóa rồi thử lại.')
+    def reveal():
+        hidden = bool(entry.cget('show'))
+        entry.configure(show='' if hidden else '•')
+        toggle.configure(text='Ẩn' if hidden else 'Hiện')
+    def accept(event=None):
+        result[0] = value.get()
+        root.destroy()
+    ttk.Button(buttons, text='Dán', command=paste).pack(side='left')
+    toggle = ttk.Button(buttons, text='Hiện', command=reveal)
+    toggle.pack(side='left', padx=8)
+    ttk.Button(buttons, text='Tiếp tục', command=accept).pack(side='right')
+    root.bind('<Return>', accept)
+    root.protocol('WM_DELETE_WINDOW', accept)
+    root.after(100, entry.focus_force)
+    root.mainloop()
+    return result[0]
 
 
 def configure():
@@ -19,7 +70,7 @@ def configure():
     values = dict(previous)
     def prompt(name, label, secret=False):
         status = ' [đã có]' if values.get(name) else ''
-        value = (getpass.getpass if secret else input)(label + status + ': ').strip()
+        value = (secret_input(label + status) if secret else input(label + status + ': ')).strip()
         if value == '-':
             values.pop(name, None)
         elif value:
