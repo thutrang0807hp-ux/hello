@@ -1,5 +1,6 @@
 """Provider adapter. Credentials stay in headers, never URLs or frontend data."""
 import os
+import json
 import urllib.error
 from urllib.parse import quote
 
@@ -51,12 +52,32 @@ def request(payload, transport):
         result = transport('https://generativelanguage.googleapis.com/v1beta/models/' + quote(model(), safe='') + ':generateContent',
                            body, {'x-goog-api-key': key})
     except urllib.error.HTTPError as error:
+        try:
+            detail = json.loads(error.read(65536)).get('error', {})
+            message = str(detail.get('message', '')).lower()
+            reasons = {str(d.get('reason', '')) for d in detail.get('details', []) if isinstance(d, dict)}
+        except (ValueError, OSError, AttributeError, TypeError):
+            message, reasons = '', set()
+        if 'API_KEY_INVALID' in reasons or 'api key not valid' in message or 'api key expired' in message:
+            raise ServiceError('Gemini: khóa API không hợp lệ hoặc đã hết hiệu lực. Mở configure-windows.bat, chọn 1 = Gemini và dán khóa mới từ Google AI Studio.', 502) from None
+        if 'API_KEY_SERVICE_BLOCKED' in reasons or 'SERVICE_DISABLED' in reasons:
+            raise ServiceError('Gemini: dự án hoặc khóa chưa được phép gọi Generative Language API. Kiểm tra dự án và giới hạn của khóa trong Google AI Studio.', 502) from None
         if error.code == 429:
             raise ServiceError('Gemini đã chạm hạn mức. Chờ hạn mức phục hồi hoặc kiểm tra quota/model trong Google AI Studio.', 429) from None
         if error.code in (401, 403):
             raise ServiceError('Gemini từ chối khóa API. Kiểm tra khóa, quyền truy cập và khu vực tài khoản trong Google AI Studio.', 502) from None
-        if error.code in (400, 404):
-            raise ServiceError('Gemini chưa chấp nhận model hoặc yêu cầu. Kiểm tra tên model trong configure-windows.bat.', 502) from None
+        if error.code == 404:
+            raise ServiceError('Gemini: không tìm thấy model hoặc model không hỗ trợ generateContent (HTTP 404). Đặt Model AI thành gemini-2.5-flash trong configure-windows.bat rồi khởi động lại.', 502) from None
+        if error.code == 400:
+            if 'thinking' in message:
+                reason = 'cấu hình thinking không được model chấp nhận'
+            elif any(word in message for word in ('schema', 'responsejson', 'response_schema')):
+                reason = 'model từ chối định dạng JSON/schema của yêu cầu'
+            elif 'model' in message:
+                reason = 'tên model không hợp lệ'
+            else:
+                reason = 'tham số yêu cầu không hợp lệ'
+            raise ServiceError('Gemini: '+reason+' (HTTP 400). Kiểm tra Model AI trong Hồ sơ & kết nối; báo lại nguyên thông báo này để kiểm tra.', 502) from None
         raise ServiceError('Gemini đang gặp lỗi. Thử lại sau; nội dung hiện tại được giữ nguyên.', 502) from None
     except (OSError, ValueError):
         raise ServiceError('Chưa kết nối được Gemini. Kiểm tra mạng rồi thử lại.', 502) from None
