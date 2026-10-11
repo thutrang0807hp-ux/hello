@@ -1,3 +1,9 @@
+# Bản cập nhật mới nhất
+
+[FreelanceDesk-Update.zip](FreelanceDesk-Update.zip) gồm Gemini và huy hiệu tròn đỏ đếm job chưa xem trên tab Chrome. Dừng server, chép file trong ZIP đè vào thư mục web cũ, giữ `data`, chạy lại và Ctrl+F5. Hướng dẫn ở `CAP-NHAT.txt` trong ZIP.
+
+---
+
 # Cập nhật Gemini cho web Windows
 
 [FreelanceDesk-Gemini-Update.zip](FreelanceDesk-Gemini-Update.zip): tắt server, chép các file trong ZIP đè vào **thư mục web cũ**, giữ nguyên thư mục `data`. Mở `configure-windows.bat`, chọn **1 = Gemini**, nhập khóa lấy từ https://aistudio.google.com/apikey rồi khởi động lại. Hướng dẫn chi tiết ở `CAP-NHAT-GEMINI.txt` trong ZIP. Không cần cài lại Toolkit khi giữ nguyên thư mục dữ liệu.

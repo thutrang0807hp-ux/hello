@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 
 from reference_synthesis import library_pool
 from ai_provider import model as ai_model, provider as ai_provider, automatic_jobs as ai_auto_jobs
@@ -254,6 +254,24 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlsplit(self.path).path
+        if path == '/favicon.svg':
+            try:
+                count = max(0, min(1000000000, int(parse_qs(urlsplit(self.path).query).get('unread', ['0'])[0])))
+            except (ValueError, TypeError):
+                count = 0
+            label = '99+' if count > 99 else str(count)
+            size = 42 if count < 10 else 32 if count < 100 else 25
+            mark = (f'<circle cx="32" cy="32" r="30" fill="#e53935" stroke="#fff" stroke-width="2"/>'
+                    f'<text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-weight="700" font-size="{size}" fill="#fff">{label}</text>') if count else '<rect x="3" y="3" width="58" height="58" rx="15" fill="#23684f"/><path d="M32 12 52 32 32 52 12 32Z M32 22 22 32 32 42 42 32Z" fill="#fff" fill-rule="evenodd"/>'
+            raw = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'+mark+'</svg>').encode()
+            self.send_response(200)
+            self.send_header('Content-Type','image/svg+xml')
+            self.send_header('Content-Length',str(len(raw)))
+            self.send_header('Cache-Control','no-cache')
+            self.send_header('X-Content-Type-Options','nosniff')
+            self.end_headers()
+            self.wfile.write(raw)
+            return
         if path == '/api/auth':
             return self.reply(200, {'required': bool(PASSWORD), 'authenticated': self.authorized()})
         if path.startswith('/api/'):
@@ -423,6 +441,17 @@ class Handler(BaseHTTPRequestHandler):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
+            if path == '/api/jobs/read':
+                try: ident = int(item.get('id'))
+                except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None
+                with connect() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    row = db.execute("SELECT body FROM records WHERE id=? AND kind='job'",(ident,)).fetchone()
+                    if not row: raise ServiceError('Không tìm thấy job.',404)
+                    saved = json.loads(row['body'])
+                    saved['unread'] = False
+                    db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(saved,ensure_ascii=False),ident))
+                return self.reply(200, {'ok':True})
             if path == '/api/jobs/activity':
                 try: ident = int(item.get('id'))
                 except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None

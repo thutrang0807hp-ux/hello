@@ -6,7 +6,16 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;'
 const today = () => {const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const safeLink = value => {try {const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch {return '';}};
 function notice(message) {$('#notice').textContent = message;}
-function requireLogin() {clearInterval(pollTimer); if (!$('#login').open) $('#login').showModal();}
+let tabUnread = -1;
+function updateTabBadge(count = records.filter(record => record.kind === 'job' && record.unread).length) {
+  if (count === tabUnread) return;
+  tabUnread = count;
+  document.title = count ? `(${count}) Freelance Desk` : 'Freelance Desk';
+  let icon = document.getElementById('unreadTabIcon');
+  if (!icon) {icon = document.createElement('link'); icon.id = 'unreadTabIcon'; icon.rel = 'icon'; icon.type = 'image/svg+xml'; document.head.append(icon);}
+  icon.href = `/favicon.svg?unread=${count}`;
+}
+function requireLogin() {updateTabBadge(0); clearInterval(pollTimer); if (!$('#login').open) $('#login').showModal();}
 async function api(path, options) {
   const response = await fetch(path, options);
   const data = await response.json();
@@ -28,11 +37,13 @@ async function refresh(silent = false) {
     }
     initialized = true;
     const unreadJobs=records.filter(r=>r.kind==='job'&&r.unread).length;
+    updateTabBadge(unreadJobs);
     $('#feedStatus').innerHTML=`<span class=unread-feed-badge ${unreadJobs?'data-has-unread':''}><strong>${unreadJobs}</strong> job chưa đọc</span><span class=feed-update-note>Cập nhật mỗi 10 giây khi mở web</span>`;
     if (!['settings', 'proposal', 'archive'].includes(view)) render();
   } catch (error) {if (!silent) notice(error.message); else $('#feedStatus').textContent = 'Mất kết nối · Đang chờ tải lại';}
 }
 function render() {
+  updateTabBadge();
   Sidebar.sync();
   if(typeof USContext!=='undefined') USContext.sync();
   document.querySelectorAll('nav button[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view || (b.dataset.view === 'job' && view === 'project') || (b.dataset.view==='overview'&&view==='analytics') || (b.dataset.view==='proposal'&&view==='archive')));

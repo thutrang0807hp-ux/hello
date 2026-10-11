@@ -143,6 +143,7 @@ const Jobs = (() => {
    finally{button.disabled=false;}
   };
   if(!dialog.open)dialog.showModal();
+  if(j.unread) post('/api/jobs/read',{id:j.id}).then(()=>{j.unread=false;updateTabBadge();return refresh(true)}).catch(error=>notice(error.message));
  }
  $('#content').addEventListener('click',async e=>{
   const mark=e.target.closest('[data-proposal-sent]');
