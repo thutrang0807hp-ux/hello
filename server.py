@@ -67,7 +67,7 @@ with connect() as db:
 
 
 def job_signature(job):
-    return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'assessmentVersion':job_radar.ASSESSMENT_VERSION, 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 job_review_cooldown = 0

@@ -309,6 +309,17 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(context['draft']['budget'], '$500')
         self.assertNotIn('test-placeholder', payload['input'])
 
+    def test_job_assessment_repairs_english_and_preserves_scores(self):
+        import job_radar
+        english={'summary':'The job requires editing and creating content for the client.','priceComment':'The budget is hourly and suitable for this job.','clarityComment':'The description is clear and has details for the work.','riskComment':'The client has history and the job is clear.','warnings':[],'budgetScore':20,'clarityScore':15,'safetyScore':12}
+        vietnamese={**english,'summary':'Biên tập nội dung quảng cáo.','priceComment':'Ngân sách phù hợp.','clarityComment':'Cần xác nhận thời hạn.','riskComment':'Chưa thấy dấu hiệu đáng ngờ.','budgetScore':1}
+        def result(value):return {'status':'completed','output':[{'type':'message','content':[{'type':'output_text','text':json.dumps(value)}]}]}
+        with patch.dict(os.environ,{'FREELANCE_AI_PROVIDER':'openai','FREELANCE_AI_KEY':'test-key'}),patch('job_radar.post_json',side_effect=[result(english),result(vietnamese)]) as send:
+            assessment=job_radar.evaluate({'name':'Job','notes':'Description','budget':'$500'})
+            self.assertEqual(assessment['summary'],vietnamese['summary'])
+            self.assertEqual(assessment['budgetScore'],20)
+            self.assertEqual(send.call_count,2)
+
     def test_job_worker_retries_cached_error_and_preserves_success(self):
         with patch.dict(os.environ,{'FREELANCE_AI_KEY':'test-key','FREELANCE_AI_PROVIDER':'openai','FREELANCE_AI_AUTO_JOBS':'1'}),patch.object(server,'job_review_cooldown',0),patch('server.time.sleep'):
             server.import_jobs({'event':'new_jobs','jobs':[job()]})
