@@ -183,7 +183,7 @@ Tab **Khách hàng** có ba nhóm **Đang trao đổi**, **Hợp đồng đang m
 
 Thẻ ghi tình hình/milestone hiện tại, việc tiếp theo, ngày cần liên hệ và lần khách phản hồi gần nhất. Bấm **Vừa phản hồi** ghi ngày hôm nay theo giờ Việt Nam; chọn ngày khác trong hồ sơ. Số ngày tự tính, không tự kết luận Ghost. Hồ sơ gom ghi chú và các job/dự án/thư đã liên kết. Tìm kiếm và nút **Cần liên hệ** lọc các khách đến hạn, không nhắc khách lưu trữ.
 
-**Email Upwork đã có tích hợp Gmail chỉ đọc**, cần cấu hình OAuth của riêng bạn. Vào **Khách hàng → Mở thư Upwork** để thiết lập, đồng bộ và liên kết thư. Chỉ truy vấn thông báo “sent you a message” từ `room_…@email.upwork.com` trong 30 ngày gần đây; không tải toàn bộ hộp thư, không gửi/xóa thư hay đổi trạng thái đã đọc trên Gmail. Quyền `gmail.readonly` Google cấp vẫn rộng hơn bộ lọc: có thể dùng hộp thư phụ chỉ nhận thông báo Upwork nếu muốn tách Gmail cá nhân.
+**Email Upwork đã có tích hợp Gmail chỉ đọc**, cần cấu hình OAuth của riêng bạn. Vào **Khách hàng → Mở thư Upwork** để xem hộp tin nhắn. Trạng thái kết nối và nút chính nằm trên cùng; danh sách có bộ lọc Tất cả, Chưa đọc, Chờ liên kết. **Cài đặt kết nối** và **Nhập một thư** được thu gọn mặc định, chỉ mở khi bấm; thư đã liên kết chỉ hiện tên khách và nút Đổi khách. Chỉ truy vấn thông báo “sent you a message” từ `room_…@email.upwork.com` trong 30 ngày gần đây; không tải toàn bộ hộp thư, không gửi/xóa thư hay đổi trạng thái đã đọc trên Gmail. Quyền `gmail.readonly` Google cấp vẫn rộng hơn bộ lọc: có thể dùng hộp thư phụ chỉ nhận thông báo Upwork nếu muốn tách Gmail cá nhân.
 
 Lần đầu chọn khách (hoặc tạo khách từ thư). App lưu liên kết theo mã phòng; các thông báo sau cùng phòng tự ghép, cập nhật ngày phản hồi và nhãn **Tin nhắn mới**; khách có thư chưa đọc được đưa lên đầu trong nhóm. Hộp thư app hiện 200 thư gần nhất. Không đoán theo tên, không tự xác nhận hợp đồng hay thay nhóm khách. Thông báo Gmail chưa xác minh được chữ ký DKIM Upwork phải ghép thủ công. Mở nội dung thư trong app xóa nhãn mới của thư đó, không thay trạng thái trên Gmail. Ngày phản hồi dùng ngày nhận email theo UTC+7, không lùi khi nhận thư cũ. Mẫu không trích được nội dung vẫn hiện thông báo và yêu cầu xem thư gốc; không bịa tin nhắn. Không sử dụng AI/token.
 
@@ -192,14 +192,14 @@ Lần đầu chọn khách (hoặc tạo khách từ thư). App lưu liên kết
 1. Mở [Google Cloud Console](https://console.cloud.google.com/), tạo/chọn project và bật **Gmail API** trong APIs & Services → Library.
 2. Trong Google Auth Platform, thiết lập tên ứng dụng và Audience. Với ứng dụng cá nhân ở chế độ **Testing**, thêm địa chỉ Gmail muốn kết nối vào **Test users**.
 3. Tạo OAuth Client loại **Web application**. Trong **Authorized redirect URIs**, thêm đúng URI được hiển thị trong app (mặc định `http://127.0.0.1:8000/api/mail/callback`). Không dùng API key Gemini hay Client loại Desktop.
-4. Mở app bằng `127.0.0.1`, vào **Khách hàng → Mở thư Upwork → Cấu hình đăng nhập Google**, dán **Client ID** và **Client Secret**, lưu rồi bấm **Kết nối Google**. Chọn tài khoản và cấp quyền Gmail chỉ đọc.
+4. Mở app bằng `127.0.0.1`, vào **Khách hàng → Mở thư Upwork → Cài đặt kết nối**, dán **Client ID** và **Client Secret**, lưu rồi bấm **Kết nối Google**. Chọn tài khoản và cấp quyền Gmail chỉ đọc.
 5. Quay lại app, bấm **Đồng bộ ngay**. Khi server đang chạy, app tự kiểm tra mỗi 2 phút. Mỗi lượt tải tối đa hai trang (100 thông báo), lưu trang tiếp theo để lượt sau tiếp tục, tránh bỏ sót do các thư đã tải nằm trên đầu.
 
 Thông tin OAuth và refresh token chỉ lưu trong `data/gmail-private.json` trên máy chủ (không trả token về trình duyệt; không nằm trong ZIP cập nhật). Giữ thư mục `data` riêng tư. **Ngắt kết nối** xóa token khỏi app và dừng đọc; thu hồi quyền hoàn toàn tại [quyền tài khoản Google](https://myaccount.google.com/connections). Google có thể làm token hết hạn sau 7 ngày khi OAuth còn ở Testing; bấm kết nối lại khi app báo hết phiên. `redirect_uri_mismatch` nghĩa là URI trong Google Cloud chưa khớp chính xác với URI app hiển thị. Kết nối Google thực tế cần Client ID/Secret của bạn; kiểm thử tự động chỉ mô phỏng phản hồi Google, không chứng nhận một tài khoản thật đã kết nối.
 
 #### Thử ngay bằng thư thật, chưa cần OAuth
 
-Trong Gmail, mở thông báo Upwork → dấu **⋮ của thư** → **Tải thư xuống**. Trong app chọn **Nhập thư .eml**, rồi liên kết khách. Tệp tối đa 700 KB. App chỉ đọc tệp bạn chọn, không có quyền vào Gmail; đây là nhập thủ công, không tự nhận thư mới. Nội dung nhập và thư Gmail lưu trong SQLite, chống nhập trùng theo ID thư. Ngắt Google không xóa lịch sử thư đã lưu.
+Trong Gmail, mở thông báo Upwork → dấu **⋮ của thư** → **Tải thư xuống**. Trong app chọn **Nhập một thư → Chọn tệp thư .eml**, rồi liên kết khách. Tệp tối đa 700 KB. App chỉ đọc tệp bạn chọn, không có quyền vào Gmail; đây là nhập thủ công, không tự nhận thư mới. Nội dung nhập và thư Gmail lưu trong SQLite, chống nhập trùng theo ID thư. Ngắt Google không xóa lịch sử thư đã lưu.
 
 ## Tổng quan: biểu đồ và việc cần xử lý
 
