@@ -12,8 +12,9 @@ Không bảo đảm việc dùng Toolkit được Upwork cho phép hoặc không
 3. Bật Developer mode / Chế độ nhà phát triển.
 4. Bấm Load unpacked / Tải tiện ích đã giải nén.
 5. Chọn thư mục toolkit-desk-bridge, có manifest.json bên trong.
-6. Mở Tùy chọn tiện ích của "Upwork Toolkit · Freelance Desk Bridge".
-7. Bấm nút tím "Kết nối Freelance Desk" ở góc dưới bên trái.
+6. Bấm biểu tượng chữ U của "Upwork Toolkit · Freelance Desk Bridge".
+   Trang kết nối sẽ mở ngay. Extension options cũng mở thẳng trang này.
+7. Muốn xem Jobs / Settings gốc, bấm "Quay lại Toolkit" phía dưới.
 8. Chạy Freelance Desk bằng start-windows.bat; giữ cửa sổ đó mở.
 9. Vào Hồ sơ & kết nối trong web, sao chép URL nhận job.
 10. Dán URL vào trang kết nối, bấm Lưu & kết nối.

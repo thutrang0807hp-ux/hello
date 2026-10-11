@@ -30,7 +30,9 @@ def package(original, destination):
     manifest.pop('key', None)  # Keep the installed Web Store edition available under its own ID.
     manifest.pop('update_url', None)  # The store must not overwrite this additive patch.
     manifest['name'] = 'Upwork Toolkit · Freelance Desk Bridge'
-    manifest['version_name'] = '1.6.0 + Freelance Desk bridge 1'
+    manifest['version_name'] = '1.6.0 + Freelance Desk bridge 2'
+    manifest['options_ui'] = {'open_in_tab': True, 'page': 'desk-bridge.html'}
+    manifest['action']['default_popup'] = 'desk-bridge.html'
     manifest['host_permissions'] += ['http://127.0.0.1/*', 'http://localhost/*']
     (extension / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
     # Original JS bundles remain byte-for-byte identical; only an import is appended to the worker.
@@ -45,7 +47,7 @@ def package(original, destination):
         'base': 'User-supplied Chrome Web Store Toolkit 1.6.0',
         'upstream': 'https://github.com/neeilya/upwork-toolkit',
         'upstreamReleaseId': '4be0325640df585fb9030a5ddffa756ea0effce0',
-        'changes': ['Appended bridge import in background.js', 'Added link script in options.html',
+        'changes': ['Appended bridge import in background.js', 'Added link script in options.html', 'Icon popup and extension options open connection page directly',
                     'Added desk-bridge files', 'Removed Web Store key/update_url; added localhost host permissions and distinct name'],
         'originalSha256': expected,
     }

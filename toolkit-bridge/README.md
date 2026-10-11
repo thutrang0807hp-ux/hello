@@ -2,7 +2,7 @@
 
 The installed build has no native webhook UI. This additive bridge watches `chrome.storage.local.__JOBS`, normalizes already-fetched job data, and POSTs it to the existing Freelance Desk importer on localhost. It never requests Upwork and does not read sync settings, cookies or AI keys.
 
-The original background bundle is preserved with one appended module import. Original content scripts, request modifiers, job fetcher, scheduler and compiled libraries stay byte-identical. An extra module adds a connection-page link to the original options page. The manifest has a distinct name and ID (Web Store key/update URL removed), plus HTTP localhost permissions. It does not migrate data from another extension's storage.
+The original background bundle is preserved with one appended module import. Original content scripts, request modifiers, job fetcher, scheduler and compiled libraries stay byte-identical. An extra module adds a connection-page link to the original options page. The manifest icon popup and extension options open the connection page directly; its Toolkit link opens the original job/settings UI in a separate tab. The manifest has a distinct name and ID (Web Store key/update URL removed), plus HTTP localhost permissions. It does not migrate data from another extension's storage.
 
 ## Package
 

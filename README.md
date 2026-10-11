@@ -65,7 +65,7 @@ Khi hai biến của một kênh đã có, job mới sẽ được đưa vào h�
 Bản Chrome Web Store 1.6.0 người dùng cung cấp không có Mobile alerts/Webhook. Gói [Toolkit-Installed-Build-Bridge.zip](downloads/Toolkit-Installed-Build-Bridge.zip) giữ các bundle lấy job của đúng bản đó, thêm cầu nối đọc job đã lưu trong `chrome.storage.local.__JOBS` và gửi tới Freelance Desk trên cùng máy. Không thêm yêu cầu tới Upwork, không đọc cookie/khóa AI, không đổi lịch lấy job. Cầu nối gửi dữ liệu ngay khi cache cập nhật, không phụ thuộc lịch thông báo desktop.
 
 1. Giải nén gói, tắt các bản Toolkit khác (giữ lại để quay về), bật Developer mode ở `chrome://extensions`, Load unpacked thư mục `toolkit-desk-bridge` có `manifest.json`.
-2. Trong tùy chọn bản mới, bấm nút tím **Kết nối Freelance Desk**.
+2. Bấm biểu tượng chữ U của bản cầu nối (hoặc Extension options) để mở thẳng trang kết nối.
 3. Mở web bằng `start-windows.bat`, vào **Hồ sơ & kết nối**, sao chép URL; dán vào trang cầu nối và bấm **Lưu & kết nối**.
 4. Khi Toolkit có job, kiểm tra tab **Công việc**. Nút **Gửi job hiện có** dùng job thật trong cache, không tạo job mẫu.
 5. Giữ Chrome và web mở. Hàng đợi lưu bền, thử lại mỗi phút; giới hạn 500 job / khoảng 4 MB và báo khi đầy. Web chống trùng ID khi gửi lại.
