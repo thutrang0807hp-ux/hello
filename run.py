@@ -1,4 +1,4 @@
-"""Desktop launcher: optional first-run setup and open the local browser."""
+"""Desktop launcher: explicit optional setup and open the local browser."""
 import json
 import os
 import subprocess
@@ -7,14 +7,14 @@ import time
 import urllib.request
 import webbrowser
 from pathlib import Path
-from local_config import config_path, load
+from local_config import load
 
 
 def main():
     if sys.version_info < (3, 10):
         print('Freelance Desk cần Python 3.10 trở lên.')
         return 1
-    if '--configure' in sys.argv or not config_path().exists():
+    if '--configure' in sys.argv:
         from configure import configure
         if not configure():
             return 1
