@@ -61,6 +61,12 @@ def request(payload, transport):
         except (ValueError, OSError, AttributeError, TypeError):
             message, reasons = '', set()
             detail = {}
+        explanation = str(detail.get('message', '')).replace('\n',' ')
+        # Provider diagnostics may echo request values; remove locally configured secrets.
+        for name, secret in os.environ.items():
+            if name.startswith('FREELANCE_') and any(word in name for word in ('KEY','TOKEN','PASSWORD')) and secret:
+                explanation = explanation.replace(secret, '[ẩn]')
+        explanation = re.sub(r'(?:AIza|AQ\.)[A-Za-z0-9_-]+', '[ẩn]', explanation)[:600]
         if 'API_KEY_INVALID' in reasons or 'api key not valid' in message or 'api key expired' in message:
             raise ServiceError('Gemini: khóa API không hợp lệ hoặc đã hết hiệu lực. Mở configure-windows.bat, chọn 1 = Gemini và dán khóa mới từ Google AI Studio.', 502) from None
         if 'API_KEY_SERVICE_BLOCKED' in reasons or 'SERVICE_DISABLED' in reasons:
@@ -70,12 +76,6 @@ def request(payload, transport):
         if error.code in (401, 403):
             raise ServiceError('Gemini từ chối khóa API. Kiểm tra khóa, quyền truy cập và khu vực tài khoản trong Google AI Studio.', 502) from None
         if error.code == 404:
-            explanation = str(detail.get('message', '')).replace('\n',' ')
-            # Provider diagnostics may echo request values; remove locally configured secrets.
-            for name, secret in os.environ.items():
-                if name.startswith('FREELANCE_') and any(word in name for word in ('KEY','TOKEN','PASSWORD')) and secret:
-                    explanation = explanation.replace(secret, '[ẩn]')
-            explanation = re.sub(r'(?:AIza|AQ\.)[A-Za-z0-9_-]+', '[ẩn]', explanation)[:600]
             if explanation:
                 raise ServiceError('Gemini HTTP 404 — Google trả lời: '+explanation+' Chọn model khác trong Hồ sơ & kết nối và kiểm tra kết nối.', 502) from None
             raise ServiceError('Gemini HTTP 404 nhưng không có nội dung lỗi JSON từ Google. Có thể đường gọi bị proxy hoặc phần mềm mạng chặn. Thử tắt VPN/proxy hoặc dùng mạng khác rồi kiểm tra kết nối.', 502) from None
@@ -89,7 +89,12 @@ def request(payload, transport):
             else:
                 reason = 'tham số yêu cầu không hợp lệ'
             raise ServiceError('Gemini: '+reason+' (HTTP 400). Kiểm tra Model AI trong Hồ sơ & kết nối; báo lại nguyên thông báo này để kiểm tra.', 502) from None
-        raise ServiceError('Gemini đang gặp lỗi. Thử lại sau; nội dung hiện tại được giữ nguyên.', 502) from None
+        suffix = (' Google trả lời: '+explanation) if explanation else ' Google không trả về chi tiết lỗi.'
+        if error.code == 503:
+            raise ServiceError('Gemini HTTP 503: model đang tạm thời không phục vụ hoặc quá tải.'+suffix+' Đợi một lúc hoặc chọn model Flash khác rồi Kiểm tra kết nối.', 502) from None
+        if error.code == 500:
+            raise ServiceError('Gemini đang gặp lỗi nội bộ HTTP 500.'+suffix+' Thử Kiểm tra kết nối; nếu chỉ lỗi khi viết thư, báo lại thông báo này.', 502) from None
+        raise ServiceError('Gemini đang gặp lỗi HTTP '+str(error.code)+'.'+suffix, 502) from None
     except (OSError, ValueError):
         raise ServiceError('Chưa kết nối được Gemini. Kiểm tra mạng rồi thử lại.', 502) from None
     try:
