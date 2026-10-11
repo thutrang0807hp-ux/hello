@@ -7,6 +7,8 @@ const today = () => {const d = new Date(); return `${d.getFullYear()}-${String(d
 const safeLink = value => {try {const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch {return '';}};
 function notice(message) {$('#notice').textContent = message;}
 let tabUnread = -1;
+let lastRenderedRecords = '';
+
 function updateTabBadge(count = records.filter(record => record.kind === 'job' && record.unread).length) {
   if (count === tabUnread) return;
   tabUnread = count;
@@ -39,10 +41,11 @@ async function refresh(silent = false) {
     const unreadJobs=records.filter(r=>r.kind==='job'&&r.unread).length;
     updateTabBadge(unreadJobs);
     $('#feedStatus').innerHTML=`<span class=unread-feed-badge ${unreadJobs?'data-has-unread':''}><strong>${unreadJobs}</strong> job chưa đọc</span><span class=feed-update-note>Cập nhật mỗi 10 giây khi mở web</span>`;
-    if (!['settings', 'proposal', 'archive'].includes(view)) render();
+    if (!['settings', 'proposal', 'archive'].includes(view) && (!silent || JSON.stringify(records)!==lastRenderedRecords)) render();
   } catch (error) {if (!silent) notice(error.message); else $('#feedStatus').textContent = 'Mất kết nối · Đang chờ tải lại';}
 }
 function render() {
+  lastRenderedRecords = JSON.stringify(records);
   updateTabBadge();
   Sidebar.sync();
   if(typeof USContext!=='undefined') USContext.sync();

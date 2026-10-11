@@ -265,3 +265,5 @@ html[data-theme=dark] .overview-context-column .us-next>span{color:#9cb9ca}
 html[data-theme=dark] .overview-context-column .us-next .us-holiday-vietnamese{color:#b7cbd3}
 
 .ai-key-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.ai-key-actions button{margin:0}
+
+.radar-cache-note{font-size:11px!important;color:#447b65;margin:8px 0 16px!important}html[data-theme=dark] .radar-cache-note{color:#afd6bf}
