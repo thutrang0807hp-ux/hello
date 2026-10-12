@@ -4,8 +4,8 @@
    Tích “Add python.exe to PATH”.
 2. Giải nén toàn bộ ZIP vào thư mục riêng, ví dụ Documents\FreelanceDesk.
    Không mở file BAT trực tiếp bên trong ZIP.
-3. Mở start-windows.bat. Lần đầu nhập mật khẩu riêng cho web.
-   Có thể nhấn Enter để bỏ qua AI, Slack và Telegram, cấu hình sau.
+3. Mở start-windows.bat để chạy web, không phải nhập cấu hình mỗi lần.
+   AI, Slack và Telegram có thể cấu hình sau trong Hồ sơ & kết nối.
 4. Trình duyệt tự mở web. Giữ cửa sổ chạy ứng dụng mở khi dùng.
 5. Trong Hồ sơ & kết nối, nhập thông tin thật và sao chép webhook để dán vào
    trang Kết nối Freelance Desk của bản Toolkit cầu nối → Lưu & kết nối.
@@ -33,7 +33,8 @@ Toolkit vẫn chạy trong Chrome trên máy bạn; khi Chrome/toolkit ngừng t
 web trên máy chủ không tự có job mới.
 
 AI, SLACK, TELEGRAM
-Nhập khóa qua configure-windows.bat, không gửi khóa trong chat.
+Nhập khóa trong Hồ sơ & kết nối trên web; configure-windows.bat là tùy chọn.
+Không gửi khóa trong chat.
 Gemini có mức miễn phí tùy model/tài khoản và có quota; kiểm tra trong AI Studio.
 OpenAI API tính phí riêng. Chưa kiểm tra gửi thông báo/API với tài khoản thật.
 README.md có chi tiết cấu hình, quyền truy cập và thông tin webhook.

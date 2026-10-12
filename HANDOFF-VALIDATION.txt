@@ -1,0 +1,28 @@
+FREELANCE DESK — KIỂM CHỨNG BÀN GIAO 12/10/2026 (UTC+7)
+
+Chạy lại ở môi trường Linux trước khi đóng gói:
+- python -m unittest discover -s tests -p 'test_*.py': 69 tests, PASS.
+- node tests/job_filters.test.js: PASS.
+- node tests/job_customer_stars.test.js: PASS.
+- node --check public/app.js: PASS.
+- node --check public/jobs.js: PASS.
+- node --check public/upwork-mail.js: PASS.
+- python tests/upwork_mail_update_smoke.py: PASS, nút hiện hướng dẫn nếu thiếu
+  script hoặc route Gmail sau cập nhật.
+
+Các kiểm chứng trước đó trên cùng mã ứng dụng:
+- Smoke .eml nhập/trích nội dung, tạo/ghép khách, cập nhật phản hồi,
+  đánh dấu đã đọc, chống trùng, bí mật OAuth, sáng/tối/mobile: PASS.
+- Smoke AI chỉ gọi một lần theo thao tác, thu gọn mặc định và dùng cache: PASS.
+
+Không xác nhận tài khoản Gmail thật đã kết nối hoặc quota nhà cung cấp thật.
+Không có khóa AI/Gmail/Slack/Telegram thật trong gói hay các test trên.
+Kiểm thử Chrome extension trên cloud bị chính sách trình duyệt chặn;
+không vượt chính sách. GUI Windows và OAuth thật cần máy/tài khoản thực tế.
+
+Lần đóng gói còn kiểm tra: ZIP giải nén được, đủ module Python/asset frontend,
+không chứa data/.git/.env thật; quét mẫu token cả trong hai ZIP Toolkit lồng.
+
+Đã giải nén ZIP sang thư mục tạm mới, chạy server.py với dữ liệu test riêng:
+HTML, script hộp thư, API records và API mail đều trả về thành công.
+Không cần dữ liệu hay cấu hình gốc để khởi động dự án.

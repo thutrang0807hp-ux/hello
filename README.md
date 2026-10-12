@@ -1,12 +1,14 @@
 # Freelance Desk
 
+**Bàn giao cho Codex/tài khoản khác:** đọc [DOC-TRUOC-KHI-SUA.md](DOC-TRUOC-KHI-SUA.md) trước. ZIP bàn giao chứa mã nguồn và kiểm thử, không chứa thư mục dữ liệu hay khóa.
+
 Web dùng riêng cho freelancer: quản lý khách hàng, nhận job từ Upwork Toolkit trên Chrome, soạn proposal bằng AI và nhận thông báo trong web, Slack, Telegram.
 
 ## Tải về và chạy trên Windows
 
 1. Trên GitHub, chọn **Code → Download ZIP**, sau đó giải nén toàn bộ.
 2. Cài [Python 3.12](https://www.python.org/downloads/windows/), tích **Add python.exe to PATH**.
-3. Mở **start-windows.bat**. Lần đầu nhập mật khẩu riêng; AI, Slack và Telegram có thể bỏ qua rồi cấu hình sau.
+3. Mở **start-windows.bat** để chạy app. AI, Slack và Telegram cấu hình trong web; công cụ configure-windows.bat chỉ mở khi bạn chủ động chọn.
 4. Trình duyệt tự mở ứng dụng. Giữ cửa sổ chạy app mở trong lúc dùng.
 
 Hướng dẫn chi tiết: [HUONG-DAN-WINDOWS.txt](HUONG-DAN-WINDOWS.txt). **demo.html** chỉ là mô phỏng; muốn lưu dữ liệu thật, chạy **start-windows.bat**. AI hỗ trợ Gemini và OpenAI; Muse chưa được tích hợp.
@@ -17,7 +19,7 @@ Python 3.10+; ứng dụng không cần gói ngoài.
 
 **Máy cá nhân (lựa chọn hiện tại):** tải và giải nén gói ứng dụng. Mở `demo.html` để xem thử thiết kế và thao tác bằng dữ liệu / AI mẫu, không cần Python; tải lại demo sẽ đặt lại dữ liệu. Windows: cài Python 3.10+ từ python.org, bật tùy chọn thêm Python vào PATH, rồi mở `start-windows.bat`. macOS/Linux: chạy `sh start.sh` trong thư mục ứng dụng. Trình duyệt sẽ tự mở; giữ cửa sổ chạy ứng dụng và Chrome đang dùng Upwork Toolkit hoạt động.
 
-Lần đầu, công cụ hỏi mật khẩu riêng, khóa AI và cấu hình Slack/Telegram. Có thể nhấn Enter để bỏ qua kênh chưa dùng; token và mật khẩu không hiển thị khi nhập. Các giá trị được lưu trong `data/local-config.json`, không mã hóa, với quyền tệp riêng trên hệ thống hỗ trợ. Giữ kín thư mục này. Để chỉnh cấu hình: Windows mở `configure-windows.bat`; macOS/Linux chạy `python3 configure.py`, rồi khởi động lại ứng dụng. Enter giữ giá trị cũ; dấu `-` xóa một giá trị.
+Khi chủ động mở công cụ cấu hình, công cụ hỏi mật khẩu riêng, khóa AI và cấu hình Slack/Telegram. Có thể nhấn Enter để bỏ qua kênh chưa dùng; token và mật khẩu không hiển thị khi nhập. Các giá trị được lưu trong `data/local-config.json`, không mã hóa, với quyền tệp riêng trên hệ thống hỗ trợ. Giữ kín thư mục này. Để chỉnh cấu hình: Windows mở `configure-windows.bat`; macOS/Linux chạy `python3 configure.py`, rồi khởi động lại ứng dụng. Enter giữ giá trị cũ; dấu `-` xóa một giá trị.
 
 Chạy máy chủ thủ công (không mở trình duyệt):
 
@@ -32,12 +34,12 @@ Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng
 
 1. Nhập dịch vụ, kinh nghiệm thực tế và portfolio tại **Hồ sơ & kết nối**.
 2. Nối Webhook từ Upwork Toolkit để job mới xuất hiện trong **Cơ hội công việc**.
-3. Chọn **Xem chi tiết** để đọc mô tả và thông tin khách; nếu thiếu nội dung, dùng **Bổ sung mô tả**. Vào tab **Proposal Studio**, chọn job trong node thông tin công việc để soạn thư.
+3. Chọn **Phân tích công việc** để đọc mô tả và thông tin khách; nếu thiếu nội dung, dùng **Bổ sung mô tả**. Vào tab **Proposal Studio**, chọn job trong node thông tin công việc để soạn thư.
 4. Nối node job và các node mẫu vào thư nháp; nhập cách giải quyết, giá, thời hạn và nhấn viết AI.
 5. Chạy node **AI đánh giá**, xem điểm / điểm mạnh / điểm yếu, rồi hoàn thiện node **Thư cuối**.
 6. Sao chép thư để gửi trên Upwork. Sau khi thực sự gửi, chọn **Tôi đã gửi → Lưu vào kho**; cập nhật kết quả ở **Thư đã gửi**.
 
-AI viết/chấm thư chỉ được gọi khi bạn nhấn nút. OpenAI mặc định tự đọc và đánh giá job trong nền khi đã cấu hình khóa. Gemini mặc định chỉ chấm job khi bạn bấm **Đánh giá → Đánh giá bằng AI** để dành quota cho viết thư; kết quả được lưu, chỉ gọi lại khi thông tin đánh giá thay đổi hoặc bạn bấm thử lại sau lỗi. Hồ sơ, mô tả job và thông tin thư được gửi tới nhà cung cấp bạn chọn. OpenAI dùng Responses API với `store: false`; Gemini dùng GenerateContent API. Gemini có mức miễn phí cho một số model/tài khoản, có giới hạn và thay đổi theo chính sách Google; ứng dụng không cam kết mọi lượt gọi miễn phí. OpenAI API tính phí riêng. Ứng dụng không tự gửi proposal lên Upwork.
+AI viết/chấm thư và chấm job chỉ được gọi khi bạn nhấn nút. Job có điểm khách 1–5 sao tính bằng quy tắc miễn phí trước khi dùng AI. Bấm **Phân tích công việc**, rồi **Phân tích bằng AI** để chấm; kết quả thành công được lưu, mở lại dùng cache. Không gọi AI khi rê chuột hoặc tải danh sách. Hồ sơ, mô tả job và thông tin thư được gửi tới nhà cung cấp bạn chọn. OpenAI dùng Responses API với `store: false`; Gemini dùng GenerateContent API. Gemini có mức miễn phí cho một số model/tài khoản, có giới hạn và thay đổi theo chính sách Google; ứng dụng không cam kết mọi lượt gọi miễn phí. OpenAI API tính phí riêng. Ứng dụng không tự gửi proposal lên Upwork.
 
 ## Cấu hình AI, Slack và Telegram
 
@@ -272,14 +274,14 @@ Nút Kho thư mở bảng kho bên cạnh workspace. Node kho có hai chế đ�
 
 ## Job chưa xem trên tab Chrome
 
-Biểu tượng tab là vòng tròn đỏ có số job chưa xem; trên 99 hiển thị `99+`, tiêu đề tab vẫn hiện tổng số chính xác. Khi không còn job chưa xem, biểu tượng trở về logo xanh. Dữ liệu đồng bộ mỗi 10 giây khi web đang mở. Mở **Xem chi tiết** đánh dấu job đã xem, lưu vào dữ liệu và giảm số ngay; chỉ chuyển sang danh sách hoặc xem tóm tắt không tự xóa số chưa đọc. Biểu tượng được phục vụ cùng nguồn nên không cần bật quyền thông báo hệ điều hành.
+Biểu tượng tab là vòng tròn đỏ có số job chưa xem; trên 99 hiển thị `99+`, tiêu đề tab vẫn hiện tổng số chính xác. Khi không còn job chưa xem, biểu tượng trở về logo xanh. Dữ liệu đồng bộ mỗi 10 giây khi web đang mở. Vào mục **Công việc** đánh dấu cả lô job đã nhận là đã xem thông báo, lưu vào dữ liệu và giảm số ngay; job đến sau tiếp tục tăng số mới. Không cần mở từng job. Biểu tượng được phục vụ cùng nguồn nên không cần bật quyền thông báo hệ điều hành.
 
 
 ### Điểm khách và bộ lọc sao không dùng AI
 
 Danh sách có bộ lọc Tất cả, 4–5 sao, 3 sao, 1–2 sao và Chưa đủ dữ liệu; điểm cao được xếp trước. Điểm khách tổng hợp khác với sao Upwork: sao Upwork chiếm 45%, số lần thuê 25%, tỷ lệ thuê 20%, xác minh thanh toán 10%; chỉ tính các thành phần có dữ liệu. Cần ít nhất hai thành phần, trong đó có lịch sử hoặc tỷ lệ thuê. Thiếu dữ liệu không tự cho 1 sao. Số lần thuê quy đổi 0/1/5/20/50 thành mức 1/2/3/4/5; tỷ lệ thuê 0/20/40/60/80% thành mức 1/2/3/4/5. Nếu nguồn cung cấp số job đăng và số lần thuê phù hợp, có thể tính tỷ lệ; nếu không, ghi rõ thiếu tỷ lệ thuê. Webhook nhận `client.hireRate` theo phần trăm 0–100 hoặc `client.totalJobsPosted`. Ngân sách dùng bộ lọc riêng, không quyết định chất lượng khách.
 
-Rê chuột không mở bảng đánh giá. Bấm **Đánh giá AI** mới gọi API cho job chưa có kết quả; đánh giá thành công được lưu trong SQLite, mở lại chỉ đọc cache. Chế độ tự chấm cũ bị tắt. Điểm sao không dùng token và không phải bảo đảm an toàn hay khả năng nhận hợp đồng.
+Rê chuột không mở bảng đánh giá. Trong khung **Phân tích công việc**, bấm **Phân tích bằng AI** mới gọi API cho job chưa có kết quả; đánh giá thành công được lưu trong SQLite, mở lại chỉ đọc cache. Chế độ tự chấm cũ bị tắt. Điểm sao không dùng token và không phải bảo đảm an toàn hay khả năng nhận hợp đồng.
 
 
 ### Khung chi tiết công việc và AI

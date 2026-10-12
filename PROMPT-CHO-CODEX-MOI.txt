@@ -1,0 +1,11 @@
+Tôi gửi ZIP mã nguồn dự án Freelance Desk đang chạy trên Windows.
+Hãy giải nén và đọc DOC-TRUOC-KHI-SUA.md, AGENTS.md, README.md trước.
+Đây là dự án đã hoạt động; không viết lại từ đầu và không tự đổi các yêu cầu
+đã chốt. Không tự gọi AI hoặc gửi tin nhắn thật để kiểm thử. Gói không có data
+hay khóa của tôi; dùng dữ liệu mẫu và môi trường test riêng.
+
+Việc tôi muốn bạn sửa lần này:
+[ĐIỀN YÊU CẦU Ở ĐÂY]
+
+Hãy làm đến khi hoàn tất, kiểm thử phần liên quan, cho tôi xem trước nếu đổi
+UI, rồi tạo gói cập nhật để chép vào bản cũ mà không mất dữ liệu.
