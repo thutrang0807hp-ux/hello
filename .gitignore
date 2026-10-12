@@ -7,3 +7,4 @@ __pycache__/
 
 .desktop-venv/
 .desktop-installed-files.json
+desktop-diagnostic.txt

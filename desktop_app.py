@@ -13,8 +13,9 @@ TITLE = 'Freelance Desk'
 
 class DesktopController:
     """Small, testable lifecycle: close hides, explicit exit stops our local server."""
-    def __init__(self, window, stop_server):
+    def __init__(self, window, stop_server, ready=True):
         self.window = window
+        self.ready = ready
         self.stop_server = stop_server
         self.tray = None
         self.exiting = False
@@ -47,7 +48,8 @@ class DesktopController:
         finally:
             if self.tray:
                 self.tray.stop()
-            self.window.destroy()
+            if self.ready:
+                self.window.destroy()
 
 
 class DesktopAPI:
@@ -89,20 +91,29 @@ def main():
         raise RuntimeError('Bản desktop này dành cho Windows 10/11.')
     from data_store import data_directory
     from desktop_background import start, stop, message
-    handle, kernel = single_instance(data_directory())
-    if handle is None:
-        return 0
-    controller = None
-    item = None
+    from desktop_diagnostics import require_runtime, report, safe_error
+    # pythonw has no console streams; libraries must not fail while writing diagnostics.
+    if sys.stdout is None:sys.stdout=open(os.devnull,'w',encoding='utf-8')
+    if sys.stderr is None:sys.stderr=open(os.devnull,'w',encoding='utf-8')
+    handle = kernel = controller = item = None
+    stage = 'Kiểm tra thành phần Windows'
     try:
+        require_runtime()
+        stage = 'Mở phiên ứng dụng'
+        handle, kernel = single_instance(data_directory())
+        if handle is None:return 0
+        stage = 'Nạp thư viện desktop'
         import webview
         import pystray
         from PIL import Image, ImageDraw
+        stage = 'Khởi động dịch vụ local'
         item = start(open_browser=False)
         window = webview.create_window(TITLE, f"http://127.0.0.1:{item['port']}/?desktop=1",
                                        js_api=DesktopAPI(item['port']), width=1360, height=900,
                                        min_size=(760, 560), text_select=True)
-        controller = DesktopController(window, stop)
+        controller = DesktopController(window, stop, ready=False)
+        def shown():controller.ready=True
+        window.events.shown += shown
         window.events.closing += controller.closing
         image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
@@ -136,20 +147,26 @@ def main():
         if not marker.exists() and any(profile.iterdir()):
             raise RuntimeError('Thư mục WebView đã tồn tại; giữ nguyên để kiểm tra.')
         marker.write_text(json.dumps({'application':'Freelance Desk WebView'}), encoding='utf-8')
+        stage = 'Khởi tạo cửa sổ WebView2'
+        from webview.guilib import initialize
+        if initialize('edgechromium').renderer!='edgechromium':
+            raise RuntimeError('Thư viện chưa sử dụng được WebView2. Chạy repair-webview2-windows.bat; app không dùng bộ hiển thị IE cũ.')
         webview.start(gui='edgechromium', private_mode=False, storage_path=str(profile))
         return 0
-    except ImportError:
-        message('Thiếu thành phần desktop. Chạy install-desktop-windows.bat một lần để cài.', True)
+    except ImportError as error:
+        report(stage,error)
+        message('Thiếu thư viện desktop: '+safe_error(error)+'\nChạy install-desktop-windows.bat để cài lại. Chi tiết: desktop-diagnostic.txt.', True)
         return 1
-    except Exception:
-        message('Chưa mở được app desktop. Kiểm tra WebView2 Runtime và chạy install-desktop-windows.bat. Nếu CMD cũ đang chạy, dừng bằng Ctrl+C trước.', True)
+    except Exception as error:
+        report(stage,error)
+        message(stage+'\n'+type(error).__name__+': '+safe_error(error)+'\n\nChạy diagnose-desktop-windows.bat và gửi nội dung desktop-diagnostic.txt nếu vẫn lỗi.', True)
         return 1
     finally:
         if controller and not controller.exiting:
             controller.quit()
         elif item and not controller:
             stop()
-        kernel.CloseHandle(handle)
+        if handle is not None:kernel.CloseHandle(handle)
 
 
 if __name__ == '__main__':

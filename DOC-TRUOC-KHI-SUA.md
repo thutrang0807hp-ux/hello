@@ -151,3 +151,11 @@ Lý do + ghi chú tùy chọn được gom trong details/summary riêng, mặc �
 - WebView profile trong data/desktop-webview, có marker sở hữu; uninstall chỉ liệt kê profile này khi có marker, không rmtree. Venv gỡ theo .desktop-installed-files.json của bộ cài; không chọn đường dẫn ngoài .desktop-venv hoặc traversal. Shortcut Desktop xóa thủ công. Không đóng gói venv/marker/cache/dữ liệu.
 - 108 Python tests PASS; background_server_smoke, desktop_browser_smoke, Node focus PASS. Các wheel Windows cho Python 3.10/pywebview/pystray/Pillow/pythonnet đã tải được; proxy_tools đã build wheel. Lần resolve chỉ-binary ban đầu thất bại vì proxy_tools phát hành source; bộ cài pip bình thường cho phép build source, không tắt kiểm chứng TLS.
 - GUI Windows, COM shortcut, WebView2/tray/mutex chưa thực thi trong cloud Linux; cần xác nhận trên Windows. Test lifecycle dùng mocks + backend child thật, dữ liệu tạm; không gọi AI/Gmail thật.
+
+
+### Sửa khởi động desktop / chẩn đoán Windows
+- Không còn gộp mọi lỗi thành “dừng CMD/kiểm tra WebView2”. Trước khởi động kiểm tra WebView2 registry ở HKCU/HKLM và cả 32/64-bit views, .NET release >=394802. Chặn renderer fallback MSHTML của pywebview 5.4.
+- Bổ sung desktop_diagnostics.py + diagnose-desktop-windows.bat. desktop-diagnostic.txt chỉ có phiên bản/kiến trúc/thư viện/runtime/giai đoạn lỗi và exception đã che mẫu credential, không đọc config/private Gmail. Không đóng gói báo cáo thực tế.
+- pythonw không có stdout/stderr thì cấp devnull trước import thư viện. Cleanup không destroy window khi chưa shown, tránh gọi GUI chưa khởi tạo. Mutex/storage exceptions cũng được báo.
+- repair-webview2-windows.ps1 tải bootstrapper từ link Microsoft, bắt buộc Authenticode Valid + publisher Microsoft Corporation rồi mới chạy /silent /install; không bỏ TLS/chữ ký và không đổi execution policy. Bộ cài desktop tự gọi repair nếu thiếu runtime. .NET thiếu thì chỉ dẫn link Microsoft riêng.
+- 114 Python tests PASS (lifecycle, thiếu runtime/.NET, registry views, che credential, cleanup init failure). Windows/PowerShell installation và registry thật chưa chạy trong Linux; chưa xác định nguyên nhân máy người dùng từ ảnh generic cũ. Nếu vẫn lỗi, lấy desktop-diagnostic.txt, không yêu cầu khóa API.

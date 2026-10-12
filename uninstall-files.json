@@ -2,6 +2,7 @@
   "application": "Freelance Desk",
   "files": [
     ".env.example",
+    "CAI-APP-DESKTOP.txt",
     "CAP-NHAT.txt",
     "HUONG-DAN-WINDOWS.txt",
     "README.md",
@@ -12,9 +13,12 @@
     "configure-windows.bat",
     "configure.py",
     "data_store.py",
+    "desktop-diagnostic.txt",
     "desktop-requirements.txt",
     "desktop_app.py",
     "desktop_background.py",
+    "desktop_diagnostics.py",
+    "diagnose-desktop-windows.bat",
     "install-desktop-windows.bat",
     "install_desktop.py",
     "job_activity.py",
@@ -38,6 +42,8 @@
     "public/upwork-mail.js",
     "public/us-context.js",
     "reference_synthesis.py",
+    "repair-webview2-windows.bat",
+    "repair-webview2-windows.ps1",
     "run.py",
     "server.py",
     "services.py",
@@ -49,7 +55,6 @@
     "uninstall-windows.bat",
     "uninstall_desk.py",
     "upwork_mail.py",
-    "workflow.py",
-    "CAI-APP-DESKTOP.txt"
+    "workflow.py"
   ]
 }

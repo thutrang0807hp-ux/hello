@@ -33,3 +33,10 @@ Shortcut Desktop có thể xóa riêng (không xóa dữ liệu).
 Đây là bộ cài dùng Python + WebView2, chưa phải EXE độc lập có chữ ký.
 Windows GUI/khay cần xác nhận trên máy thật; kiểm thử hiện tại ở Linux với
 lifecycle giả lập, HTTP/Chromium và dữ liệu tạm, không gọi AI/Gmail thật.
+
+NẾU KHÔNG MỞ ĐƯỢC:
+- Bấm OK để đóng thông báo lỗi cũ, chép đủ bản sửa, chạy lại install-desktop-windows.bat.
+- Bộ cài mới tự kiểm tra/cài WebView2 nếu thiếu, chỉ chạy bộ cài có chữ ký Microsoft hợp lệ.
+- Có thể chạy repair-webview2-windows.bat riêng để cài WebView2.
+- Nếu vẫn lỗi: chạy diagnose-desktop-windows.bat, gửi nội dung desktop-diagnostic.txt.
+  Không gửi local-config.json/gmail-private.json hoặc khóa/token.

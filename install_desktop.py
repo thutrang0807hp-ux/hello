@@ -20,6 +20,16 @@ def main():
     subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(ROOT / 'desktop-requirements.txt')], check=True)
     installed = [file.relative_to(ROOT).as_posix() for file in (ROOT / '.desktop-venv').rglob('*') if file.is_file() and not file.is_symlink()]
     (ROOT / '.desktop-installed-files.json').write_text(json.dumps({'application':'Freelance Desk desktop','files':installed}),encoding='utf-8')
+    from desktop_diagnostics import windows_runtime, require_runtime, MissingNet
+    if not windows_runtime().get('webview2'):
+        print('Chưa có WebView2. Bộ cài sẽ tải bản chính thức và kiểm tra chữ ký Microsoft.')
+        repair_env=dict(os.environ,FREELANCE_DESKTOP_ROOT=str(ROOT))
+        repair_command="& ([scriptblock]::Create([IO.File]::ReadAllText((Join-Path $env:FREELANCE_DESKTOP_ROOT 'repair-webview2-windows.ps1'))))"
+        subprocess.run(['powershell.exe','-NoProfile','-NonInteractive','-Command',repair_command],env=repair_env,check=True)
+    try:require_runtime()
+    except RuntimeError as error:
+        print(str(error))
+        return 1
     # Literal paths travel through environment variables, never PowerShell source interpolation.
     env = dict(os.environ, FREELANCE_DESKTOP_ROOT=str(ROOT))
     script = r"""
