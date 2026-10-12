@@ -8,7 +8,7 @@ const FocusInsights=(()=>{
   const inPrevious=value=>{const d=localDate(value);return d>=previousStart&&d<start;};
   const projects=records.filter(r=>r.kind==='project'),customers=records.filter(r=>r.kind==='client'&&stage(r)!=='archive'),talk=customers.filter(c=>stage(c)==='talk'),active=customers.filter(c=>stage(c)==='active');
   const due=customers.filter(c=>/^\d{4}-\d{2}-\d{2}$/.test(c.followup||'')&&c.followup<=day&&c.completedFollowup!==c.followup).sort((a,b)=>a.followup.localeCompare(b.followup));
-  const quiet=active.filter(c=>/^\d{4}-\d{2}-\d{2}$/.test(c.lastReplyDate||'')&&c.lastReplyDate<=shift(day,-7));
+  const quiet=active.filter(c=>c.clientStage!=='paused'&&/^\d{4}-\d{2}-\d{2}$/.test(c.lastReplyDate||'')&&c.lastReplyDate<=shift(day,-7));
   const sent=projects.filter(p=>inPrevious(p.sentAt)).length,won=projects.filter(p=>p.won&&inPrevious(p.wonAt)).length,priorities=[];
   if(due.length){const c=due[0];priorities.push({kind:'client',id:c.id,title:c.nextAction||'Liên hệ '+c.name,reason:`${c.name} · ${due.length} việc đến hạn cần xử lý.`,action:'Mở hồ sơ'});}
   const quietNext=quiet.find(c=>!priorities.some(p=>p.id===c.id));if(quietNext)priorities.push({kind:'client',id:quietNext.id,title:'Kiểm tra tiến độ với '+quietNext.name,reason:`Hợp đồng đang mở; chưa phản hồi từ ${quietNext.lastReplyDate}.`,action:'Mở hồ sơ'});

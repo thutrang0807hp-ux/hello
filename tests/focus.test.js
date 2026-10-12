@@ -12,3 +12,5 @@ records[0].followup='2026-10-11';assert.equal(F.build(records,'2026-10-11').due.
 r=F.build([{kind:'project',sentAt:'2026-10-04T16:59:00Z',won:true,wonAt:'2026-10-04T17:00:00Z'}],'2026-10-11','free');assert.equal(r.sent,1);assert.equal(r.won,0);
 r=F.build([{kind:'project',sentAt:'2026-12-31T18:00:00Z',won:true,wonAt:'2027-01-03T16:00:00Z'}],'2027-01-04','free');assert.equal(r.previousStart,'2026-12-28');assert.equal(r.sent,1);assert.equal(r.won,1);assert(!r.priorities.some(p=>p.title==='Tập trung tìm thêm khách'));
 console.log('PASS: previous completed week, Vietnam date boundary, capacity safeguards, sparse pipeline, due/quiet deduplication, archived/missing dates and followup completion.');
+
+const paused=F.build([client(9,'active',{clientStage:'paused',lastReplyDate:'2026-09-01'})],'2026-10-11');assert.equal(paused.active,1);assert.equal(paused.quiet.length,0);

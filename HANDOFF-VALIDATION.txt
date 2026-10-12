@@ -1,7 +1,7 @@
 FREELANCE DESK — KIỂM CHỨNG BÀN GIAO 12/10/2026 (UTC+7)
 
 Chạy lại ở môi trường Linux trước khi đóng gói:
-- python -m unittest discover -s tests -p 'test_*.py': 92 tests, PASS.
+- python -m unittest discover -s tests -p 'test_*.py': 95 tests, PASS.
 - node tests/job_filters.test.js: PASS.
 - node tests/job_customer_stars.test.js: PASS.
 - node --check public/app.js: PASS.
@@ -57,3 +57,7 @@ bấm vào pending filter, đọc vẫn còn count, ghép mới giảm; regressi
 combined_tab_smoke.py PASS: hai loại title, favicon tổng không trùng, đọc
 mail pending vẫn báo, linked-unread có số, job/mail xóa độc lập.
 tab_badge_smoke.py PASS: job unread/batch-clear/persist/99+ không hồi quy.
+
+Pause: UI chọn/lưu/reload lý do, mail không đổi stage/group, resume giữ
+lịch sử và sáng/tối PASS. Lifecycle timestamp và Focus quiet exclusion PASS.
+AI keep + blank action và cache repair không gọi provider PASS.

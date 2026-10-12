@@ -6,6 +6,12 @@ class ClientLifecycleTests(unittest.TestCase):
     def setUp(self):
         self.client={'clientGroup':'talk','clientStage':'new','clientInquiryDate':'2026-09-27','name':'Lead'}
         self.today=date(2026,10,11)
+    def test_pause_resume_keeps_group_reason_and_dates(self):
+        old={'name':'Nick','clientGroup':'active','clientStage':'working'}
+        paused=record_client_events({'clientStage':'paused','clientPauseReason':'unresponsive','clientPauseNote':'Đã nhắc hai lần'},old,now='2026-10-12T10:00:00+07:00')
+        self.assertEqual(paused['clientGroup'],'active');self.assertEqual(paused['clientPausedAt'],'2026-10-12T10:00:00+07:00')
+        updated=record_client_events({'clientPauseNote':'Chờ thêm'},paused,now='2026-10-13T10:00:00+07:00');self.assertEqual(updated['clientPausedAt'],paused['clientPausedAt'])
+        resumed=record_client_events({'clientStage':'working'},updated,now='2026-10-14T10:00:00+07:00');self.assertEqual(resumed['clientResumedAt'],'2026-10-14T10:00:00+07:00');self.assertEqual(resumed['clientPauseReason'],'unresponsive')
     def test_exact_fourteen_days(self):
         result=archive_unanswered(self.client,self.today)
         self.assertEqual(result['clientStage'],'closed-no-contract')

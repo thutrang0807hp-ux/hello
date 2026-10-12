@@ -38,6 +38,10 @@ def record_client_events(update, previous=None, now=None):
     old_group = previous.get('clientGroup')
     group = result.get('clientGroup')
     stage = result.get('clientStage')
+    if group=='active' and stage=='paused' and previous.get('clientStage')!='paused':
+        result['clientPausedAt']=now
+    if group=='active' and stage in ('working','waiting') and previous.get('clientStage')=='paused':
+        result['clientResumedAt']=now
     starts_talk = (group == 'talk' and stage == 'discussing' and
                    (old_group != 'talk' or previous.get('clientStage') != 'discussing'))
     new_contract = group == 'active' and old_group not in ('active', 'archive')

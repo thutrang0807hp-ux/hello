@@ -69,7 +69,7 @@ Mốc hộp thư trước bản sửa lưu trữ cố định: **`c933dd9`** tr�
 
 ## Kiểm thử và bằng chứng
 
-Tại bản bàn giao đã có **92 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
+Tại bản bàn giao đã có **95 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
@@ -119,3 +119,5 @@ Yêu cầu mới sau bàn giao: tự hiểu tin nhắn khách để điền Vi�
 Cảnh báo mail chưa ghép: /api/mail/summary trả count/IDs và vài tên, không trả nội dung/token. Web poll song song records/summary, count ở tiêu đề/sidebar/banner khách; bấm mở pending filter. Browser notification nếu đã cấp quyền, dedup ID trong localStorage. Đọc không xóa pending; ghép xong mới hết. Không thông báo khi không có trang đang chạy. pending_mail_smoke.py PASS.
 
 Tab có job + mail: updateTabBadge dùng hai số và cache key riêng, không chỉ tổng (để title đúng khi tổng không đổi). pending_summary trả unreadCount và attentionCount union SQL seen=0 OR client_id NULL. Giữ riêng job batch-read. combined_tab_smoke.py và tab_badge_smoke.py PASS.
+
+Có trạng thái active/paused + clientPauseReason, clientPauseNote, clientPausedAt, clientResumedAt. Người dùng chọn và lưu trực tiếp thẻ; giữ nhóm hợp đồng đang mở, mail không tự resume. Pause reason draft được giữ khi poll; auto silence attention loại paused nhưng followup thủ công vẫn có. Sửa cached keep AI khi previousAction trống bằng mailNextAction đã lưu, không token mới và không ghi đè dấu manual.

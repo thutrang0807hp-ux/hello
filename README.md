@@ -335,3 +335,9 @@ Thông báo trình duyệt cần trang app đang mở; khi đóng tab, thư vẫ
 Tiêu đề Chrome hiển thị riêng, ví dụ **(3 job · 2 tin) Freelance Desk**. Favicon tròn đỏ đếm tổng 5, trên 99 hiện 99+. Tin cần xử lý là thư chưa đọc **hoặc** chưa liên kết; thư ở cả hai trạng thái chỉ tính một lần. Đọc thư đã ghép làm giảm số tin, nhưng đọc thư chưa ghép chưa đủ để xóa cảnh báo. Vào mục Công việc chỉ xóa thông báo job, không xóa tin nhắn.
 
 Trên trang có nút **Tin chưa đọc** mở đúng bộ lọc Chưa đọc, bên cạnh **Thư chờ liên kết**. Dấu đếm Khách hàng tính tổng tin cần xử lý. Cơ chế đếm không dùng AI/token; worker rút việc vẫn theo thiết lập riêng.
+
+### Hợp đồng đang mở nhưng cần tạm dừng
+
+Trong thẻ khách ở **Hợp đồng đang mở**, chọn **Tạm dừng**. Ô lý do xuất hiện: khách im lặng/chưa phản hồi, chưa có việc mới, chờ tài liệu, chờ thanh toán, khách tạm hoãn, tôi tạm dừng hoặc lý do khác; ghi chú tùy chọn và bấm **Lưu lý do**. Thẻ vẫn ở nhóm hợp đồng mở, có ngày bắt đầu tạm dừng; bộ lọc trạng thái có Tạm dừng. Chọn Đang làm/Chờ khách giao việc để tiếp tục. Ngày tạm dừng và lý do được giữ; nhận email không tự bật lại trạng thái.
+
+App không tự kết luận Ghost hoặc đóng hợp đồng do im lặng. Khách đã tạm dừng không bị tự đẩy vào danh sách ưu tiên chỉ vì 7 ngày không phản hồi; ngày hẹn liên hệ do bạn đặt vẫn được nhắc. Các trường này không dùng AI/token. Bản này cũng sửa cache AI có gợi ý hợp lệ nhưng ô Việc tiếp theo trống: dùng kết quả đã lưu, không gọi API thêm, không sửa ô đã ghi thủ công.

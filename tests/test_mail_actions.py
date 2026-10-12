@@ -59,6 +59,14 @@ class MailActionTests(unittest.TestCase):
    return {'decision':'update','action':'Gợi ý AI','reason':'Tin mới'}
   with patch.object(mail_actions,'evaluate',side_effect=compute):mail_actions.run_once(self.connect)
   self.assertEqual(self.client()['nextAction'],'Việc mới do tôi ghi')
+ def test_keep_with_no_previous_action_populates_from_context(self):
+  with patch.object(mail_actions,'evaluate',return_value={'decision':'keep','action':'Chờ khách gửi mẫu','reason':'Khách hẹn thứ Hai.'}):mail_actions.run_once(self.connect)
+  self.assertEqual(self.client()['nextAction'],'Chờ khách gửi mẫu')
+ def test_cached_keep_repairs_empty_action_without_new_tokens(self):
+  with self.connect() as db:
+   _,ctx=mail_actions.context(db,1);db.execute('UPDATE records SET body=? WHERE id=1',(json.dumps({'name':'John','mailNextAction':'Chờ mẫu đã lưu'}),));db.execute('INSERT INTO mail_action_reviews VALUES (?,?,?)',(1,ctx['signature'],json.dumps({'state':'completed','decision':'keep'})))
+  with patch.object(mail_actions,'evaluate') as call:mail_actions.run_once(self.connect)
+  call.assert_not_called();self.assertEqual(self.client()['nextAction'],'Chờ mẫu đã lưu')
  def test_restart_recovers_interrupted_processing(self):
   with self.connect() as db:_,ctx=mail_actions.context(db,1);db.execute('INSERT INTO mail_action_reviews VALUES (?,?,?)',(1,ctx['signature'],json.dumps({'state':'processing'})))
   mail_actions.init(self.connect)

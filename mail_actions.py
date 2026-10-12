@@ -64,7 +64,11 @@ def run_once(connect):
     if not client or not ctx['messages']:continue
     old=db.execute('SELECT signature,body FROM mail_action_reviews WHERE client_id=?',(ident,)).fetchone()
     old_body=json.loads(old['body']) if old else {}
-    if old and old['signature']==ctx['signature'] and old_body.get('state') not in ('waiting_key','pending'):continue
+    if old and old['signature']==ctx['signature'] and old_body.get('state') not in ('waiting_key','pending'):
+     # Repair prior 'keep' results that left an empty action; no new provider call.
+     if old_body.get('state')=='completed' and old_body.get('decision') in ('keep','update') and not client.get('nextAction') and client.get('nextActionSource')!='manual' and client.get('mailNextAction','').strip():
+      client.update(nextAction=client['mailNextAction'].strip(),nextActionSource='mail-ai');db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(client,ensure_ascii=False),ident))
+     continue
     if not os.environ.get('FREELANCE_AI_KEY'):
      db.execute('INSERT OR REPLACE INTO mail_action_reviews VALUES (?,?,?)',(ident,ctx['signature'],json.dumps({'state':'waiting_key'},ensure_ascii=False)));continue
     db.execute('INSERT OR REPLACE INTO mail_action_reviews VALUES (?,?,?)',(ident,ctx['signature'],json.dumps({'state':'processing'},ensure_ascii=False)))
@@ -81,7 +85,7 @@ def run_once(connect):
      # Do not overwrite a user's edit, including edits made while AI was running.
      manual=bool(current.get('nextAction')) and current.get('nextActionSource')!='mail-ai'
      changed_during_request=current.get('nextAction','')!=client.get('nextAction','')
-     if not manual and not changed_during_request and body['decision']=='update':
+     if not manual and not changed_during_request and body['action'].strip() and (body['decision']=='update' or (body['decision']=='keep' and not current.get('nextAction'))):
       current.update(nextAction=body['action'].strip(),nextActionSource='mail-ai')
      elif not current.get('nextAction') and body['decision']=='none':
       current.update(nextAction='Chưa có yêu cầu công việc cụ thể; theo dõi tin nhắn mới.',nextActionSource='mail-ai')
