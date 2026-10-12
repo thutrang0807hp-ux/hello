@@ -40,3 +40,5 @@ NẾU KHÔNG MỞ ĐƯỢC:
 - Có thể chạy repair-webview2-windows.bat riêng để cài WebView2.
 - Nếu vẫn lỗi: chạy diagnose-desktop-windows.bat, gửi nội dung desktop-diagnostic.txt.
   Không gửi local-config.json/gmail-private.json hoặc khóa/token.
+
+Lỗi Permission denied tại pythonw.exe: đóng mọi thông báo app cũ bằng OK và Thoát hoàn toàn ở khay. Stop background chỉ dừng backend. Bộ cài mới dùng lại venv hợp lệ, không ghi đè pythonw.exe khi chạy lại. Không xóa dữ liệu.

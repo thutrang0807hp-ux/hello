@@ -8,15 +8,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 
 
+def ensure_environment(root=ROOT, run=None):
+    """Reuse a healthy venv; recreating it overwrites a possibly running pythonw.exe."""
+    run = run or subprocess.run
+    root = Path(root)
+    environment = root / '.desktop-venv'
+    if environment.is_symlink():
+        raise RuntimeError('Thư mục .desktop-venv là liên kết; giữ nguyên và kiểm tra trước khi cài.')
+    python = environment / 'Scripts' / 'python.exe'
+    pythonw = environment / 'Scripts' / 'pythonw.exe'
+    if python.is_file() and pythonw.is_file():
+        probe = "import sys, pathlib; ok=(3,10)<=sys.version_info[:2]<(3,14) and pathlib.Path(sys.prefix).resolve()==pathlib.Path(sys.argv[1]).resolve(); raise SystemExit(0 if ok else 1)"
+        result = run([str(python), '-c', probe, str(environment)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=20)
+        if result.returncode == 0:
+            print('Dùng lại môi trường desktop đã có; không ghi đè pythonw.exe.')
+            return python
+        raise RuntimeError('Môi trường desktop hiện tại không chạy được. Giữ nguyên dữ liệu, đóng app rồi giải nén bộ cài vào thư mục app mới để cài lại.')
+    if environment.exists() and any(environment.iterdir()):
+        raise RuntimeError('Môi trường desktop cài dở. Không ghi đè tệp đang dùng. Đóng app, giữ nguyên dữ liệu và cài app trong thư mục mới.')
+    run([sys.executable, '-m', 'venv', str(environment)], check=True)
+    return python
+
+
 def main():
     if os.name != 'nt' or not ((3, 10) <= sys.version_info[:2] < (3, 14)):
         print('Cần Windows 10/11 và Python 3.10–3.13 (khuyên dùng 3.12).')
         return 1
-    if (ROOT / '.desktop-venv').is_symlink():
-        print('Thư mục .desktop-venv là liên kết; giữ nguyên và kiểm tra trước khi cài.')
-        return 1
-    subprocess.run([sys.executable, '-m', 'venv', str(ROOT / '.desktop-venv')], check=True)
-    python = ROOT / '.desktop-venv' / 'Scripts' / 'python.exe'
+    python = ensure_environment()
     subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(ROOT / 'desktop-requirements.txt')], check=True)
     installed = [file.relative_to(ROOT).as_posix() for file in (ROOT / '.desktop-venv').rglob('*') if file.is_file() and not file.is_symlink()]
     (ROOT / '.desktop-installed-files.json').write_text(json.dumps({'application':'Freelance Desk desktop','files':installed}),encoding='utf-8')
@@ -54,6 +72,12 @@ $shortcut.Save()
 if __name__ == '__main__':
     try:
         raise SystemExit(main())
+    except PermissionError:
+        print('Không ghi được tệp trong thư mục cài. Thoát hoàn toàn Freelance Desk ở khay, đóng mọi thông báo lỗi cũ rồi chạy lại. Nếu vẫn lỗi, cài vào thư mục app mới; giữ nguyên dữ liệu.')
+        raise SystemExit(1)
+    except RuntimeError as error:
+        print(str(error))
+        raise SystemExit(1)
     except subprocess.CalledProcessError:
-        print('Cài chưa thành công. Kiểm tra Internet và lỗi phía trên rồi chạy lại bộ cài.')
+        print('Bước cài đặt chưa thành công. Xem nguyên nhân cụ thể phía trên; lỗi Permission denied không phải lỗi Internet.')
         raise SystemExit(1)

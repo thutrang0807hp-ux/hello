@@ -36,3 +36,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Desktop wrapper is Windows-only pywebview/Edge Chromium + pystray, reusing private-token local backend/storage. Preserve external-browser Google OAuth and its cookie/state checks. Venv/profile cache never belong in release ZIP. Explicit Exit stops; close hides only when tray is available. Do not claim Windows GUI was verified from Linux mocks.
 
 - Desktop failures must be stage-specific and redacted. Check .NET/WebView2 before startup; reject MSHTML fallback. Repair only executes valid Microsoft-signed WebView2 bootstrapper, no global execution-policy changes. Never include desktop-diagnostic.txt in releases/handoffs.
+
+- Rerunning desktop installation must probe/reuse a healthy .desktop-venv, never recreate its running pythonw.exe. Preserve partial/invalid environments and report instead of deleting. Permission errors are not automatically network errors.

@@ -101,3 +101,7 @@ Extracted desktop ZIP validation PASS: independent backend starts/stops/restarts
 - pythonw không có stdout/stderr thì cấp devnull trước import thư viện. Cleanup không destroy window khi chưa shown, tránh gọi GUI chưa khởi tạo. Mutex/storage exceptions cũng được báo.
 - repair-webview2-windows.ps1 tải bootstrapper từ link Microsoft, bắt buộc Authenticode Valid + publisher Microsoft Corporation rồi mới chạy /silent /install; không bỏ TLS/chữ ký và không đổi execution policy. Bộ cài desktop tự gọi repair nếu thiếu runtime. .NET thiếu thì chỉ dẫn link Microsoft riêng.
 - 114 Python tests PASS (lifecycle, thiếu runtime/.NET, registry views, che credential, cleanup init failure). Windows/PowerShell installation và registry thật chưa chạy trong Linux; chưa xác định nguyên nhân máy người dùng từ ảnh generic cũ. Nếu vẫn lỗi, lấy desktop-diagnostic.txt, không yêu cầu khóa API.
+
+
+### Bộ cài chạy lại không ghi đè pythonw.exe
+Ảnh Windows báo Errno13 khi venv ghi đè .desktop-venv/Scripts/pythonw.exe. install_desktop.ensure_environment kiểm tra Python/venv hiện tại bằng subprocess, dùng lại khi hợp lệ và không chạy python -m venv lần nữa. Nếu môi trường cài dở/hỏng thì giữ nguyên, báo hướng cài thư mục app mới thay vì xóa. PermissionError có thông báo riêng; bỏ quy mọi lỗi về Internet. Stop background chỉ dừng backend, người dùng phải đóng popup/Thoát hoàn toàn native app trước cập nhật. 119 Python tests PASS, gồm lần cài đầu, reuse không sửa pythonw, invalid/partial/symlink không ghi đè. Chưa mô phỏng khóa executable Windows thật trong cloud Linux.

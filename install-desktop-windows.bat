@@ -9,7 +9,7 @@ if %errorlevel% equ 0 (
   python install_desktop.py
 )
 if errorlevel 1 (
-  echo Cai chua thanh cong. Can Python 3.10 tro len va Internet.
+  echo Cai chua thanh cong. Xem dong loi cu the o phia tren.
   pause
   exit /b 1
 )
