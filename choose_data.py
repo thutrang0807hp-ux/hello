@@ -8,7 +8,7 @@ from data_store import choose_directory, ROOT
 def main():
     try:
         with socket.create_connection(('127.0.0.1',int(os.environ.get('PORT','8000'))),timeout=.5):
-            print('App/cổng đang chạy. Nhấn Ctrl+C trong CMD của app rồi mở lại file chọn nơi lưu.')
+            print('App/cổng đang chạy. Dừng bằng stop-background-windows.bat hoặc Ctrl+C trong CMD của app rồi chọn nơi lưu lại.')
             return 1
     except OSError:pass
     if os.environ.get('FREELANCE_DATA_DIR'):

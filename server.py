@@ -29,6 +29,7 @@ DATA = data_directory()
 DATA.mkdir(parents=True, exist_ok=True)
 DB = DATA / 'workspace.sqlite3'
 PASSWORD = os.environ.get('FREELANCE_PASSWORD', '')
+DESKTOP_TOKEN = os.environ.get('FREELANCE_DESKTOP_CONTROL_TOKEN', '')
 BIND = os.environ.get('FREELANCE_BIND', '127.0.0.1')
 if BIND not in ('127.0.0.1', 'localhost', '::1') and not PASSWORD:
     raise RuntimeError('FREELANCE_PASSWORD is required when binding outside loopback.')
@@ -278,8 +279,15 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return True
 
+    def desktop_authorized(self):
+        token=self.headers.get('X-Desktop-Token','')
+        return len(DESKTOP_TOKEN)>=24 and self.client_address[0] in ('127.0.0.1','::1') and hmac.compare_digest(token.encode(),DESKTOP_TOKEN.encode())
+
     def do_GET(self):
         path = urlsplit(self.path).path
+        if path == '/api/desktop/status':
+            if not self.desktop_authorized():return self.reply(403, {'error':'Không được phép.'})
+            return self.reply(200, {'ok':True,'pid':os.getpid()})
         if path == '/api/mail/callback':
             try:
                 cookie = SimpleCookie(self.headers.get('Cookie', ''))
@@ -347,6 +355,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = urlsplit(self.path).path
         try:
+            if path == '/api/desktop/stop':
+                if not self.desktop_authorized() or not self.same_origin():return self.reply(403, {'error':'Không được phép.'})
+                self.read_json()
+                self.reply(200, {'ok':True})
+                threading.Thread(target=self.server.shutdown,daemon=True).start()
+                return
             if path.startswith('/api/webhook/'):
                 token = path.removeprefix('/api/webhook/')
                 if not hmac.compare_digest(token.encode(), WEBHOOK_TOKEN.encode()):

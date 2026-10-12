@@ -34,3 +34,7 @@ Client ID/Secret không bị xóa. Windows thực tế cần xác minh trên má
 Sửa lỗi rename Windows: test bắt buộc mọi SQLite handle đã close trước
 rename PASS. Chọn vị trí lưu, giữ source, fallback khi permission bị chặn
 và không cho đích nằm trong source PASS. GUI folder picker chưa chạy ở Linux.
+
+background_server_smoke.py: PASS child sống sau launcher, mở lại dùng cùng
+PID, password web còn hiệu lực, token sai không dừng được, dừng giữ data.
+Cờ CREATE_NO_WINDOW cần xác minh trên Windows thực tế.

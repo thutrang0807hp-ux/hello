@@ -299,3 +299,9 @@ Xem nơi đang lưu tại **Hồ sơ & kết nối → Dữ liệu & kết nối
 Dừng CMD của app, mở **choose-data-windows.bat**, rồi chọn ổ hoặc thư mục cha. App tạo thư mục con **FreelanceDeskData** tại nơi đó (chọn D:\ thì lưu D:\FreelanceDeskData). Công cụ sao chép dữ liệu hiện có bằng SQLite backup, đóng mọi kết nối trước khi chuyển thư mục để tránh WinError 5, giữ bản gốc. Nếu đích đã có dữ liệu, công cụ hỏi có dùng bộ đó không; không gộp hay ghi đè. Sau khi chọn, mở **start-windows.bat** để chạy app; configure-windows.bat chỉ chỉnh khóa, không khởi động web.
 
 Lựa chọn lưu trong `.storage-location.json` cạnh app và `storage-location.json` ở AppData nếu có quyền ghi. Biến FREELANCE_DATA_DIR vẫn ưu tiên hơn lựa chọn. Nếu AppData bị chặn nhưng dữ liệu cũ còn, app tiếp tục dùng data cũ để không làm bản cài hiện tại ngừng chạy. Cửa sổ Tk cần kiểm tra trên Windows; kiểm thử cloud xác minh logic chọn, sao chép, giữ bản gốc và đóng kết nối trước đổi tên.
+
+### Chạy nền Windows, không giữ cửa sổ CMD
+
+Dừng bản đang chạy bằng Ctrl+C một lần, rồi mở **start-background-windows.bat**. File này mở web và thoát cửa sổ chạy; server hoạt động trong tiến trình riêng không có console trên Windows. Bấm lại sẽ mở cùng server, không tạo thêm bản. Đóng tab/trình duyệt không dừng server; **stop-background-windows.bat** dừng đúng server chạy nền bằng token riêng, không taskkill mọi tiến trình Python. Mật khẩu web vẫn có hiệu lực.
+
+Server vẫn cần máy bật/thức; sau khởi động lại máy phải mở file start-background lần nữa (chưa đăng ký tự chạy cùng Windows). Toolkit vẫn cần Chrome/extension hoạt động để thu thập job. Muốn cập nhật mã hoặc đổi nơi lưu, chạy file stop-background trước. Log nằm trong background-server.log ở thư mục dữ liệu; desktop-server.json là token điều khiển riêng, không chia sẻ hoặc đóng gói. Kiểm thử cloud đã xác minh child process sống sau launcher, reuse, auth, từ chối token sai và dừng giữ dữ liệu; cờ CREATE_NO_WINDOW thực tế cần xác minh trên Windows.

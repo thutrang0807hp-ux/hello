@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 INCLUDED_DOWNLOADS = {'downloads/Toolkit-Installed-Build-Bridge.zip', 'downloads/Toolkit-Installed-Build-Source.zip'}
 SECRET = re.compile(rb'(?:AIza[0-9A-Za-z_-]{30,}|sk-(?:proj-)?[0-9A-Za-z_-]{32,}|xox[baprs]-[0-9A-Za-z-]{16,}|[0-9]{8,12}:[0-9A-Za-z_-]{30,})')
-PRIVATE_NAMES = {'.git', 'data', '__pycache__', 'node_modules', '.env', '.env.local', 'gmail-private.json', 'local-config.json', 'workspace.sqlite3', 'webhook-token', '.storage-location.json', 'storage-location.json'}
+PRIVATE_NAMES = {'.git', 'data', '__pycache__', 'node_modules', '.env', '.env.local', 'gmail-private.json', 'local-config.json', 'workspace.sqlite3', 'webhook-token', '.storage-location.json', 'storage-location.json', 'desktop-server.json', 'background-server.log'}
 
 
 def inspect(name, raw):

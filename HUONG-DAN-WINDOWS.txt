@@ -41,3 +41,9 @@ Không gửi khóa trong chat.
 Gemini có mức miễn phí tùy model/tài khoản và có quota; kiểm tra trong AI Studio.
 OpenAI API tính phí riêng. Chưa kiểm tra gửi thông báo/API với tài khoản thật.
 README.md có chi tiết cấu hình, quyền truy cập và thông tin webhook.
+
+CHẠY NỀN KHÔNG GIỮ CMD
+Dừng CMD cũ, mở start-background-windows.bat. Cửa sổ chạy sẽ thoát; web vẫn
+hoạt động trong nền. Mở lại file đó để mở trang. Dừng bằng
+stop-background-windows.bat trước khi cập nhật hoặc chọn nơi lưu.
+Tắt/khởi động lại máy cần mở lại file start-background; chưa tự chạy cùng Windows.
