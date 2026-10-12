@@ -1,0 +1,35 @@
+FREELANCE DESK — APP WINDOWS LOCAL
+
+1. Dừng CMD cũ bằng Ctrl+C hoặc stop-background-windows.bat.
+   Nếu đã dùng app desktop: vào khay hệ thống → Thoát hoàn toàn.
+2. Giải nén và chép đè vào thư mục app hiện tại. Giữ dữ liệu và cấu hình đã lưu.
+   Không di chuyển/xóa thư mục app sau khi tạo shortcut.
+3. Chạy install-desktop-windows.bat MỘT LẦN. Cần Internet để tải thư viện.
+   Dùng Python 3.10–3.13 đã cài; khuyên dùng 3.12. Không cần quyền admin.
+4. Bấm biểu tượng Freelance Desk trên Desktop để mở cửa sổ riêng.
+   Hoặc bấm open-desktop-windows.vbs trong thư mục app.
+   Từ lần sau không cần mở CMD, không phải mở Chrome để dùng app.
+
+Đóng dấu X: thu xuống khay, vẫn nhận thư/job khi máy thức và có mạng.
+Mở lại: nhấp biểu tượng Desktop hoặc menu khay → Mở ứng dụng.
+Dừng hẳn: menu khay → Thoát hoàn toàn.
+Tắt máy: app dừng; mở lại biểu tượng khi cần. Chưa tự khởi động cùng Windows.
+
+Dữ liệu/API/Telegram/Gmail dùng đúng thư mục hiện tại; không cần host.
+Upwork Toolkit vẫn gửi đến 127.0.0.1:8000 như cũ.
+Google yêu cầu đăng nhập bằng trình duyệt: nút Kết nối Gmail mở trình duyệt
+mặc định; nếu có mật khẩu app hãy đăng nhập rồi kết nối, sau đó quay lại app.
+Google OAuth không chạy trong cửa sổ nhúng, không bỏ kiểm tra cookie/state.
+
+Windows cần Microsoft Edge WebView2 Runtime:
+https://developer.microsoft.com/microsoft-edge/webview2/
+Nếu báo thiếu thành phần desktop, chạy lại bộ cài. Nếu còn CMD cũ chiếm cổng,
+dừng CMD đó trước. Không xóa dữ liệu để sửa lỗi.
+
+Cập nhật: Thoát hoàn toàn → chép mã mới, giữ .desktop-venv và dữ liệu → mở lại.
+Gỡ: Thoát hoàn toàn trước, chạy uninstall-windows.bat và xem danh sách.
+Shortcut Desktop có thể xóa riêng (không xóa dữ liệu).
+
+Đây là bộ cài dùng Python + WebView2, chưa phải EXE độc lập có chữ ký.
+Windows GUI/khay cần xác nhận trên máy thật; kiểm thử hiện tại ở Linux với
+lifecycle giả lập, HTTP/Chromium và dữ liệu tạm, không gọi AI/Gmail thật.

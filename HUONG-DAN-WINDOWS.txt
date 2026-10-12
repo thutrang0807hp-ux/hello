@@ -1,3 +1,5 @@
+BẢN APP DESKTOP MỚI: đọc CAI-APP-DESKTOP.txt. Cài một lần bằng install-desktop-windows.bat, sau đó mở biểu tượng Freelance Desk trên Desktop, không cần CMD. Các hướng dẫn chạy trình duyệt bên dưới vẫn là chế độ tùy chọn cũ.
+
 ﻿FREELANCE DESK — CHẠY THẬT TRÊN WINDOWS
 
 1. Cài Python 3.12 từ https://www.python.org/downloads/windows/

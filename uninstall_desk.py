@@ -56,6 +56,16 @@ def plan(root=None,include_data=True):
         file=root/relative
         if file.is_file() and safe(file,root):items.append(file)
     if not manifest:raise RuntimeError('Thiếu uninstall-files.json. Chép đầy đủ bản cập nhật trước khi gỡ.')
+    desktop_manifest=root/'.desktop-installed-files.json'
+    installed=read_json(desktop_manifest)
+    if installed.get('application')=='Freelance Desk desktop':
+        for name in installed.get('files',[]):
+            if not isinstance(name,str):continue
+            relative=Path(name)
+            if relative.is_absolute() or '..' in relative.parts or not relative.parts or relative.parts[0]!='.desktop-venv':continue
+            file=root/relative
+            if file.is_file() and safe(file,root):items.append(file)
+        if safe(desktop_manifest,root):items.append(desktop_manifest)
     for file in root.glob('__pycache__/*.pyc'):
         stem=file.name.split('.')[0]
         if stem+'.py' in manifest.get('files',[]) and safe(file,root):items.append(file)
@@ -75,6 +85,10 @@ def plan(root=None,include_data=True):
             descriptor=read_json(folder/'desktop-server.json')
             if descriptor:descriptors.append(descriptor)
             if include_data:
+                profile=folder/'desktop-webview'
+                if read_json(profile/'.freelance-profile.json').get('application')=='Freelance Desk WebView' and safe(profile,folder):
+                    for file in profile.rglob('*'):
+                        if file.is_file() and safe(file,folder):items.append(file)
                 for name in DATA_FILES:
                     file=folder/name
                     if file.is_file() and safe(file,folder):items.append(file)

@@ -32,3 +32,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - CRM cards default collapsed using native details/summary. Keep status/unread/test deadline visible, preserve expansion across refresh and focus/drafts while editing. UI smoke tests must explicitly expand cards before editing.
 
 - Pause reason and optional note share a nested disclosure, closed by default and after successful save. Failed saves preserve draft. Keep the saved reason visible in its summary.
+
+- Desktop wrapper is Windows-only pywebview/Edge Chromium + pystray, reusing private-token local backend/storage. Preserve external-browser Google OAuth and its cookie/state checks. Venv/profile cache never belong in release ZIP. Explicit Exit stops; close hides only when tray is available. Do not claim Windows GUI was verified from Linux mocks.

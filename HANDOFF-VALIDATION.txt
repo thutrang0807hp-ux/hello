@@ -82,3 +82,14 @@ AI keep + blank action và cache repair không gọi provider PASS.
 
 ### Lý do tạm dừng thu gọn
 Lý do + ghi chú tùy chọn được gom trong details/summary riêng, mặc định đóng. Lưu thành công xóa draft, đóng mục và đưa focus về tiêu đề; lỗi lưu giữ nguyên nội dung để thử lại. Bấm mở lại chỉnh sửa. Trạng thái mở giữ qua refresh trong phiên. Chromium pause/compact/signals smoke đều PASS, bao gồm tự đóng sau lưu và nội dung còn nguyên khi mở lại. Không thay đổi backend/dữ liệu.
+
+
+## App Windows local — 12/10/2026
+- desktop_app.py dùng pywebview/Edge Chromium + pystray. Đóng X ẩn cửa sổ, menu khay Mở ứng dụng/Thoát hoàn toàn. Mutex theo thư mục dữ liệu hạn chế mở trùng. Dùng desktop_background với private token để giữ máy chủ local và dừng đúng phiên, không kill mọi Python.
+- Cài một lần: install-desktop-windows.bat → install_desktop.py tạo .desktop-venv, cài desktop-requirements.txt, tạo shortcut Desktop gọi trực tiếp pythonw/desktop_app.py (không CMD khi dùng hằng ngày). Python 3.10–3.13; Windows 10/11 + WebView2. Không có EXE độc lập đã build/ký; không tự khởi động cùng Windows.
+- Giữ cùng data_directory/API/Gmail/Telegram/port và Toolkit. Native bridge chỉ mở URL local cố định ?openMail=1; Google đăng nhập trên trình duyệt ngoài vì embedded OAuth không phù hợp. Không truyền token/cookie qua bridge, không bỏ CSRF/OAuth state. Browser riêng có thể cần mật khẩu app.
+- WebView profile trong data/desktop-webview, có marker sở hữu; uninstall chỉ liệt kê profile này khi có marker, không rmtree. Venv gỡ theo .desktop-installed-files.json của bộ cài; không chọn đường dẫn ngoài .desktop-venv hoặc traversal. Shortcut Desktop xóa thủ công. Không đóng gói venv/marker/cache/dữ liệu.
+- 108 Python tests PASS; background_server_smoke, desktop_browser_smoke, Node focus PASS. Các wheel Windows cho Python 3.10/pywebview/pystray/Pillow/pythonnet đã tải được; proxy_tools đã build wheel. Lần resolve chỉ-binary ban đầu thất bại vì proxy_tools phát hành source; bộ cài pip bình thường cho phép build source, không tắt kiểm chứng TLS.
+- GUI Windows, COM shortcut, WebView2/tray/mutex chưa thực thi trong cloud Linux; cần xác nhận trên Windows. Test lifecycle dùng mocks + backend child thật, dữ liệu tạm; không gọi AI/Gmail thật.
+
+Extracted desktop ZIP validation PASS: independent backend starts/stops/restarts, native URL serves UI, fixture client persists, required launcher/installer/icon files present; no user data. Shortcut now targets pythonw directly (VBS only alternate launcher).

@@ -190,7 +190,7 @@ $('#notifications').onclick = async () => {if (!('Notification' in window)) retu
 $('#logout').onclick = async () => {await post('/api/logout',{}); location.reload();};
 $('#loginForm').onsubmit = async event => {event.preventDefault(); event.submitter.disabled = true; try {await post('/api/login', Object.fromEntries(new FormData(event.target))); $('#login').close(); event.target.reset(); $('#loginError').textContent = ''; await boot();} catch (error) {$('#loginError').textContent = error.message;} finally {event.submitter.disabled = false;}};
 async function boot() {
-  try {const auth = await api('/api/auth'); $('#logout').hidden = !auth.required; if (!auth.authenticated) return requireLogin(); config = await api('/api/settings'); await refresh(); clearInterval(pollTimer); pollTimer = setInterval(() => refresh(true),10000); if (view === 'settings') await changeView('settings');}
+  try {const auth = await api('/api/auth'); $('#logout').hidden = !auth.required; if (!auth.authenticated) return requireLogin(); config = await api('/api/settings'); await refresh(); clearInterval(pollTimer); pollTimer = setInterval(() => refresh(true),10000); if (view === 'settings') await changeView('settings');if(new URLSearchParams(location.search).get('openMail')==='1'){history.replaceState(null,'',location.pathname);await changeView('client');if(typeof UpworkMail!=='undefined')await UpworkMail.open();}}
   catch (error) {notice(error.message);}
 }
 

@@ -29,4 +29,12 @@ class UninstallTests(unittest.TestCase):
   other=Path(self.tmp.name)/'other.py';other.write_text('keep');(self.root/'server.py').unlink();(self.root/'server.py').symlink_to(other)
   self.assertNotIn(self.root/'server.py',uninstall.plan(self.root)['files'])
 
+ def test_desktop_manifest_only_removes_recorded_environment_files(self):
+  folder=self.root/'.desktop-venv';folder.mkdir();(folder/'package.py').write_text('dependency');(folder/'notes.txt').write_text('keep')
+  (self.root/'.desktop-installed-files.json').write_text(json.dumps({'application':'Freelance Desk desktop','files':['.desktop-venv/package.py','../outside','.desktop-venv/../personal-notes.txt','personal-notes.txt']}))
+  preview=uninstall.plan(self.root);self.assertIn(folder/'package.py',preview['files']);self.assertNotIn(folder/'notes.txt',preview['files']);self.assertNotIn(self.root/'personal-notes.txt',preview['files'])
+ def test_webview_profile_requires_ownership_marker_and_keeps_unrelated_data(self):
+  folder=self.data/'desktop-webview';folder.mkdir();cache=folder/'cache';cache.write_text('cache');self.assertNotIn(cache,uninstall.plan(self.root)['files'])
+  (folder/'.freelance-profile.json').write_text(json.dumps({'application':'Freelance Desk WebView'}));preview=uninstall.plan(self.root);self.assertIn(cache,preview['files']);self.assertNotIn(self.data/'own-document.txt',preview['files'])
+
 if __name__=='__main__':unittest.main()

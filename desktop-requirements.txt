@@ -1,0 +1,4 @@
+pywebview==5.4
+pystray==0.19.5
+Pillow==11.3.0
+pythonnet==3.0.5; sys_platform == "win32"

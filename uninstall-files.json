@@ -12,13 +12,19 @@
     "configure-windows.bat",
     "configure.py",
     "data_store.py",
+    "desktop-requirements.txt",
+    "desktop_app.py",
     "desktop_background.py",
+    "install-desktop-windows.bat",
+    "install_desktop.py",
     "job_activity.py",
     "job_radar.py",
     "local_config.py",
     "mail_actions.py",
+    "open-desktop-windows.vbs",
     "public/analytics.js",
     "public/app.js",
+    "public/desktop.ico",
     "public/excel.js",
     "public/focus.js",
     "public/index.html",
@@ -43,6 +49,7 @@
     "uninstall-windows.bat",
     "uninstall_desk.py",
     "upwork_mail.py",
-    "workflow.py"
+    "workflow.py",
+    "CAI-APP-DESKTOP.txt"
   ]
 }
