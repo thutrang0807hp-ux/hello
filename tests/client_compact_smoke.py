@@ -15,11 +15,11 @@ with tempfile.TemporaryDirectory() as tmp:
    assert page.locator('.client-disclosure[open]').count()==0
    assert page.locator('[data-client-stage]:visible').count()==0
    card=page.locator('[data-client-card="2"]');assert card.bounding_box()['height']<180
-   card.locator('summary').focus();page.keyboard.press('Enter');page.wait_for_selector('[data-client-pause-note]:visible');assert card.locator('[data-client-pause-reason]').input_value()=='unresponsive'
+   card.locator('.client-summary').focus();page.keyboard.press('Enter');page.wait_for_selector('[data-client-pause-expand]:visible');card.locator('[data-client-pause-expand]>summary').click();page.wait_for_selector('[data-client-pause-note]:visible');assert card.locator('[data-client-pause-reason]').input_value()=='unresponsive'
    page.evaluate('refresh()');page.wait_for_selector('[data-client-pause-note]:visible');assert page.locator('.client-disclosure[open]').count()==1
-   card.locator('summary').click();page.wait_for_timeout(100);assert page.locator('.client-disclosure[open]').count()==0
+   card.locator('.client-summary').click();page.wait_for_timeout(100);assert page.locator('.client-disclosure[open]').count()==0
    Path('/workspace/exports').mkdir(exist_ok=True);page.locator('.client-board').screenshot(path='/workspace/exports/client-compact-preview.png')
-   page.locator('[data-client-card="1"] summary').click();page.wait_for_selector('[data-client-card="1"] [data-client-stage]:visible');page.locator('.client-board').screenshot(path='/workspace/exports/client-compact-expanded-preview.png')
+   page.locator('[data-client-card="1"] .client-summary').click();page.wait_for_selector('[data-client-card="1"] [data-client-stage]:visible');page.locator('.client-board').screenshot(path='/workspace/exports/client-compact-expanded-preview.png')
    page.evaluate("document.documentElement.dataset.theme='dark'");page.locator('.client-board').screenshot(path='/workspace/exports/client-compact-dark-preview.png')
    page.set_viewport_size({'width':390,'height':844});page.wait_for_timeout(100);assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
    assert not errors,errors;b.close();print('PASS compact default, keyboard disclosure, independent cards, refresh retains expansion, light/dark/mobile without horizontal overflow.')

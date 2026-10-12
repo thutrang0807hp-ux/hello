@@ -358,3 +358,7 @@ App không tự kết luận Ghost hoặc đóng hợp đồng do im lặng. Kh�
 - Phần trạng thái, lý do tạm dừng, test, hồ sơ và thao tác nằm bên trong. Không thay đổi backend hoặc quy tắc lưu trữ/kết nối.
 - Tham khảo hướng bố cục Kanban/progressive disclosure. Pinterest và Dribbble bị proxy chặn 403; không tuyên bố đã đọc mẫu trực tiếp.
 - Chromium: client_compact_smoke PASS (mặc định đóng, bàn phím, mở độc lập, refresh, light/dark, mobile); client_pause_smoke và client_signals_smoke PASS.
+
+
+### Lý do tạm dừng thu gọn
+Lý do + ghi chú tùy chọn được gom trong details/summary riêng, mặc định đóng. Lưu thành công xóa draft, đóng mục và đưa focus về tiêu đề; lỗi lưu giữ nguyên nội dung để thử lại. Bấm mở lại chỉnh sửa. Trạng thái mở giữ qua refresh trong phiên. Chromium pause/compact/signals smoke đều PASS, bao gồm tự đóng sau lưu và nội dung còn nguyên khi mở lại. Không thay đổi backend/dữ liệu.

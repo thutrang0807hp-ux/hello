@@ -30,3 +30,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Client stage signals are local/manual. Autoarchive talk/testing only from explicit clientTestSentDate after 14 days without reply on/after sent date. Active contracts never autoarchive. Preserve inquiry-date rule and reset stale timers on reopening.
 
 - CRM cards default collapsed using native details/summary. Keep status/unread/test deadline visible, preserve expansion across refresh and focus/drafts while editing. UI smoke tests must explicitly expand cards before editing.
+
+- Pause reason and optional note share a nested disclosure, closed by default and after successful save. Failed saves preserve draft. Keep the saved reason visible in its summary.
