@@ -61,3 +61,12 @@ tab_badge_smoke.py PASS: job unread/batch-clear/persist/99+ không hồi quy.
 Pause: UI chọn/lưu/reload lý do, mail không đổi stage/group, resume giữ
 lịch sử và sáng/tối PASS. Lifecycle timestamp và Focus quiet exclusion PASS.
 AI keep + blank action và cache repair không gọi provider PASS.
+
+
+## Dấu trạng thái khách và hạn test — 12/10/2026
+- Dấu màu kèm nhãn: hợp đồng working xanh, waiting vàng, paused đỏ. Đây là trạng thái người dùng chọn, không suy đoán ghost từ email.
+- Nhóm trao đổi thêm chatting (chưa rõ nhu cầu), testing (đang test), negotiating (thương lượng); discussing cũ vẫn giữ dữ liệu nhưng không còn gộp với test.
+- clientTestSentDate chỉ được ghi khi người dùng xác nhận ngày gửi test. Chỉ talk/testing mới tự lưu trữ sau 14 ngày nếu lastReplyDate chưa có hoặc trước ngày gửi. Phản hồi cùng ngày hoặc sau ngày gửi bảo vệ khỏi lưu trữ; ngày không hợp lệ không suy đoán im lặng.
+- Quy tắc khách mới/clientInquiryDate trước đây giữ nguyên. Hợp đồng active không bị tự lưu trữ. Mở lại trao đổi xóa hạn cũ để không bị lưu trữ lại ngay.
+- Máy chủ kiểm tra mỗi 60 giây khi chạy nền, và khi tải danh sách. Nếu máy/app tắt, kiểm tra lại khi mở. Không gọi AI/token cho màu và quy tắc hạn test.
+- Kiểm tra: 100 Python tests, Node focus test, Chromium client_signals_smoke và client_pause_smoke đều PASS. Dữ liệu tạm; không gọi nhà cung cấp thật. Windows cần người dùng kiểm tra sau cập nhật.

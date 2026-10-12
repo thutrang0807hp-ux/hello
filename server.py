@@ -138,6 +138,20 @@ with connect() as db:
         if job.get('proposalSent'): ensure_project(db,row['id'],job)
 
 
+def client_lifecycle_worker():
+    """Apply recorded-date rules while the desktop server runs, even with tabs closed."""
+    while True:
+        try:
+            with connect() as db:
+                for row in db.execute("SELECT id,body FROM records WHERE kind='client'").fetchall():
+                    archived = archive_unanswered(json.loads(row['body']))
+                    if archived:
+                        db.execute('UPDATE records SET body=? WHERE id=?', (json.dumps(archived,ensure_ascii=False),row['id']))
+        except Exception:
+            pass  # Retry on next pass; never expose customer data in logs.
+        time.sleep(60)
+
+
 def records():
     with connect() as db:
         db.execute('DELETE FROM job_interest WHERE expires<=?', (time.time(),))
@@ -752,6 +766,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', '8000'))
     http = ThreadingHTTPServer((BIND, port), Handler)
     print(f'Freelance Desk listening on port {port}', flush=True)
+    threading.Thread(target=client_lifecycle_worker, daemon=True).start()
     threading.Thread(target=notification_worker, daemon=True).start()
     threading.Thread(target=upwork_mail.worker, args=(connect,), daemon=True).start()
     threading.Thread(target=mail_actions.worker, args=(connect,), daemon=True).start()

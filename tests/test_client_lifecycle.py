@@ -54,3 +54,21 @@ class ClientEventTests(unittest.TestCase):
     def test_manual_reply_uses_recorded_day(self):
         c=record_client_events({'lastReplyDate':'2026-10-03'}, {'clientGroup':'talk','clientStage':'new'},'2026-10-11T09:00:00+07:00')
         self.assertEqual(c['clientTalkAt'],'2026-10-03T00:00:00+07:00')
+
+class TestArchiveTests(unittest.TestCase):
+    def setUp(self):
+        self.client={'clientGroup':'talk','clientStage':'testing','clientTestSentDate':'2026-09-27','lastReplyDate':'2026-09-26'}
+    def test_fourteen_days_and_history(self):
+        c=archive_unanswered(self.client,date(2026,10,11))
+        self.assertEqual(c['clientGroup'],'archive');self.assertEqual(c['clientPreviousStage'],'testing');self.assertIn('test',c['clientArchiveReason'])
+    def test_thirteen_days(self):
+        self.assertIsNone(archive_unanswered(self.client,date(2026,10,10)))
+    def test_reply_cancels_deadline(self):
+        for reply in ['2026-09-27','2026-10-01','invalid']:
+            self.assertIsNone(archive_unanswered(dict(self.client,lastReplyDate=reply),date(2026,10,11)))
+    def test_no_sent_date_no_timer(self):
+        for sent in ['',None,'invalid','2026-10-12']:
+            self.assertIsNone(archive_unanswered(dict(self.client,clientTestSentDate=sent),date(2026,10,11)))
+    def test_active_never_archived(self):
+        for stage in ['working','waiting','paused','testing']:
+            self.assertIsNone(archive_unanswered(dict(self.client,clientGroup='active',clientStage=stage),date(2026,10,11)))

@@ -121,3 +121,12 @@ Cảnh báo mail chưa ghép: /api/mail/summary trả count/IDs và vài tên, k
 Tab có job + mail: updateTabBadge dùng hai số và cache key riêng, không chỉ tổng (để title đúng khi tổng không đổi). pending_summary trả unreadCount và attentionCount union SQL seen=0 OR client_id NULL. Giữ riêng job batch-read. combined_tab_smoke.py và tab_badge_smoke.py PASS.
 
 Có trạng thái active/paused + clientPauseReason, clientPauseNote, clientPausedAt, clientResumedAt. Người dùng chọn và lưu trực tiếp thẻ; giữ nhóm hợp đồng đang mở, mail không tự resume. Pause reason draft được giữ khi poll; auto silence attention loại paused nhưng followup thủ công vẫn có. Sửa cached keep AI khi previousAction trống bằng mailNextAction đã lưu, không token mới và không ghi đè dấu manual.
+
+
+## Dấu trạng thái khách và hạn test — 12/10/2026
+- Dấu màu kèm nhãn: hợp đồng working xanh, waiting vàng, paused đỏ. Đây là trạng thái người dùng chọn, không suy đoán ghost từ email.
+- Nhóm trao đổi thêm chatting (chưa rõ nhu cầu), testing (đang test), negotiating (thương lượng); discussing cũ vẫn giữ dữ liệu nhưng không còn gộp với test.
+- clientTestSentDate chỉ được ghi khi người dùng xác nhận ngày gửi test. Chỉ talk/testing mới tự lưu trữ sau 14 ngày nếu lastReplyDate chưa có hoặc trước ngày gửi. Phản hồi cùng ngày hoặc sau ngày gửi bảo vệ khỏi lưu trữ; ngày không hợp lệ không suy đoán im lặng.
+- Quy tắc khách mới/clientInquiryDate trước đây giữ nguyên. Hợp đồng active không bị tự lưu trữ. Mở lại trao đổi xóa hạn cũ để không bị lưu trữ lại ngay.
+- Máy chủ kiểm tra mỗi 60 giây khi chạy nền, và khi tải danh sách. Nếu máy/app tắt, kiểm tra lại khi mở. Không gọi AI/token cho màu và quy tắc hạn test.
+- Kiểm tra: 100 Python tests, Node focus test, Chromium client_signals_smoke và client_pause_smoke đều PASS. Dữ liệu tạm; không gọi nhà cung cấp thật. Windows cần người dùng kiểm tra sau cập nhật.

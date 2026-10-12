@@ -341,3 +341,12 @@ Trên trang có nút **Tin chưa đọc** mở đúng bộ lọc Chưa đọc, b
 Trong thẻ khách ở **Hợp đồng đang mở**, chọn **Tạm dừng**. Ô lý do xuất hiện: khách im lặng/chưa phản hồi, chưa có việc mới, chờ tài liệu, chờ thanh toán, khách tạm hoãn, tôi tạm dừng hoặc lý do khác; ghi chú tùy chọn và bấm **Lưu lý do**. Thẻ vẫn ở nhóm hợp đồng mở, có ngày bắt đầu tạm dừng; bộ lọc trạng thái có Tạm dừng. Chọn Đang làm/Chờ khách giao việc để tiếp tục. Ngày tạm dừng và lý do được giữ; nhận email không tự bật lại trạng thái.
 
 App không tự kết luận Ghost hoặc đóng hợp đồng do im lặng. Khách đã tạm dừng không bị tự đẩy vào danh sách ưu tiên chỉ vì 7 ngày không phản hồi; ngày hẹn liên hệ do bạn đặt vẫn được nhắc. Các trường này không dùng AI/token. Bản này cũng sửa cache AI có gợi ý hợp lệ nhưng ô Việc tiếp theo trống: dùng kết quả đã lưu, không gọi API thêm, không sửa ô đã ghi thủ công.
+
+
+## Dấu trạng thái khách và hạn test — 12/10/2026
+- Dấu màu kèm nhãn: hợp đồng working xanh, waiting vàng, paused đỏ. Đây là trạng thái người dùng chọn, không suy đoán ghost từ email.
+- Nhóm trao đổi thêm chatting (chưa rõ nhu cầu), testing (đang test), negotiating (thương lượng); discussing cũ vẫn giữ dữ liệu nhưng không còn gộp với test.
+- clientTestSentDate chỉ được ghi khi người dùng xác nhận ngày gửi test. Chỉ talk/testing mới tự lưu trữ sau 14 ngày nếu lastReplyDate chưa có hoặc trước ngày gửi. Phản hồi cùng ngày hoặc sau ngày gửi bảo vệ khỏi lưu trữ; ngày không hợp lệ không suy đoán im lặng.
+- Quy tắc khách mới/clientInquiryDate trước đây giữ nguyên. Hợp đồng active không bị tự lưu trữ. Mở lại trao đổi xóa hạn cũ để không bị lưu trữ lại ngay.
+- Máy chủ kiểm tra mỗi 60 giây khi chạy nền, và khi tải danh sách. Nếu máy/app tắt, kiểm tra lại khi mở. Không gọi AI/token cho màu và quy tắc hạn test.
+- Kiểm tra: 100 Python tests, Node focus test, Chromium client_signals_smoke và client_pause_smoke đều PASS. Dữ liệu tạm; không gọi nhà cung cấp thật. Windows cần người dùng kiểm tra sau cập nhật.

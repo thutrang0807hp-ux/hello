@@ -26,3 +26,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Chrome tab/favicon now combine job unread count with union(unread mail, unresolved mail). Title labels jobs/mail separately; never double-count a mail in both states. Job-view batch clear must not clear mail attention. Read linked mail clears its count; read unresolved mail still requires linking.
 
 - Active contracts support manual paused stage + reason/note. Preserve active group and pause state across mail updates; no automatic Ghost judgment or resume. Suppress automatic silence-only priority for paused clients, but retain explicit follow-up dates.
+
+- Client stage signals are local/manual. Autoarchive talk/testing only from explicit clientTestSentDate after 14 days without reply on/after sent date. Active contracts never autoarchive. Preserve inquiry-date rule and reset stale timers on reopening.

@@ -6,11 +6,12 @@ LOCAL_ZONE = timezone(timedelta(hours=7))
 
 
 def archive_unanswered(client, today=None):
-    if client.get('clientGroup') != 'talk' or client.get('clientStage') != 'new':
+    if client.get('clientGroup') != 'talk' or client.get('clientStage') not in ('new', 'testing'):
         return None
     today = today or datetime.now(LOCAL_ZONE).date()
+    testing = client.get('clientStage') == 'testing'
     try:
-        asked = date.fromisoformat(client.get('clientInquiryDate', ''))
+        asked = date.fromisoformat(client.get('clientTestSentDate' if testing else 'clientInquiryDate', ''))
     except (ValueError, TypeError):
         return None
     if (today - asked).days < 14:
@@ -25,7 +26,9 @@ def archive_unanswered(client, today=None):
     return dict(client, clientGroup='archive', clientStage='closed-no-contract',
                 status='Đã hoàn thành', clientHadContract='no',
                 clientArchivedDate=today.isoformat(), clientLostReason='silent',
-                clientArchiveReason='Khách mới chưa phản hồi sau 14 ngày từ tin hỏi.')
+                clientPreviousGroup='talk', clientPreviousStage=client.get('clientStage'),
+                clientArchiveReason=('Đã gửi test nhưng khách chưa phản hồi sau 14 ngày.' if testing
+                                     else 'Khách mới chưa phản hồi sau 14 ngày từ tin hỏi.'))
 
 
 def record_client_events(update, previous=None, now=None):
