@@ -53,3 +53,7 @@ Smoke UI xác minh việc AI hiện trong client-next sau ghép; provider giả 
 
 Pending mail UI PASS: cảnh báo + OS notification giả lập đúng một lần,
 bấm vào pending filter, đọc vẫn còn count, ghép mới giảm; regression UI PASS.
+
+combined_tab_smoke.py PASS: hai loại title, favicon tổng không trùng, đọc
+mail pending vẫn báo, linked-unread có số, job/mail xóa độc lập.
+tab_badge_smoke.py PASS: job unread/batch-clear/persist/99+ không hồi quy.

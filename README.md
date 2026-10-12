@@ -329,3 +329,9 @@ App chạy nền và Gmail còn kết nối thì worker tự nhận thư và rú
 Khi có thư Upwork chưa ghép được với khách, app hiển thị **Thư chờ liên kết** kèm số trên tiêu đề trang, dấu đếm ở mục Khách hàng và banner **Xử lý ngay** trong bảng khách. Bấm cảnh báo mở thẳng bộ lọc Chờ liên kết. Mở đọc thư không xóa cảnh báo; số giảm khi liên kết thành công. Nếu trình duyệt đã được cấp quyền, mỗi thư chờ mới phát thông báo, bấm thông báo mở danh sách xử lý. ID đã báo lưu ở trình duyệt để không báo lặp mỗi lần refresh; cảnh báo số vẫn tồn tại đến khi xử lý.
 
 Thông báo trình duyệt cần trang app đang mở; khi đóng tab, thư vẫn lưu và cảnh báo hiện lần mở sau, không cam kết desktop toast khi không có trang chạy. Nhận/ghép thông báo không dùng AI. Tính năng này cảnh báo mọi thư chưa ghép (gồm khách mới/chưa xác định), không có nghĩa app đã tự ghép mọi khách theo tên.
+
+### Tab báo cả job và tin nhắn cần xử lý
+
+Tiêu đề Chrome hiển thị riêng, ví dụ **(3 job · 2 tin) Freelance Desk**. Favicon tròn đỏ đếm tổng 5, trên 99 hiện 99+. Tin cần xử lý là thư chưa đọc **hoặc** chưa liên kết; thư ở cả hai trạng thái chỉ tính một lần. Đọc thư đã ghép làm giảm số tin, nhưng đọc thư chưa ghép chưa đủ để xóa cảnh báo. Vào mục Công việc chỉ xóa thông báo job, không xóa tin nhắn.
+
+Trên trang có nút **Tin chưa đọc** mở đúng bộ lọc Chưa đọc, bên cạnh **Thư chờ liên kết**. Dấu đếm Khách hàng tính tổng tin cần xử lý. Cơ chế đếm không dùng AI/token; worker rút việc vẫn theo thiết lập riêng.

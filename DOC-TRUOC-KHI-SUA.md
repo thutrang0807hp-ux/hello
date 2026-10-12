@@ -117,3 +117,5 @@ Sửa Windows liên kết thư: client_lifecycle và upwork_mail dùng timezone 
 Yêu cầu mới sau bàn giao: tự hiểu tin nhắn khách để điền Việc tiếp theo. mail_actions.py có worker/cache/toggle riêng; default bật theo yêu cầu, dùng AI khi đã có khóa và tin liên kết. Không tự chấm job. Tối đa 8 tin recent/client, vẫn xem previousAction. Giữ nhóm khách và việc thủ công; API lỗi không xóa việc/call lặp. Checkbox trong hộp thư nói rõ phí token. Mail đã nhận từ trước được xử lý lần đầu sau nâng cấp.
 
 Cảnh báo mail chưa ghép: /api/mail/summary trả count/IDs và vài tên, không trả nội dung/token. Web poll song song records/summary, count ở tiêu đề/sidebar/banner khách; bấm mở pending filter. Browser notification nếu đã cấp quyền, dedup ID trong localStorage. Đọc không xóa pending; ghép xong mới hết. Không thông báo khi không có trang đang chạy. pending_mail_smoke.py PASS.
+
+Tab có job + mail: updateTabBadge dùng hai số và cache key riêng, không chỉ tổng (để title đúng khi tổng không đổi). pending_summary trả unreadCount và attentionCount union SQL seen=0 OR client_id NULL. Giữ riêng job batch-read. combined_tab_smoke.py và tab_badge_smoke.py PASS.

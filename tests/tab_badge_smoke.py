@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory(dir='/tmp') as data:
             req=urllib.request.Request('http://127.0.0.1:8774/api/webhook/'+token,data=body,headers={'Content-Type':'application/json'})
             urllib.request.urlopen(req).close()
             page.evaluate('refresh()')
-            assert page.title()=='(3) Freelance Desk'
+            assert page.title()=='(3 job) Freelance Desk'
             assert page.locator('#unreadTabIcon').get_attribute('href').endswith('unread=3')
             with urllib.request.urlopen('http://127.0.0.1:8774/favicon.svg?unread=3') as r:
                 svg=r.read().decode();assert '#e53935' in svg and '>3</text>' in svg

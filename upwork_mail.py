@@ -201,8 +201,10 @@ def inbox(connect):
 def pending_summary(connect):
     with connect() as db:
         count=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE client_id IS NULL').fetchone()[0]
+        unread=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE seen=0').fetchone()[0]
+        attention=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE seen=0 OR client_id IS NULL').fetchone()[0]
         rows=db.execute("SELECT id,body FROM upwork_mail WHERE client_id IS NULL ORDER BY julianday(json_extract(body,'$.receivedAt')) DESC LIMIT 2000").fetchall()
-    return {'count':count,'ids':[r['id'] for r in rows],'senders':list(dict.fromkeys(json.loads(r['body']).get('sender','Khách') for r in rows[:5]))}
+    return {'count':count,'unreadCount':unread,'attentionCount':attention,'ids':[r['id'] for r in rows],'senders':list(dict.fromkeys(json.loads(r['body']).get('sender','Khách') for r in rows[:5]))}
 
 
 def link(connect, item):

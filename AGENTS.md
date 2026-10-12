@@ -22,3 +22,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - uninstall_desk.py is destructive only after its local review/confirmation. Never execute it against real repo/user data as a test. Validate the exact allowlist, stop ownership, no recursive unrelated-folder deletion, and symlink protection in temporary fixtures. Remote Google grants and Chrome extensions are not removed by local uninstall.
 
 - User explicitly requested automatic next-action understanding for linked customer emails. mail_actions.py may call AI on new message content while its persisted toggle is enabled; this is separate from job scoring, which remains manual. Cache results, preserve manual edits and customer groups, and never send replies or claim contracts automatically. Tests must mock the provider.
+
+- Chrome tab/favicon now combine job unread count with union(unread mail, unresolved mail). Title labels jobs/mail separately; never double-count a mail in both states. Job-view batch clear must not clear mail attention. Read linked mail clears its count; read unresolved mail still requires linking.

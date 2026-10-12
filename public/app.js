@@ -7,17 +7,20 @@ const today = () => {const d = new Date(); return `${d.getFullYear()}-${String(d
 const safeLink = value => {try {const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) ? u.href : '';} catch {return '';}};
 function notice(message) {$('#notice').textContent = message;}
 let tabUnread = -1;
+let tabUnreadKey='';
 let lastRenderedRecords = '';
 
-function updateTabBadge(count = records.filter(record => record.kind === 'job' && record.unread).length) {
-  if (count === tabUnread) return;
-  tabUnread = count;
-  document.title = count ? `(${count}) Freelance Desk` : 'Freelance Desk';
-  let icon = document.getElementById('unreadTabIcon');
-  if (!icon) {icon = document.createElement('link'); icon.id = 'unreadTabIcon'; icon.rel = 'icon'; icon.type = 'image/svg+xml'; document.head.append(icon);}
-  icon.href = `/favicon.svg?unread=${count}`;
+function updateTabBadge(jobCount = records.filter(record => record.kind === 'job' && record.unread).length, mailCount = pendingMail.attentionCount || 0) {
+  const count=jobCount+mailCount,key=jobCount+':'+mailCount;
+  if(key===tabUnreadKey)return;
+  tabUnreadKey=key;tabUnread=count;
+  const labels=[jobCount?`${jobCount} job`:'',mailCount?`${mailCount} tin`:''].filter(Boolean);
+  document.title=labels.length?`(${labels.join(' · ')}) Freelance Desk`:'Freelance Desk';
+  let icon=document.getElementById('unreadTabIcon');
+  if(!icon){icon=document.createElement('link');icon.id='unreadTabIcon';icon.rel='icon';icon.type='image/svg+xml';document.head.append(icon);}
+  icon.href=`/favicon.svg?unread=${count}`;
 }
-function requireLogin() {updateTabBadge(0); clearInterval(pollTimer); if (!$('#login').open) $('#login').showModal();}
+function requireLogin() {updateTabBadge(0,0); clearInterval(pollTimer); if (!$('#login').open) $('#login').showModal();}
 async function api(path, options) {
   const response = await fetch(path, options);
   const data = await response.json();
@@ -25,7 +28,7 @@ async function api(path, options) {
   return data;
 }
 const post = (path, data) => api(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
-let pendingMail={count:0,ids:[],senders:[]};
+let pendingMail={count:0,unreadCount:0,attentionCount:0,ids:[],senders:[]};
 let seenPendingMail=new Set();
 try{seenPendingMail=new Set(JSON.parse(localStorage.getItem('freelanceDesk.pendingMailSeen.v1')||'[]'));}catch{}
 function openPendingMail(){if(typeof UpworkMail!=='undefined')UpworkMail.open('pending');else notice('Khởi động lại app và Ctrl+F5 để mở hộp thư.');}
@@ -45,8 +48,13 @@ function updatePendingMail(summary){
     if(!jump){jump=document.createElement('button');jump.id='pendingMailJump';jump.className='pending-mail-alert';document.querySelector('main>header>div').append(jump);}
     jump.innerHTML=`✉ Thư chờ liên kết <b>${summary.count}</b>`;jump.onclick=openPendingMail;
   }else jump?.remove();
+  let unread=$('#unreadMailJump');
+  if(summary.unreadCount){
+    if(!unread){unread=document.createElement('button');unread.id='unreadMailJump';unread.className='pending-mail-alert unread-mail-alert';document.querySelector('main>header>div').append(unread);}
+    unread.innerHTML=`✉ Tin chưa đọc <b>${summary.unreadCount}</b>`;unread.onclick=()=>{if(typeof UpworkMail!=='undefined')UpworkMail.open('new');};
+  }else unread?.remove();
   const nav=document.querySelector('button[data-view="client"]');
-  if(nav){nav.querySelector('.pending-mail-nav-count')?.remove();if(summary.count){const badge=document.createElement('span');badge.className='pending-mail-nav-count';badge.textContent=summary.count>99?'99+':summary.count;badge.title=summary.count+' thư cần liên kết khách';nav.append(badge);}}
+  if(nav){nav.querySelector('.pending-mail-nav-count')?.remove();if(summary.attentionCount){const badge=document.createElement('span');badge.className='pending-mail-nav-count';badge.textContent=summary.attentionCount>99?'99+':summary.attentionCount;badge.title=summary.attentionCount+' tin nhắn cần đọc hoặc liên kết';nav.append(badge);}}
 }
 async function refresh(silent = false) {
   try {
@@ -60,7 +68,7 @@ async function refresh(silent = false) {
         try {const n = new Notification(`${added.length} job Upwork mới`, {body: added[0].name, tag: 'freelance-new-jobs'}); n.onclick = () => {window.focus(); changeView('job'); n.close();};} catch { /* In-app notification remains available. */ }
       }
     }
-    const pendingChanged=mailSummary&&mailSummary.count!==pendingMail.count;
+    const pendingChanged=mailSummary&&(mailSummary.count!==pendingMail.count||mailSummary.unreadCount!==pendingMail.unreadCount);
     updatePendingMail(mailSummary);
     initialized = true;
     const unreadJobs=records.filter(r=>r.kind==='job'&&r.unread).length;
