@@ -350,3 +350,11 @@ App không tự kết luận Ghost hoặc đóng hợp đồng do im lặng. Kh�
 - Quy tắc khách mới/clientInquiryDate trước đây giữ nguyên. Hợp đồng active không bị tự lưu trữ. Mở lại trao đổi xóa hạn cũ để không bị lưu trữ lại ngay.
 - Máy chủ kiểm tra mỗi 60 giây khi chạy nền, và khi tải danh sách. Nếu máy/app tắt, kiểm tra lại khi mở. Không gọi AI/token cho màu và quy tắc hạn test.
 - Kiểm tra: 100 Python tests, Node focus test, Chromium client_signals_smoke và client_pause_smoke đều PASS. Dữ liệu tạm; không gọi nhà cung cấp thật. Windows cần người dùng kiểm tra sau cập nhật.
+
+
+## Thẻ khách thu gọn — 12/10/2026
+- Mặc định đóng phần chi tiết bằng details/summary; hiện tên, màu + nhãn, tin mới, lần phản hồi, hạn test và một dòng việc tiếp theo.
+- Bấm hoặc Enter/Space mở từng thẻ. Trạng thái mở giữ trong phiên qua refresh/poll; nhập ghi chú vẫn giữ draft. Kéo thẻ bằng nút ⠿.
+- Phần trạng thái, lý do tạm dừng, test, hồ sơ và thao tác nằm bên trong. Không thay đổi backend hoặc quy tắc lưu trữ/kết nối.
+- Tham khảo hướng bố cục Kanban/progressive disclosure. Pinterest và Dribbble bị proxy chặn 403; không tuyên bố đã đọc mẫu trực tiếp.
+- Chromium: client_compact_smoke PASS (mặc định đóng, bàn phím, mở độc lập, refresh, light/dark, mobile); client_pause_smoke và client_signals_smoke PASS.

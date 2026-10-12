@@ -9,14 +9,14 @@ with tempfile.TemporaryDirectory() as tmp:
  http=server.ThreadingHTTPServer(('127.0.0.1',0),server.Handler);threading.Thread(target=http.serve_forever,daemon=True).start();base=f'http://127.0.0.1:{http.server_port}'
  try:
   with sync_playwright() as p:
-   b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=b.new_page(viewport={'width':1400,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(base);page.wait_for_function('()=>initialized');page.evaluate("changeView('client')")
+   b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=b.new_page(viewport={'width':1400,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(base);page.wait_for_function('()=>initialized');page.evaluate("changeView('client')");page.locator('.client-summary').first.click()
    assert page.locator('.client-signal.green').count()==1
    page.locator('[data-client-stage]').select_option('paused');page.wait_for_selector('.client-signal.red')
    with server.connect() as db:db.execute("INSERT INTO records(kind,body) VALUES ('client',?)",(json.dumps({'name':'Test Client','clientGroup':'talk','clientStage':'chatting'}),))
-   page.evaluate('refresh()');page.wait_for_selector('.talk .client-signal.red')
+   page.evaluate('refresh()');page.wait_for_selector('.talk .client-signal.red');page.locator('.talk .client-summary').click()
    page.locator('.talk [data-client-stage]').select_option('testing');page.wait_for_selector('[data-client-test-today]');assert page.locator('.talk .client-signal.yellow').count()==1
    page.locator('[data-client-test-today]').click();page.wait_for_function("()=>records.some(c=>c.clientTestSentDate===Clients.day())")
-   page.reload();page.wait_for_function('()=>initialized');page.evaluate("changeView('client')");page.wait_for_selector('[data-client-test-date]');assert page.locator('[data-client-test-date]').input_value()
+   page.reload();page.wait_for_function('()=>initialized');page.evaluate("changeView('client')");page.locator('.client-summary').first.click();page.wait_for_selector('[data-client-test-date]');assert page.locator('[data-client-test-date]').input_value()
    row=next(c for c in page.request.get(base+'/api/records').json() if c['name']=='Test Client')
    from datetime import datetime,timedelta
    from client_lifecycle import LOCAL_ZONE
