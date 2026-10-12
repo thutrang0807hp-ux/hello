@@ -12,3 +12,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Check relevant Python/JS tests and functional UI behavior. Playwright smoke scripts assume Linux Chromium at `/usr/bin/chromium`; account for platform differences without bypassing managed browser policy.
 - Keep all required runtime files in the release ZIP. New frontend assets need a static route and HTML inclusion. Updates require server restart plus browser reload, not just replacing files while the old process runs.
 - Use the existing checkout; a worktree is unnecessary unless the user requests one. Report what was verified and what still needs real account or Windows validation.
+
+- Persistent storage is unified by data_store.py: Windows defaults to LOCALAPPDATA/FreelanceDesk/data; explicit FREELANCE_DATA_DIR wins, relative paths are source-root-relative. Legacy data is copied only into an empty destination, originals retained. Preserve migration safety and Gmail refresh tokens when saving unchanged OAuth credentials.

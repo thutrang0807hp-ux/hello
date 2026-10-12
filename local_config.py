@@ -2,12 +2,13 @@
 import json
 import os
 from pathlib import Path
+from data_store import data_directory
 
 NAMES = ('FREELANCE_AI_AUTO_JOBS', 'FREELANCE_AI_PROVIDER', 'FREELANCE_AI_KEY', 'FREELANCE_AI_MODEL', 'FREELANCE_SLACK_TOKEN', 'FREELANCE_SLACK_CHANNEL', 'FREELANCE_TELEGRAM_TOKEN', 'FREELANCE_TELEGRAM_CHAT_ID', 'FREELANCE_PASSWORD')
 
 
 def config_path():
-    return Path(os.environ.get('FREELANCE_DATA_DIR', Path(__file__).resolve().parent / 'data')) / 'local-config.json'
+    return data_directory() / 'local-config.json'
 
 
 def load():

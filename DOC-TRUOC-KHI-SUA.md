@@ -48,13 +48,13 @@ Bản bàn giao ngày **12/10/2026** (UTC+7). Người dùng chuyển dự án s
 | Bridge Chrome Toolkit | `toolkit-bridge/`, hai ZIP Toolkit trong `downloads/` |
 | Tài liệu chi tiết | `README.md`, `HUONG-DAN-WINDOWS.txt`, `toolkit-bridge/README.md` |
 
-Backend: Python stdlib, `ThreadingHTTPServer`, SQLite. Frontend: JS thuần, không React/npm build. Dữ liệu runtime mặc định trong `data/workspace.sqlite3`; cấu hình riêng trong `data/local-config.json`, Gmail trong `data/gmail-private.json`, token webhook trong `data/webhook-token`. Không đưa các file này vào Git, log, export phát triển hoặc ZIP.
+Backend: Python stdlib, `ThreadingHTTPServer`, SQLite. Frontend: JS thuần, không React/npm build. Dữ liệu runtime Windows mặc định trong `%LOCALAPPDATA%\FreelanceDesk\data`, Linux/macOS là `data` cạnh mã nguồn. `FREELANCE_DATA_DIR` được ưu tiên. Module `data_store.py` thống nhất nơi lưu và sao chép data cũ nếu nơi mới còn trống, không xóa nguồn hoặc ghi đè đích đã có dữ liệu. Database là `workspace.sqlite3`; cấu hình riêng trong `data/local-config.json`, Gmail trong `data/gmail-private.json`, token webhook trong `data/webhook-token`. Không đưa các file này vào Git, log, export phát triển hoặc ZIP.
 
 Polling web 10 giây, có tránh render lại khi dữ liệu không đổi. Gmail worker kiểm tra mỗi 120 giây khi máy chủ đang chạy và đã kết nối. Worker Slack/Telegram xử lý outbox có retry. Không chạy job AI tự động: `automatic_jobs()` luôn false. Biến AUTO_JOBS cũ không được dùng để bật lại.
 
 ## Tình trạng bàn giao và giới hạn thực tế
 
-Mốc mã ứng dụng hiện tại: **`c933dd9`** trên repo `https://github.com/thutrang0807hp-ux/hello`. Gói này thêm tài liệu bàn giao và sửa các mô tả README đã lỗi thời; `HANDOFF-MANIFEST.json` ghi mốc lúc đóng gói và SHA-256 các file.
+Mốc hộp thư trước bản sửa lưu trữ cố định: **`c933dd9`** trên repo `https://github.com/thutrang0807hp-ux/hello`. Gói này thêm tài liệu bàn giao và sửa các mô tả README đã lỗi thời; `HANDOFF-MANIFEST.json` ghi mốc lúc đóng gói và SHA-256 các file.
 
 - Người dùng đã dùng được Toolkit nhận job vào app trên Windows. Bộ bridge đóng gói đã giữ các bundle gốc; đừng thay bằng một extension trắng chỉ có webhook.
 - Người dùng báo OpenAI đã hoạt động ở phần viết thư. Không có khóa thật trong môi trường phát triển, vì vậy kiểm thử ở đây dùng giả lập, không chứng minh quota/model của tài khoản cụ thể.
@@ -69,7 +69,7 @@ Mốc mã ứng dụng hiện tại: **`c933dd9`** trên repo `https://github.co
 
 ## Kiểm thử và bằng chứng
 
-Tại bản bàn giao đã có **69 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
+Tại bản bàn giao đã có **74 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
@@ -103,3 +103,5 @@ Các smoke dùng `/usr/bin/chromium` + `--no-sandbox` trong Linux hiện tại. 
 ### Câu nhắn mẫu cho Codex tài khoản mới
 
 > Đây là dự án Freelance Desk đang chạy trên Windows. Hãy giải nén mã nguồn, đọc DOC-TRUOC-KHI-SUA.md và AGENTS.md trước, rồi giữ các quyết định đã chốt. Không viết lại từ đầu, không tự gọi AI/gửi thông báo thật, không đọc hoặc chia sẻ data chứa khóa. Tôi muốn bạn sửa: [ghi thay đổi]. Sau khi sửa hãy kiểm thử phần liên quan và tạo bản xem trước/gói cập nhật, giữ dữ liệu cũ.
+
+Cập nhật sau bàn giao ban đầu: đã kiểm thử HTTP lưu AI/Telegram và phiên Gmail giả lập, dừng server rồi khởi động lại từ CMD/cwd khác; cấu hình, bản ghi khách và token webhook vẫn giữ. Xem `tests/persistence_restart_smoke.py`. Lưu cùng Client ID/Secret không xóa phiên Gmail nữa. Kết nối Google thực tế vẫn phụ thuộc thời hạn/token Google.

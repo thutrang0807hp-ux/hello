@@ -18,6 +18,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from zoneinfo import ZoneInfo
 from services import ServiceError
+from data_store import data_directory
 
 SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
 QUERY = 'from:(@email.upwork.com) subject:("sent you a message") newer_than:30d'
@@ -33,7 +34,7 @@ def init(connect):
 
 
 def private_path():
-    return Path(os.environ.get('FREELANCE_DATA_DIR', Path(__file__).parent / 'data')) / 'gmail-private.json'
+    return data_directory() / 'gmail-private.json'
 
 
 def private():
@@ -68,8 +69,10 @@ def configure(item):
     if not isinstance(secret, str) or not secret.strip() or len(secret)>4096 or any(c.isspace() for c in secret):
         raise ServiceError('Nhập OAuth Client Secret hợp lệ.')
     with LOCK:
-        save({'clientId':client_id,'clientSecret':secret})
-        PENDING.clear()
+        current=private()
+        if current.get('clientId')!=client_id or current.get('clientSecret')!=secret:
+            save({'clientId':client_id,'clientSecret':secret})
+            PENDING.clear()
     return status()
 
 

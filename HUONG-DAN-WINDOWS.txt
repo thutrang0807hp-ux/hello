@@ -20,7 +20,10 @@ Không cần gói Python bên ngoài. Đây là web chạy bằng Python, không
 Các file *demo.html dùng dữ liệu mẫu và tải lại sẽ reset.
 
 DỮ LIỆU THẬT
-Bản chạy thật lưu trong thư mục data cạnh server.py; tải lại không mất dữ liệu.
+Bản chạy thật trên Windows lưu tại %LOCALAPPDATA%\FreelanceDesk\data.
+Bản mới tự sao chép data cũ nếu nơi lưu cố định chưa có dữ liệu; giữ bản gốc.
+Lần cập nhật đầu hãy chép vào đúng thư mục app đang dùng rồi mở lại.
+Xem nơi đang lưu trong Hồ sơ & kết nối → Dữ liệu & kết nối đã lưu.
 Sao lưu: dừng app và sao chép toàn bộ data. Thư mục này có cấu hình riêng và
 khóa/token; không chia sẻ hoặc đưa lên GitHub.
 Mỗi lần mở web bắt đầu ở chế độ sáng; chọn tối trong menu nếu muốn.

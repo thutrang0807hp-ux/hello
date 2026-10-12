@@ -8,6 +8,7 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 from local_config import load
+from data_store import data_directory
 
 
 def main():
@@ -19,6 +20,7 @@ def main():
         if not configure():
             return 1
     load()
+    print('Dữ liệu và kết nối đã lưu tại: '+str(data_directory()), flush=True)
     port = int(os.environ.get('PORT', '8000'))
     process = subprocess.Popen([sys.executable, str(Path(__file__).with_name('server.py'))])
     address = 'http://127.0.0.1:' + str(port)

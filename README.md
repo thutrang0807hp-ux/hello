@@ -28,7 +28,7 @@ cd /workspace/hello
 python3 server.py
 ```
 
-Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng. `FREELANCE_DATA_DIR` đổi thư mục lưu dữ liệu, mặc định `data/`. Sao lưu toàn bộ thư mục dữ liệu khi máy chủ đã dừng, gồm SQLite và token webhook. Nút xuất JSON xuất các bản ghi để bạn lưu thêm; chưa có chức năng nhập lại JSON.
+Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng. `FREELANCE_DATA_DIR` đổi thư mục lưu dữ liệu, mặc định trên Windows là `%LOCALAPPDATA%\FreelanceDesk\data` (dùng APPDATA nếu không có LOCALAPPDATA); Linux/macOS là `data/` cạnh mã nguồn. Sao lưu toàn bộ thư mục dữ liệu khi máy chủ đã dừng, gồm SQLite và token webhook. Nút xuất JSON xuất các bản ghi để bạn lưu thêm; chưa có chức năng nhập lại JSON.
 
 ## Luồng làm việc
 
@@ -287,3 +287,9 @@ Rê chuột không mở bảng đánh giá. Trong khung **Phân tích công vi�
 ### Khung chi tiết công việc và AI
 
 Danh sách chỉ có nút **Phân tích công việc**, mở khung có nền sau tối nhẹ. Nút **Phân tích bằng AI** nằm trên cùng; phần kết quả thu gọn mặc định và chỉ sổ xuống khi bấm. Mở khung không gọi API; bấm nút AI mới xử lý job chưa có cache. Kết quả đã lưu được dùng lại khi mở phần AI, không gọi API lần nữa. Mô tả và thông tin khách nằm trong hai thẻ riêng, hoạt động khách được thu gọn. Có thể đóng bằng Escape, nút Đóng hoặc bấm ngoài khung; thanh Quan tâm, Viết thư và Upwork luôn ở dưới.
+
+### Giữ kết nối qua lần đóng/mở ứng dụng
+
+Windows dùng thư mục cố định `%LOCALAPPDATA%\FreelanceDesk\data`, nên giải nén bản cập nhật ở thư mục khác không tạo bộ cấu hình mới. Khi chạy lần đầu trên bản này, nếu nơi lưu cố định chưa có dữ liệu, app sao chép data cũ cạnh mã nguồn (SQLite bằng backup API, gồm khóa AI/kênh/Gmail và token webhook), giữ nguyên bản gốc và không ghi đè nơi lưu đã có dữ liệu. Để lấy đúng dữ liệu cũ, lần cập nhật đầu hãy chép bản mới vào đúng thư mục app đang dùng rồi chạy lại. Thư mục tường minh qua `FREELANCE_DATA_DIR` luôn được ưu tiên; đường dẫn tương đối tính từ thư mục mã nguồn, không từ CMD.
+
+Xem nơi đang lưu tại **Hồ sơ & kết nối → Dữ liệu & kết nối đã lưu**. Các ô khóa/token không hiện lại giá trị cũ vì là ô nhập mới; nhìn trạng thái Đã cấu hình để biết khóa vẫn còn. Lưu lại cùng Client ID/Secret Google không xóa refresh token. Đóng CMD dừng server nhưng không xóa cấu hình; phải chạy app để web/worker hoạt động. Google Testing có thể làm phiên Gmail hết hạn sau 7 ngày; đây là hết phiên của Google, không phải mất dữ liệu khi đóng trình duyệt. Không gộp hoặc ghi đè hai data khác nhau nếu chưa xác định bản cần dùng.

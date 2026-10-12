@@ -19,12 +19,13 @@ import job_activity
 import upwork_mail
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
+from data_store import data_directory
 from services import ServiceError, channels, evaluate_proposal, generate_proposal, normalize_job, send_notification, text
 from workflow import validate_workspace
 
 load()
 ROOT = Path(__file__).resolve().parent
-DATA = Path(os.environ.get('FREELANCE_DATA_DIR', ROOT / 'data'))
+DATA = data_directory()
 DATA.mkdir(parents=True, exist_ok=True)
 DB = DATA / 'workspace.sqlite3'
 PASSWORD = os.environ.get('FREELANCE_PASSWORD', '')
@@ -325,7 +326,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/settings':
                 with connect() as db:
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
-                return self.reply(200, {'profile': settings(), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
+                return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
             return self.reply(404, {'error': 'Không tìm thấy.'})
         files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
         if path in files:
