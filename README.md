@@ -383,3 +383,11 @@ Lý do + ghi chú tùy chọn được gom trong details/summary riêng, mặc �
 
 ### Bộ cài chạy lại không ghi đè pythonw.exe
 Ảnh Windows báo Errno13 khi venv ghi đè .desktop-venv/Scripts/pythonw.exe. install_desktop.ensure_environment kiểm tra Python/venv hiện tại bằng subprocess, dùng lại khi hợp lệ và không chạy python -m venv lần nữa. Nếu môi trường cài dở/hỏng thì giữ nguyên, báo hướng cài thư mục app mới thay vì xóa. PermissionError có thông báo riêng; bỏ quy mọi lỗi về Internet. Stop background chỉ dừng backend, người dùng phải đóng popup/Thoát hoàn toàn native app trước cập nhật. 119 Python tests PASS, gồm lần cài đầu, reuse không sửa pythonw, invalid/partial/symlink không ghi đè. Chưa mô phỏng khóa executable Windows thật trong cloud Linux.
+
+
+### Sửa timeout dịch vụ local khi dùng Windows venv redirector
+CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime con; Popen.pid của venv/pythonw có thể là PID redirector, không phải os.getpid() của server. startup cũ gọi alive(item) với PID redirector nên không bao giờ nhận ready dù HTTP đã hoạt động.
+- Bootstrap mới gọi /api/desktop/status bằng token random riêng; chỉ nhận ok=True và PID integer dương, lưu actual pid + launcherPid. alive/stop của phiên đã lưu vẫn bắt buộc token + PID thực khớp. Không kill arbitrary Python.
+- Ép PYTHONUTF8 cho backend child để log Windows ổn định. Không tăng timeout để che lỗi.
+- 124 Python tests PASS; background_server_smoke PASS; desktop_redirector_smoke dùng wrapper + server thật PID khác nhau: ready/reuse/stop kết thúc cả hai, dữ liệu giữ nguyên. GUI Windows vẫn cần kiểm tra trên máy người dùng.
+- Tham chiếu đọc được: https://raw.githubusercontent.com/python/cpython/3.10/PC/launcher.c và https://raw.githubusercontent.com/python/cpython/3.10/PCbuild/venvlauncher.vcxproj (VENV_REDIRECT).

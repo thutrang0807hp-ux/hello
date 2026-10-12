@@ -32,10 +32,28 @@ def saved():
     except (OSError,ValueError,TypeError):return None
 
 
+def authenticated_status(item):
+    if not item:return None
+    try:
+        status=request(item['port'],'/api/desktop/status',item['token'])
+        pid=status.get('pid')
+        if status.get('ok') is True and isinstance(pid,int) and not isinstance(pid,bool) and pid>0:
+            return status
+    except (OSError,ValueError,KeyError,AttributeError,TypeError):pass
+    return None
+
+
 def alive(item):
-    if not item:return False
-    try:return request(item['port'],'/api/desktop/status',item['token']).get('pid')==item['pid']
-    except (OSError,ValueError,KeyError):return False
+    status=authenticated_status(item)
+    return bool(status and status['pid']==item.get('pid'))
+
+
+def adopt_server_pid(item):
+    """A Windows venv redirector PID is not the authenticated Python server PID."""
+    status=authenticated_status(item)
+    if not status:return False
+    item['pid']=status['pid']
+    return True
 
 
 def start(open_browser=True):
@@ -50,17 +68,17 @@ def start(open_browser=True):
     except OSError:pass
     else:raise RuntimeError('App đang chạy ở cổng này. Dừng CMD cũ bằng Ctrl+C rồi mở start-background-windows.bat.')
     token=secrets.token_urlsafe(32)
-    env=dict(os.environ,FREELANCE_DESKTOP_CONTROL_TOKEN=token,FREELANCE_BIND='127.0.0.1',FREELANCE_DATA_DIR=str(data),PORT=str(port))
+    env=dict(os.environ,FREELANCE_DESKTOP_CONTROL_TOKEN=token,FREELANCE_BIND='127.0.0.1',FREELANCE_DATA_DIR=str(data),PORT=str(port),PYTHONUTF8='1')
     flags={'creationflags':subprocess.CREATE_NO_WINDOW} if os.name=='nt' else {'start_new_session':True}
     log=data/'background-server.log'
     if log.exists() and log.stat().st_size>2*1024*1024:log.replace(log.with_suffix('.log.1'))
     with log.open('ab') as output:
         process=subprocess.Popen([sys.executable,str(ROOT/'server.py')],cwd=ROOT,env=env,stdin=subprocess.DEVNULL,stdout=output,stderr=output,**flags)
-    item={'pid':process.pid,'port':port,'token':token}
+    item={'pid':process.pid,'launcherPid':process.pid,'port':port,'token':token}
     try:
         for _ in range(100):
             if process.poll() is not None:raise RuntimeError('Web chưa chạy được. Xem background-server.log trong thư mục dữ liệu.')
-            if alive(item):break
+            if adopt_server_pid(item):break
             time.sleep(.1)
         else:raise RuntimeError('Web khởi động quá lâu. Mở lại sau khi kiểm tra background-server.log.')
         path=state_file();fd,temp=tempfile.mkstemp(prefix='.desktop-',dir=data)

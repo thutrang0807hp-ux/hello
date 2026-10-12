@@ -42,3 +42,5 @@ NẾU KHÔNG MỞ ĐƯỢC:
   Không gửi local-config.json/gmail-private.json hoặc khóa/token.
 
 Lỗi Permission denied tại pythonw.exe: đóng mọi thông báo app cũ bằng OK và Thoát hoàn toàn ở khay. Stop background chỉ dừng backend. Bộ cài mới dùng lại venv hợp lệ, không ghi đè pythonw.exe khi chạy lại. Không xóa dữ liệu.
+
+Bản sửa timeout dịch vụ local: đóng thông báo lỗi cũ bằng OK, chép đè mã mới (giữ .desktop-venv/data), rồi bấm biểu tượng Desktop. Không cần chạy lại bộ cài cho riêng bản sửa này.

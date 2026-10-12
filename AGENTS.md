@@ -38,3 +38,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Desktop failures must be stage-specific and redacted. Check .NET/WebView2 before startup; reject MSHTML fallback. Repair only executes valid Microsoft-signed WebView2 bootstrapper, no global execution-policy changes. Never include desktop-diagnostic.txt in releases/handoffs.
 
 - Rerunning desktop installation must probe/reuse a healthy .desktop-venv, never recreate its running pythonw.exe. Preserve partial/invalid environments and report instead of deleting. Permission errors are not automatically network errors.
+
+- Windows venv redirector PID may differ from backend PID. Bootstrap must adopt PID only from authenticated desktop/status; saved alive/stop must still match actual PID and private token. Preserve desktop_redirector_smoke coverage.
