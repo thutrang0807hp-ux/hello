@@ -69,7 +69,7 @@ Mốc hộp thư trước bản sửa lưu trữ cố định: **`c933dd9`** tr�
 
 ## Kiểm thử và bằng chứng
 
-Tại bản bàn giao đã có **74 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
+Tại bản bàn giao đã có **78 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
@@ -105,3 +105,5 @@ Các smoke dùng `/usr/bin/chromium` + `--no-sandbox` trong Linux hiện tại. 
 > Đây là dự án Freelance Desk đang chạy trên Windows. Hãy giải nén mã nguồn, đọc DOC-TRUOC-KHI-SUA.md và AGENTS.md trước, rồi giữ các quyết định đã chốt. Không viết lại từ đầu, không tự gọi AI/gửi thông báo thật, không đọc hoặc chia sẻ data chứa khóa. Tôi muốn bạn sửa: [ghi thay đổi]. Sau khi sửa hãy kiểm thử phần liên quan và tạo bản xem trước/gói cập nhật, giữ dữ liệu cũ.
 
 Cập nhật sau bàn giao ban đầu: đã kiểm thử HTTP lưu AI/Telegram và phiên Gmail giả lập, dừng server rồi khởi động lại từ CMD/cwd khác; cấu hình, bản ghi khách và token webhook vẫn giữ. Xem `tests/persistence_restart_smoke.py`. Lưu cùng Client ID/Secret không xóa phiên Gmail nữa. Kết nối Google thực tế vẫn phụ thuộc thời hạn/token Google.
+
+Có choose-data-windows.bat/choose_data.py để chọn nơi lưu bằng Tk; location JSON không chứa khóa nhưng cũng không đóng gói. Bản sửa đóng SQLite bằng contextlib.closing trước rename (with sqlite3.connect chỉ commit, không close), tránh Windows giữ handle gây WinError 5. Kiểm thử khóa tệp giả lập và chọn vị trí đã qua; GUI Windows cần xác minh thực tế.

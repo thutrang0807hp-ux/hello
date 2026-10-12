@@ -14,3 +14,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Use the existing checkout; a worktree is unnecessary unless the user requests one. Report what was verified and what still needs real account or Windows validation.
 
 - Persistent storage is unified by data_store.py: Windows defaults to LOCALAPPDATA/FreelanceDesk/data; explicit FREELANCE_DATA_DIR wins, relative paths are source-root-relative. Legacy data is copied only into an empty destination, originals retained. Preserve migration safety and Gmail refresh tokens when saving unchanged OAuth credentials.
+
+- Windows storage can be selected using choose-data-windows.bat after stopping the app. Close SQLite connections explicitly before directory renames; transaction context managers alone do not release Windows handles. Exclude location-pointer JSON from release archives.
