@@ -69,7 +69,7 @@ Mốc hộp thư trước bản sửa lưu trữ cố định: **`c933dd9`** tr�
 
 ## Kiểm thử và bằng chứng
 
-Tại bản bàn giao đã có **78 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
+Tại bản bàn giao đã có **83 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
@@ -109,3 +109,5 @@ Cập nhật sau bàn giao ban đầu: đã kiểm thử HTTP lưu AI/Telegram v
 Có choose-data-windows.bat/choose_data.py để chọn nơi lưu bằng Tk; location JSON không chứa khóa nhưng cũng không đóng gói. Bản sửa đóng SQLite bằng contextlib.closing trước rename (with sqlite3.connect chỉ commit, không close), tránh Windows giữ handle gây WinError 5. Kiểm thử khóa tệp giả lập và chọn vị trí đã qua; GUI Windows cần xác minh thực tế.
 
 Chạy nền Windows: desktop_background.py + start/stop-background-windows.bat. Tiến trình con CREATE_NO_WINDOW độc lập, file desktop-server.json chứa token quản lý; không xuất file này. Endpoint desktop/status và desktop/stop chỉ chấp nhận token riêng + loopback (stop còn kiểm tra Origin), không bỏ yêu cầu đăng nhập web. Không kill mọi tiến trình Python. Linux detached smoke PASS; GUI/console Windows chưa chạy trong cloud. Dừng background trước khi cập nhật/đổi data.
+
+Có uninstall-windows.bat và uninstall_desk.py: đọc uninstall-files.json, hiển thị file dự kiến xóa, bắt xác nhận XOA trên máy người dùng. Không chạy gỡ trên checkout để kiểm thử. Chỉ test fixture tạm; remote Gmail grant/extension và backup ngoài danh sách cần gỡ riêng.

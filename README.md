@@ -305,3 +305,9 @@ Lựa chọn lưu trong `.storage-location.json` cạnh app và `storage-locatio
 Dừng bản đang chạy bằng Ctrl+C một lần, rồi mở **start-background-windows.bat**. File này mở web và thoát cửa sổ chạy; server hoạt động trong tiến trình riêng không có console trên Windows. Bấm lại sẽ mở cùng server, không tạo thêm bản. Đóng tab/trình duyệt không dừng server; **stop-background-windows.bat** dừng đúng server chạy nền bằng token riêng, không taskkill mọi tiến trình Python. Mật khẩu web vẫn có hiệu lực.
 
 Server vẫn cần máy bật/thức; sau khởi động lại máy phải mở file start-background lần nữa (chưa đăng ký tự chạy cùng Windows). Toolkit vẫn cần Chrome/extension hoạt động để thu thập job. Muốn cập nhật mã hoặc đổi nơi lưu, chạy file stop-background trước. Log nằm trong background-server.log ở thư mục dữ liệu; desktop-server.json là token điều khiển riêng, không chia sẻ hoặc đóng gói. Kiểm thử cloud đã xác minh child process sống sau launcher, reuse, auth, từ chối token sai và dừng giữ dữ liệu; cờ CREATE_NO_WINDOW thực tế cần xác minh trên Windows.
+
+### Gỡ ứng dụng và dữ liệu
+
+Mở **uninstall-windows.bat** trong thư mục app đã cập nhật. Cửa sổ gỡ hiện danh sách tệp: mã app, SQLite, khóa/token, log và vị trí lưu đã nhận diện (gồm data cũ nếu còn). Chỉ khi nhập **XOA** và bấm **Gỡ và xóa dữ liệu** công cụ mới thực hiện. Nó dừng phiên nền bằng token đúng; nếu app còn chạy trong CMD thì yêu cầu Ctrl+C trước và chưa xóa gì. Không dùng rmtree, không kill tất cả Python, không đụng file ngoài danh sách; folder có tài liệu riêng sẽ còn.
+
+Xóa dữ liệu không có khôi phục qua công cụ này. Chỉ gỡ các bản/thư mục nhận diện trên máy đang dùng; ZIP đã tải, các bản sao lưu hoặc bản app khác ngoài danh sách không bị xóa tự động. Quyền OAuth Gmail cần thu hồi tại https://myaccount.google.com/connections và extension cần gỡ trong chrome://extensions. Công cụ không thực hiện tác vụ tài khoản từ xa. GUI Tk cần thử trên Windows; tests chỉ chạy xóa trong thư mục tạm giả lập.

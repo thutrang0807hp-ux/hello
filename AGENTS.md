@@ -18,3 +18,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Windows storage can be selected using choose-data-windows.bat after stopping the app. Close SQLite connections explicitly before directory renames; transaction context managers alone do not release Windows handles. Exclude location-pointer JSON from release archives.
 
 - Desktop background start/stop must only manage the authenticated local instance using its private control token; never kill arbitrary Python processes. Keep desktop-server.json and logs out of artifacts. Stop the background server before updates/storage changes.
+
+- uninstall_desk.py is destructive only after its local review/confirmation. Never execute it against real repo/user data as a test. Validate the exact allowlist, stop ownership, no recursive unrelated-folder deletion, and symlink protection in temporary fixtures. Remote Google grants and Chrome extensions are not removed by local uninstall.
