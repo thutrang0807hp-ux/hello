@@ -1,7 +1,7 @@
 FREELANCE DESK — KIỂM CHỨNG BÀN GIAO 12/10/2026 (UTC+7)
 
 Chạy lại ở môi trường Linux trước khi đóng gói:
-- python -m unittest discover -s tests -p 'test_*.py': 83 tests, PASS.
+- python -m unittest discover -s tests -p 'test_*.py': 92 tests, PASS.
 - node tests/job_filters.test.js: PASS.
 - node tests/job_customer_stars.test.js: PASS.
 - node --check public/app.js: PASS.
@@ -45,3 +45,8 @@ Không gỡ dữ liệu thực trong môi trường phát triển; GUI Windows c
 
 windows_timezone_smoke.py PASS: không site-packages/tzdata, tạo + liên kết
 khách, ngày UTC+7 đúng và không trùng khi thử lại. Smoke UI hộp thư PASS.
+
+Tự rút việc mail: provider mock, cache không gọi lặp, toàn chuỗi + previous
+action, tin cảm ơn không xóa việc, giữ nhóm/việc thủ công (kể cả đang edit),
+tắt không gọi API, thiếu khóa chờ, lỗi không spam, khôi phục processing PASS.
+Smoke UI xác minh việc AI hiện trong client-next sau ghép; provider giả lập.

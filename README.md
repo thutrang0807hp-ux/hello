@@ -187,7 +187,7 @@ Thẻ ghi tình hình/milestone hiện tại, việc tiếp theo, ngày cần li
 
 **Email Upwork đã có tích hợp Gmail chỉ đọc**, cần cấu hình OAuth của riêng bạn. Vào **Khách hàng → Mở thư Upwork** để xem hộp tin nhắn. Trạng thái kết nối và nút chính nằm trên cùng; danh sách có bộ lọc Tất cả, Chưa đọc, Chờ liên kết. **Cài đặt kết nối** và **Nhập một thư** được thu gọn mặc định, chỉ mở khi bấm; thư đã liên kết chỉ hiện tên khách và nút Đổi khách. Chỉ truy vấn thông báo “sent you a message” từ `room_…@email.upwork.com` trong 30 ngày gần đây; không tải toàn bộ hộp thư, không gửi/xóa thư hay đổi trạng thái đã đọc trên Gmail. Quyền `gmail.readonly` Google cấp vẫn rộng hơn bộ lọc: có thể dùng hộp thư phụ chỉ nhận thông báo Upwork nếu muốn tách Gmail cá nhân.
 
-Lần đầu chọn khách (hoặc tạo khách từ thư). App lưu liên kết theo mã phòng; các thông báo sau cùng phòng tự ghép, cập nhật ngày phản hồi và nhãn **Tin nhắn mới**; khách có thư chưa đọc được đưa lên đầu trong nhóm. Hộp thư app hiện 200 thư gần nhất. Không đoán theo tên, không tự xác nhận hợp đồng hay thay nhóm khách. Thông báo Gmail chưa xác minh được chữ ký DKIM Upwork phải ghép thủ công. Mở nội dung thư trong app xóa nhãn mới của thư đó, không thay trạng thái trên Gmail. Ngày phản hồi dùng ngày nhận email theo UTC+7, không lùi khi nhận thư cũ. Mẫu không trích được nội dung vẫn hiện thông báo và yêu cầu xem thư gốc; không bịa tin nhắn. Không sử dụng AI/token.
+Lần đầu chọn khách (hoặc tạo khách từ thư). App lưu liên kết theo mã phòng; các thông báo sau cùng phòng tự ghép, cập nhật ngày phản hồi và nhãn **Tin nhắn mới**; khách có thư chưa đọc được đưa lên đầu trong nhóm. Hộp thư app hiện 200 thư gần nhất. Không đoán theo tên, không tự xác nhận hợp đồng hay thay nhóm khách. Thông báo Gmail chưa xác minh được chữ ký DKIM Upwork phải ghép thủ công. Mở nội dung thư trong app xóa nhãn mới của thư đó, không thay trạng thái trên Gmail. Ngày phản hồi dùng ngày nhận email theo UTC+7, không lùi khi nhận thư cũ. Mẫu không trích được nội dung vẫn hiện thông báo và yêu cầu xem thư gốc; không bịa tin nhắn. Nhận/lọc/ghép thư không dùng AI; tự rút Việc tiếp theo là chức năng AI riêng, dùng token khi bật.
 
 #### Cấu hình Google để nhận thư tự động
 
@@ -315,3 +315,11 @@ Xóa dữ liệu không có khôi phục qua công cụ này. Chỉ gỡ các b�
 ### Thư đã nhận nhưng chưa hiện khách trên bảng
 
 Kết nối Gmail chỉ nhận thư. Trong hộp thư, chọn khách đã có hoặc **+ Tạo khách…**, rồi bấm **Lưu liên kết**. Khách mới hiện trong Đang trao đổi; trạng thái hợp đồng không tự đổi. Tạo và ghép được ghi trong một giao dịch SQLite, lặp lại không tạo khách trùng cùng cuộc trò chuyện. Bản hiện tại dùng UTC+7 trực tiếp, không phụ thuộc tzdata thường thiếu ở Python Windows; lỗi cũ có thể làm POST tạo khách/ghép thư bị ngắt và browser báo Failed to fetch.
+
+### Tự biết việc tiếp theo từ tin nhắn khách
+
+Theo yêu cầu người dùng, **Tự rút việc tiếp theo từ tin nhắn bằng AI** bật mặc định trong hộp thư, có thể tắt bằng checkbox. Cần khóa AI đã lưu; đọc tin nhắn để hiểu việc cần làm có tính token của nhà cung cấp. Phần nhận/ghép email vẫn không dùng AI. Mail đã liên kết được xử lý theo khách, gom tối đa 8 tin gần đây (mỗi tin tối đa 2.000 ký tự), gồm ngữ cảnh dự án và việc hiện tại. Khi thêm tin mới, worker cập nhật thẻ khách; không cần bấm phân tích từng thư. Đây là tự động hiểu tin nhắn, **không bật lại tự chấm job**.
+
+Kết quả lưu SQLite theo nội dung tin; mở trang, đánh dấu đọc hoặc khởi động lại không tự gọi lại phần đã hoàn tất. Một khách được xử lý mỗi lượt worker, không gọi dồn tất cả khách. Tin cảm ơn không tự xóa việc chưa giải quyết. Không thay nhóm/trạng thái hợp đồng hoặc tự gửi tin. Việc người dùng ghi được giữ; nếu đã có việc thủ công, AI hiện gợi ý riêng thay vì ghi đè. Không tự tạo deadline/date từ suy đoán. Khi thiếu khóa, app chờ khóa; khi API lỗi, giữ việc cũ, hiện lỗi và nút Thử lại, không lặp API liên tục cho cùng bộ tin.
+
+App chạy nền và Gmail còn kết nối thì worker tự nhận thư và rút việc; màn hình cập nhật theo polling 10 giây. Thời gian còn phụ thuộc đồng bộ Gmail và API AI. Model chưa được kiểm chứng bằng tài khoản thật ở cloud; kiểm thử dùng provider giả lập.

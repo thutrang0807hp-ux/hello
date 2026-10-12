@@ -17,6 +17,7 @@ from ai_provider import model as ai_model, provider as ai_provider, automatic_jo
 import job_radar
 import job_activity
 import upwork_mail
+import mail_actions
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
 from data_store import data_directory
@@ -70,6 +71,7 @@ with connect() as db:
 
 
 upwork_mail.init(connect)
+mail_actions.init(connect)
 
 def job_signature(job):
     return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'assessmentVersion':job_radar.ASSESSMENT_VERSION, 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
@@ -143,10 +145,12 @@ def records():
             archived = archive_unanswered(json.loads(row['body']))
             if archived:
                 db.execute('UPDATE records SET body=? WHERE id=?', (json.dumps(archived,ensure_ascii=False),row['id']))
+        action_states=mail_actions.states(db)
         interests = {r['record_id']:r['expires'] for r in db.execute('SELECT * FROM job_interest')}
         reviews = {r['record_id']:r for r in db.execute('SELECT * FROM job_reviews')}
         items = [dict(json.loads(row['body']), id=row['id'], kind=row['kind']) for row in db.execute('SELECT * FROM records ORDER BY id DESC')]
     for job in items:
+        if job['kind']=='client':job['mailActionStatus']=action_states.get(job['id'],{})
         if job['kind'] != 'job': continue
         expiry = interests.get(job['id'])
         job['interested'] = bool(expiry)
@@ -326,7 +330,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if path == '/api/mail':
                 try:
-                    return self.reply(200, dict(upwork_mail.status(), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))
+                    return self.reply(200, dict(upwork_mail.status(), autoActions=mail_actions.enabled(connect), aiConfigured=bool(os.environ.get('FREELANCE_AI_KEY')), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))
                 except ServiceError as error:
                     return self.reply(error.status, {'error':str(error)})
             if path == '/api/records':
@@ -405,6 +409,10 @@ class Handler(BaseHTTPRequestHandler):
             item = self.read_json()
             if not isinstance(item, dict):
                 raise ServiceError('Dữ liệu phải là đối tượng JSON.')
+            if path == '/api/mail/auto-actions':
+                return self.reply(200,mail_actions.set_enabled(connect,item.get('enabled')))
+            if path == '/api/mail/actions/retry':
+                return self.reply(200,mail_actions.retry(connect,item.get('clientId')))
             if path == '/api/mail/configure':
                 return self.reply(200, upwork_mail.configure(item))
             if path == '/api/mail/connect':
@@ -706,7 +714,10 @@ class Handler(BaseHTTPRequestHandler):
                                 project['won']=item['outcome']=='won'
                                 project['wonAt']=(project.get('wonAt') or datetime.now(timezone.utc).isoformat()) if project['won'] else None
                                 db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(project,ensure_ascii=False),project_row['id']))
-                    if kind == 'client': item = record_client_events(item, saved)
+                    if kind == 'client':
+                        if 'nextAction' in item and item['nextAction']!=saved.get('nextAction'):item['nextActionSource']='manual'
+                        item.pop('mailActionStatus',None)
+                        item = record_client_events(item, saved)
                     saved.update(item)
                     item = saved
                     db.execute('UPDATE records SET body=? WHERE id=?', (json.dumps(item, ensure_ascii=False), ident))
@@ -741,4 +752,5 @@ if __name__ == '__main__':
     print(f'Freelance Desk listening on port {port}', flush=True)
     threading.Thread(target=notification_worker, daemon=True).start()
     threading.Thread(target=upwork_mail.worker, args=(connect,), daemon=True).start()
+    threading.Thread(target=mail_actions.worker, args=(connect,), daemon=True).start()
     http.serve_forever()

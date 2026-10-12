@@ -16,6 +16,7 @@
     "job_activity.py",
     "job_radar.py",
     "local_config.py",
+    "mail_actions.py",
     "public/analytics.js",
     "public/app.js",
     "public/excel.js",

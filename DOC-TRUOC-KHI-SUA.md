@@ -69,7 +69,7 @@ Mốc hộp thư trước bản sửa lưu trữ cố định: **`c933dd9`** tr�
 
 ## Kiểm thử và bằng chứng
 
-Tại bản bàn giao đã có **83 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
+Tại bản bàn giao đã có **92 unit test Python** qua; smoke hộp thư, nhập/ghép/đọc, UI sáng/tối/mobile và lỗi sau cập nhật đã qua bằng Chromium + provider giả lập. Hãy đọc `HANDOFF-VALIDATION.txt` để biết các lệnh chạy lại và kết quả của lần đóng gói này. Không coi test giả lập là xác nhận một tài khoản thật đã kết nối.
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
@@ -113,3 +113,5 @@ Chạy nền Windows: desktop_background.py + start/stop-background-windows.bat.
 Có uninstall-windows.bat và uninstall_desk.py: đọc uninstall-files.json, hiển thị file dự kiến xóa, bắt xác nhận XOA trên máy người dùng. Không chạy gỡ trên checkout để kiểm thử. Chỉ test fixture tạm; remote Gmail grant/extension và backup ngoài danh sách cần gỡ riêng.
 
 Sửa Windows liên kết thư: client_lifecycle và upwork_mail dùng timezone UTC+7 stdlib, không ZoneInfo bắt buộc tzdata. /api/mail/link chấp nhận clientId="new" theo thao tác, tạo khách và ghép trong transaction; lặp cùng room không tạo trùng. windows_timezone_smoke.py chạy server -S với TZPATH không có DB, kiểm tra tạo/ghép/hiện talk + ngày phản hồi đúng.
+
+Yêu cầu mới sau bàn giao: tự hiểu tin nhắn khách để điền Việc tiếp theo. mail_actions.py có worker/cache/toggle riêng; default bật theo yêu cầu, dùng AI khi đã có khóa và tin liên kết. Không tự chấm job. Tối đa 8 tin recent/client, vẫn xem previousAction. Giữ nhóm khách và việc thủ công; API lỗi không xóa việc/call lặp. Checkbox trong hộp thư nói rõ phí token. Mail đã nhận từ trước được xử lý lần đầu sau nâng cấp.
