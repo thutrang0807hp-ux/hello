@@ -1,3 +1,5 @@
+BÀN GIAO SANG CODEX KHÁC: đọc BAN-GIAO-HIEN-TAI.md và dùng PROMPT-CHO-CODEX-MOI.txt. Gói nguồn đầy đủ có bộ cài desktop; không kèm dữ liệu/khóa riêng.
+
 # Freelance Desk
 
 **Bàn giao cho Codex/tài khoản khác:** đọc [DOC-TRUOC-KHI-SUA.md](DOC-TRUOC-KHI-SUA.md) trước. ZIP bàn giao chứa mã nguồn và kiểm thử, không chứa thư mục dữ liệu hay khóa.

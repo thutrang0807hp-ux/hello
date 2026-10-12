@@ -41,7 +41,7 @@ def main():
         '- Toolkit-Installed-Build-Bridge.zip: bản extension cầu nối để cài trên Chrome.\n'
         '- Toolkit-Installed-Build-Source.zip: mã nguồn tương ứng và giấy phép.\n'
         'Mã ứng dụng Freelance Desk nằm tại thư mục cha, không cần chép ZIP app cũ.\n').encode()
-    required=['DOC-TRUOC-KHI-SUA.md','AGENTS.md','HANDOFF-VALIDATION.txt','PROMPT-CHO-CODEX-MOI.txt','server.py','upwork_mail.py','public/index.html','public/upwork-mail.js','tests/test_upwork_mail.py']
+    required=['BAN-GIAO-HIEN-TAI.md','CAI-APP-DESKTOP.txt','desktop_app.py','desktop_background.py','install_desktop.py','install-desktop-windows.bat','desktop-requirements.txt','desktop_diagnostics.py','tests/test_desktop_server_identity.py','tests/test_install_desktop.py','DOC-TRUOC-KHI-SUA.md','AGENTS.md','HANDOFF-VALIDATION.txt','PROMPT-CHO-CODEX-MOI.txt','server.py','upwork_mail.py','public/index.html','public/upwork-mail.js','tests/test_upwork_mail.py']
     for name in required:
         if name not in files:raise RuntimeError('Missing tracked handoff file: '+name)
     manifest={'project':'Freelance Desk','created_at':datetime.now(ZoneInfo('Asia/Bangkok')).isoformat(),

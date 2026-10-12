@@ -1,11 +1,23 @@
-Tôi gửi ZIP mã nguồn dự án Freelance Desk đang chạy trên Windows.
-Hãy giải nén và đọc DOC-TRUOC-KHI-SUA.md, AGENTS.md, README.md trước.
-Đây là dự án đã hoạt động; không viết lại từ đầu và không tự đổi các yêu cầu
-đã chốt. Không tự gọi AI hoặc gửi tin nhắn thật để kiểm thử. Gói không có data
-hay khóa của tôi; dùng dữ liệu mẫu và môi trường test riêng.
+Đây là ZIP mã nguồn đầy đủ của Freelance Desk, app Windows local đang chuyển
+sang cửa sổ riêng (pywebview/WebView2 + pystray), dùng backend Python/SQLite.
+Hãy giải nén, đọc BAN-GIAO-HIEN-TAI.md, AGENTS.md, DOC-TRUOC-KHI-SUA.md và
+HANDOFF-VALIDATION.txt trước khi sửa. Không viết lại dự án từ đầu.
+
+Giữ các quyết định đã chốt: AI job thủ công/cached/tiếng Việt, dữ liệu và kết nối
+lưu bền, OAuth Google ngoài trình duyệt có cookie/state, trạng thái/nhóm khách
+không tự đổi theo email, test không phản hồi 14 ngày có quy tắc riêng.
+Đặc biệt giữ hai sửa Windows: dùng lại venv, và lấy PID server thật từ endpoint
+xác thực thay vì so với PID redirector. Người dùng chưa xác nhận GUI Windows
+mở thành công sau sửa cuối, nên hãy chẩn đoán cụ thể nếu vẫn lỗi.
+
+Gói không có dữ liệu hay khóa cá nhân. Dùng data tạm và mock, không gọi API
+AI/Gmail thật, không gửi tin nhắn thật, không yêu cầu tôi gửi key vào chat.
+Cloud Linux chạy backend/tests được, không phải môi trường xác minh GUI Windows.
 
 Việc tôi muốn bạn sửa lần này:
 [ĐIỀN YÊU CẦU Ở ĐÂY]
 
-Hãy làm đến khi hoàn tất, kiểm thử phần liên quan, cho tôi xem trước nếu đổi
-UI, rồi tạo gói cập nhật để chép vào bản cũ mà không mất dữ liệu.
+Làm đến khi hoàn tất phần được phép, kiểm thử liên quan và ghi rõ giới hạn;
+nếu đổi UI hãy có bản xem trước. Đóng gói bản cập nhật đầy đủ để chép vào app
+cũ, giữ dữ liệu/.desktop-venv/cấu hình của tôi; không phụ thuộc file ở tài khoản
+Codex trước. Không tự xuất khóa, data, cache hay logs vào ZIP/Git.

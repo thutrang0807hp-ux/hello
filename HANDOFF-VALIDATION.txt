@@ -113,3 +113,6 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 - Ép PYTHONUTF8 cho backend child để log Windows ổn định. Không tăng timeout để che lỗi.
 - 124 Python tests PASS; background_server_smoke PASS; desktop_redirector_smoke dùng wrapper + server thật PID khác nhau: ready/reuse/stop kết thúc cả hai, dữ liệu giữ nguyên. GUI Windows vẫn cần kiểm tra trên máy người dùng.
 - Tham chiếu đọc được: https://raw.githubusercontent.com/python/cpython/3.10/PC/launcher.c và https://raw.githubusercontent.com/python/cpython/3.10/PCbuild/venvlauncher.vcxproj (VENV_REDIRECT).
+
+Bàn giao tài khoản Codex — 12/10/2026:
+Fresh extraction of FreelanceDesk-Handoff.zip PASS: 124 Python unittest tests, desktop_redirector_smoke.py, background_server_smoke.py, Node focus.test.js. Source includes BAN-GIAO-HIEN-TAI.md, Windows installer/native modules and all test scripts. GUI Windows remains unconfirmed by user after latest PID fix; this is explicitly recorded for next agent. Personal data/keys/venv/cache/logs excluded, per-file SHA256 and nested ZIP integrity verified.
