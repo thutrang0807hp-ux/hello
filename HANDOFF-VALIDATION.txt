@@ -42,3 +42,6 @@ Cờ CREATE_NO_WINDOW cần xác minh trên Windows thực tế.
 Uninstall: 5 test PASS trong dữ liệu tạm — preview không xóa, giữ file riêng,
 server chưa dừng không xóa, chặn traversal/symlink, không xóa dataset lạ.
 Không gỡ dữ liệu thực trong môi trường phát triển; GUI Windows chưa thử.
+
+windows_timezone_smoke.py PASS: không site-packages/tzdata, tạo + liên kết
+khách, ngày UTC+7 đúng và không trùng khi thử lại. Smoke UI hộp thư PASS.

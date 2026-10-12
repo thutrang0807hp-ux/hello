@@ -1,12 +1,14 @@
 """Archive unanswered new leads using an explicitly recorded inquiry date."""
-from datetime import date, datetime
-from zoneinfo import ZoneInfo
+from datetime import date, datetime, timezone, timedelta
+
+# Vietnam/Thailand use UTC+7 without DST; no external tzdata needed on Windows.
+LOCAL_ZONE = timezone(timedelta(hours=7))
 
 
 def archive_unanswered(client, today=None):
     if client.get('clientGroup') != 'talk' or client.get('clientStage') != 'new':
         return None
-    today = today or datetime.now(ZoneInfo('Asia/Bangkok')).date()
+    today = today or datetime.now(LOCAL_ZONE).date()
     try:
         asked = date.fromisoformat(client.get('clientInquiryDate', ''))
     except (ValueError, TypeError):
@@ -30,7 +32,7 @@ def record_client_events(update, previous=None, now=None):
     """Record new CRM transitions without inventing historical events."""
     previous = previous or {}
     result = dict(previous, **update)
-    now = now or datetime.now(ZoneInfo('Asia/Bangkok')).isoformat()
+    now = now or datetime.now(LOCAL_ZONE).isoformat()
     if not previous:
         result.setdefault('clientCreatedAt', now)
     old_group = previous.get('clientGroup')

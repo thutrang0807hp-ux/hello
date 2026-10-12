@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from zoneinfo import ZoneInfo
+from client_lifecycle import LOCAL_ZONE, record_client_events
 from services import ServiceError
 from data_store import data_directory
 
@@ -174,7 +174,7 @@ def apply_reply(db, client_id, item):
     row=db.execute("SELECT body FROM records WHERE kind='client' AND id=?",(client_id,)).fetchone()
     if not row:raise ServiceError('Khách không còn tồn tại. Chọn khách khác.')
     client=json.loads(row['body'])
-    day=datetime.fromisoformat(item['receivedAt']).astimezone(ZoneInfo('Asia/Bangkok')).date().isoformat()
+    day=datetime.fromisoformat(item['receivedAt']).astimezone(LOCAL_ZONE).date().isoformat()
     if day >= (client.get('lastReplyDate') or ''):
         client.update(lastReplyDate=day,lastReplySource='gmail' if item['source']=='gmail' else 'upwork-email')
     client['upworkMailUnread']=bool(db.execute('SELECT 1 FROM upwork_mail WHERE client_id=? AND seen=0',(client_id,)).fetchone())
@@ -200,11 +200,20 @@ def inbox(connect):
 
 def link(connect, item):
     ident=item.get('id');client_id=item.get('clientId')
-    if not isinstance(ident,str) or not isinstance(client_id,int) or isinstance(client_id,bool):raise ServiceError('Chọn thư và khách hợp lệ.')
+    if not isinstance(ident,str) or (client_id!='new' and (not isinstance(client_id,int) or isinstance(client_id,bool))):raise ServiceError('Chọn thư và khách hợp lệ.')
     with connect() as db:
-        row=db.execute('SELECT body FROM upwork_mail WHERE id=?',(ident,)).fetchone()
+        db.execute('BEGIN IMMEDIATE')
+        row=db.execute('SELECT body,client_id FROM upwork_mail WHERE id=?',(ident,)).fetchone()
         if not row:raise ServiceError('Không tìm thấy thư.')
-        mail=json.loads(row['body']);apply_reply(db,client_id,mail)
+        mail=json.loads(row['body'])
+        if client_id=='new':
+            mapped=db.execute('SELECT client_id FROM upwork_mail_rooms WHERE room=?',(mail['room'],)).fetchone()
+            candidate=row['client_id'] or (mapped['client_id'] if mapped else None)
+            if candidate and db.execute("SELECT 1 FROM records WHERE kind='client' AND id=?",(candidate,)).fetchone():client_id=candidate
+            else:
+                client=record_client_events({'name':mail['sender'],'clientGroup':'talk','clientStage':'new','status':'Tiềm năng'})
+                client_id=db.execute("INSERT INTO records(kind,body) VALUES ('client',?)",(json.dumps(client,ensure_ascii=False),)).lastrowid
+        apply_reply(db,client_id,mail)
         db.execute('INSERT OR REPLACE INTO upwork_mail_rooms(room,client_id) VALUES (?,?)',(mail['room'],client_id))
         for r in db.execute('SELECT id,body FROM upwork_mail WHERE client_id IS NULL').fetchall():
             m=json.loads(r['body'])

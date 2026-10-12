@@ -111,3 +111,5 @@ Có choose-data-windows.bat/choose_data.py để chọn nơi lưu bằng Tk; loc
 Chạy nền Windows: desktop_background.py + start/stop-background-windows.bat. Tiến trình con CREATE_NO_WINDOW độc lập, file desktop-server.json chứa token quản lý; không xuất file này. Endpoint desktop/status và desktop/stop chỉ chấp nhận token riêng + loopback (stop còn kiểm tra Origin), không bỏ yêu cầu đăng nhập web. Không kill mọi tiến trình Python. Linux detached smoke PASS; GUI/console Windows chưa chạy trong cloud. Dừng background trước khi cập nhật/đổi data.
 
 Có uninstall-windows.bat và uninstall_desk.py: đọc uninstall-files.json, hiển thị file dự kiến xóa, bắt xác nhận XOA trên máy người dùng. Không chạy gỡ trên checkout để kiểm thử. Chỉ test fixture tạm; remote Gmail grant/extension và backup ngoài danh sách cần gỡ riêng.
+
+Sửa Windows liên kết thư: client_lifecycle và upwork_mail dùng timezone UTC+7 stdlib, không ZoneInfo bắt buộc tzdata. /api/mail/link chấp nhận clientId="new" theo thao tác, tạo khách và ghép trong transaction; lặp cùng room không tạo trùng. windows_timezone_smoke.py chạy server -S với TZPATH không có DB, kiểm tra tạo/ghép/hiện talk + ngày phản hồi đúng.

@@ -311,3 +311,7 @@ Server vẫn cần máy bật/thức; sau khởi động lại máy phải mở 
 Mở **uninstall-windows.bat** trong thư mục app đã cập nhật. Cửa sổ gỡ hiện danh sách tệp: mã app, SQLite, khóa/token, log và vị trí lưu đã nhận diện (gồm data cũ nếu còn). Chỉ khi nhập **XOA** và bấm **Gỡ và xóa dữ liệu** công cụ mới thực hiện. Nó dừng phiên nền bằng token đúng; nếu app còn chạy trong CMD thì yêu cầu Ctrl+C trước và chưa xóa gì. Không dùng rmtree, không kill tất cả Python, không đụng file ngoài danh sách; folder có tài liệu riêng sẽ còn.
 
 Xóa dữ liệu không có khôi phục qua công cụ này. Chỉ gỡ các bản/thư mục nhận diện trên máy đang dùng; ZIP đã tải, các bản sao lưu hoặc bản app khác ngoài danh sách không bị xóa tự động. Quyền OAuth Gmail cần thu hồi tại https://myaccount.google.com/connections và extension cần gỡ trong chrome://extensions. Công cụ không thực hiện tác vụ tài khoản từ xa. GUI Tk cần thử trên Windows; tests chỉ chạy xóa trong thư mục tạm giả lập.
+
+### Thư đã nhận nhưng chưa hiện khách trên bảng
+
+Kết nối Gmail chỉ nhận thư. Trong hộp thư, chọn khách đã có hoặc **+ Tạo khách…**, rồi bấm **Lưu liên kết**. Khách mới hiện trong Đang trao đổi; trạng thái hợp đồng không tự đổi. Tạo và ghép được ghi trong một giao dịch SQLite, lặp lại không tạo khách trùng cùng cuộc trò chuyện. Bản hiện tại dùng UTC+7 trực tiếp, không phụ thuộc tzdata thường thiếu ở Python Windows; lỗi cũ có thể làm POST tạo khách/ghép thư bị ngắt và browser báo Failed to fetch.
