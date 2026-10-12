@@ -198,6 +198,13 @@ def inbox(connect):
         return [dict(json.loads(r['body']),clientId=r['client_id'],seen=bool(r['seen'])) for r in db.execute('SELECT * FROM upwork_mail ORDER BY julianday(json_extract(body,\'$.receivedAt\')) DESC LIMIT 200')]
 
 
+def pending_summary(connect):
+    with connect() as db:
+        count=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE client_id IS NULL').fetchone()[0]
+        rows=db.execute("SELECT id,body FROM upwork_mail WHERE client_id IS NULL ORDER BY julianday(json_extract(body,'$.receivedAt')) DESC LIMIT 2000").fetchall()
+    return {'count':count,'ids':[r['id'] for r in rows],'senders':list(dict.fromkeys(json.loads(r['body']).get('sender','Khách') for r in rows[:5]))}
+
+
 def link(connect, item):
     ident=item.get('id');client_id=item.get('clientId')
     if not isinstance(ident,str) or (client_id!='new' and (not isinstance(client_id,int) or isinstance(client_id,bool))):raise ServiceError('Chọn thư và khách hợp lệ.')

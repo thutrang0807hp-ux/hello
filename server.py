@@ -328,6 +328,8 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith('/api/'):
             if not self.guard():
                 return
+            if path == '/api/mail/summary':
+                return self.reply(200,upwork_mail.pending_summary(connect))
             if path == '/api/mail':
                 try:
                     return self.reply(200, dict(upwork_mail.status(), autoActions=mail_actions.enabled(connect), aiConfigured=bool(os.environ.get('FREELANCE_AI_KEY')), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))

@@ -27,8 +27,8 @@ const UpworkMail = (() => {
   dialog.querySelectorAll('[data-mail-read]').forEach(d=>d.addEventListener('toggle',async()=>{if(!d.open)return;const m=s.messages.find(m=>m.id===d.dataset.mailRead);if(m.seen)return;try{await post('/api/mail/seen',{id:m.id});m.seen=true;if($('#mailNewCount'))$('#mailNewCount').textContent=s.messages.filter(m=>!m.seen).length;d.parentElement.classList.remove('is-new');d.querySelector('.mail-new-badge')?.remove();await refresh();}catch(error){$('#upworkMailStatus').textContent=error.message;}}));
  }
  async function reload(){try{state=await api('/api/mail');}catch(e){if(e.message==='Không tìm thấy.')throw Error('Máy chủ chưa có phần Gmail mới. Nhấn Ctrl + C trong CMD, mở lại start-windows.bat, rồi Ctrl + F5 trên trang. Nếu vẫn lỗi, chép lại server.py và upwork_mail.py cùng bản cập nhật; giữ nguyên data.');throw e;}layout();}
- async function open(){
-  filter='all';
+ async function open(initialFilter='all'){
+  filter=['all','new','pending'].includes(initialFilter)?initialFilter:'all';
   dialog=document.getElementById('upworkMailDialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='upworkMailDialog';dialog.className='client-dialog';dialog.setAttribute('aria-label','Tin nhắn Upwork');document.body.append(dialog);dialog.addEventListener('close',()=>clearInterval(timer));}
   dialog.innerHTML='<div class="client-detail-content"><p>Đang tải thư Upwork…</p><button id="closeUpworkMail">Đóng</button></div>';$('#closeUpworkMail').onclick=()=>dialog.close();if(!dialog.open)dialog.showModal();
   try{await reload();clearInterval(timer);timer=setInterval(async()=>{if(!dialog.open)return;try{const next=await api('/api/mail');if(dialog.querySelector('input:focus,select:focus,#mailSetupPanel[open],#mailImportPanel[open],details[open][data-mail-read]'))return;if(JSON.stringify(next)!==JSON.stringify(state)){state=next;layout();}}catch{}},15000);}catch(e){dialog.innerHTML=`<div class="client-detail-content"><p>${esc(e.message)}</p><button id="closeUpworkMail">Đóng</button></div>`;$('#closeUpworkMail').onclick=()=>dialog.close();}

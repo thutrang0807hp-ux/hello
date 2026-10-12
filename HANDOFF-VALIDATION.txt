@@ -50,3 +50,6 @@ Tự rút việc mail: provider mock, cache không gọi lặp, toàn chuỗi + 
 action, tin cảm ơn không xóa việc, giữ nhóm/việc thủ công (kể cả đang edit),
 tắt không gọi API, thiếu khóa chờ, lỗi không spam, khôi phục processing PASS.
 Smoke UI xác minh việc AI hiện trong client-next sau ghép; provider giả lập.
+
+Pending mail UI PASS: cảnh báo + OS notification giả lập đúng một lần,
+bấm vào pending filter, đọc vẫn còn count, ghép mới giảm; regression UI PASS.

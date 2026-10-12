@@ -323,3 +323,9 @@ Theo yêu cầu người dùng, **Tự rút việc tiếp theo từ tin nhắn b
 Kết quả lưu SQLite theo nội dung tin; mở trang, đánh dấu đọc hoặc khởi động lại không tự gọi lại phần đã hoàn tất. Một khách được xử lý mỗi lượt worker, không gọi dồn tất cả khách. Tin cảm ơn không tự xóa việc chưa giải quyết. Không thay nhóm/trạng thái hợp đồng hoặc tự gửi tin. Việc người dùng ghi được giữ; nếu đã có việc thủ công, AI hiện gợi ý riêng thay vì ghi đè. Không tự tạo deadline/date từ suy đoán. Khi thiếu khóa, app chờ khóa; khi API lỗi, giữ việc cũ, hiện lỗi và nút Thử lại, không lặp API liên tục cho cùng bộ tin.
 
 App chạy nền và Gmail còn kết nối thì worker tự nhận thư và rút việc; màn hình cập nhật theo polling 10 giây. Thời gian còn phụ thuộc đồng bộ Gmail và API AI. Model chưa được kiểm chứng bằng tài khoản thật ở cloud; kiểm thử dùng provider giả lập.
+
+### Báo thư chưa liên kết khách
+
+Khi có thư Upwork chưa ghép được với khách, app hiển thị **Thư chờ liên kết** kèm số trên tiêu đề trang, dấu đếm ở mục Khách hàng và banner **Xử lý ngay** trong bảng khách. Bấm cảnh báo mở thẳng bộ lọc Chờ liên kết. Mở đọc thư không xóa cảnh báo; số giảm khi liên kết thành công. Nếu trình duyệt đã được cấp quyền, mỗi thư chờ mới phát thông báo, bấm thông báo mở danh sách xử lý. ID đã báo lưu ở trình duyệt để không báo lặp mỗi lần refresh; cảnh báo số vẫn tồn tại đến khi xử lý.
+
+Thông báo trình duyệt cần trang app đang mở; khi đóng tab, thư vẫn lưu và cảnh báo hiện lần mở sau, không cam kết desktop toast khi không có trang chạy. Nhận/ghép thông báo không dùng AI. Tính năng này cảnh báo mọi thư chưa ghép (gồm khách mới/chưa xác định), không có nghĩa app đã tự ghép mọi khách theo tên.
