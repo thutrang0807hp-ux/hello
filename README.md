@@ -393,3 +393,11 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 - Ép PYTHONUTF8 cho backend child để log Windows ổn định. Không tăng timeout để che lỗi.
 - 124 Python tests PASS; background_server_smoke PASS; desktop_redirector_smoke dùng wrapper + server thật PID khác nhau: ready/reuse/stop kết thúc cả hai, dữ liệu giữ nguyên. GUI Windows vẫn cần kiểm tra trên máy người dùng.
 - Tham chiếu đọc được: https://raw.githubusercontent.com/python/cpython/3.10/PC/launcher.c và https://raw.githubusercontent.com/python/cpython/3.10/PCbuild/venvlauncher.vcxproj (VENV_REDIRECT).
+
+
+## Tổng quan Hôm nay và Tuần này — 13/10/2026
+- Thẻ Hôm nay/Tin nhắn khách nằm trước Trọng tâm tuần này: số tin đến hôm nay theo UTC+7, chưa đọc, chờ liên kết, việc đến hạn; tối đa 5 preview tin cần kiểm tra, kể cả tồn từ trước.
+- /api/mail/summary bổ sung todayCount/day và previews giới hạn 180 ký tự mỗi tin; chỉ qua API đã xác thực, không trả token/room/private OAuth. attentionCount vẫn union unread/unlinked, không cộng trùng.
+- Summary thay đổi (kể cả cùng số lượng) làm Tổng quan và Khách hàng refresh trong poll hiện tại. Preview không tự đánh dấu đã đọc. UpworkMail.open(filter,messageId) mở đúng tin khi người dùng bấm; đọc pending không xóa chờ liên kết.
+- Không gọi AI/Gmail thêm để tạo thẻ này, không thay stage/group hay ưu tiên tuần/lịch sử thống kê.
+- 126 Python tests PASS; Node focus PASS; overview_mail_smoke Chromium PASS: ngày/tuần, live unlinked refresh, direct open/read, pending sau đọc, filter và mobile. Có screenshot light/dark bằng fixture, không dùng dữ liệu thật.

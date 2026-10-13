@@ -116,3 +116,11 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 
 Bàn giao tài khoản Codex — 12/10/2026:
 Fresh extraction of FreelanceDesk-Handoff.zip PASS: 124 Python unittest tests, desktop_redirector_smoke.py, background_server_smoke.py, Node focus.test.js. Source includes BAN-GIAO-HIEN-TAI.md, Windows installer/native modules and all test scripts. GUI Windows remains unconfirmed by user after latest PID fix; this is explicitly recorded for next agent. Personal data/keys/venv/cache/logs excluded, per-file SHA256 and nested ZIP integrity verified.
+
+
+## Tổng quan Hôm nay và Tuần này — 13/10/2026
+- Thẻ Hôm nay/Tin nhắn khách nằm trước Trọng tâm tuần này: số tin đến hôm nay theo UTC+7, chưa đọc, chờ liên kết, việc đến hạn; tối đa 5 preview tin cần kiểm tra, kể cả tồn từ trước.
+- /api/mail/summary bổ sung todayCount/day và previews giới hạn 180 ký tự mỗi tin; chỉ qua API đã xác thực, không trả token/room/private OAuth. attentionCount vẫn union unread/unlinked, không cộng trùng.
+- Summary thay đổi (kể cả cùng số lượng) làm Tổng quan và Khách hàng refresh trong poll hiện tại. Preview không tự đánh dấu đã đọc. UpworkMail.open(filter,messageId) mở đúng tin khi người dùng bấm; đọc pending không xóa chờ liên kết.
+- Không gọi AI/Gmail thêm để tạo thẻ này, không thay stage/group hay ưu tiên tuần/lịch sử thống kê.
+- 126 Python tests PASS; Node focus PASS; overview_mail_smoke Chromium PASS: ngày/tuần, live unlinked refresh, direct open/read, pending sau đọc, filter và mobile. Có screenshot light/dark bằng fixture, không dùng dữ liệu thật.

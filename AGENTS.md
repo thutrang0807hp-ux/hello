@@ -40,3 +40,5 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 - Rerunning desktop installation must probe/reuse a healthy .desktop-venv, never recreate its running pythonw.exe. Preserve partial/invalid environments and report instead of deleting. Permission errors are not automatically network errors.
 
 - Windows venv redirector PID may differ from backend PID. Bootstrap must adopt PID only from authenticated desktop/status; saved alive/stop must still match actual PID and private token. Preserve desktop_redirector_smoke coverage.
+
+- Overview has daily mail attention before weekly priorities. Keep unread/unlinked union, UTC+7 today counts, live refresh even if counts stay equal, and do not mark mail read just by rendering previews. Direct opening may mark read; unresolved mail remains pending.

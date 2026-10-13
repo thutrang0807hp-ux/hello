@@ -29,6 +29,24 @@ class MailTests(unittest.TestCase):
     def tearDown(self):self.env.stop();self.tmp.cleanup();mail.PENDING.clear()
     def connect(self):
         db=sqlite3.connect(self.db);db.row_factory=sqlite3.Row;return db
+    def test_overview_summary_bounds_previews_and_uses_vietnam_day(self):
+        from datetime import datetime
+        times=['2026-10-12T16:59:59+00:00','2026-10-12T17:00:00+00:00','2026-10-13T12:00:00+07:00']
+        for i in range(7):
+            item={'id':'overview-'+str(i),'room':'overview-room-'+str(i),'sender':'Client '+str(i),'project':'Editing','text':'X'*250,'receivedAt':times[i%3],'source':'eml'}
+            mail.store(self.connect,item)
+        with patch.object(mail,'datetime') as clock:
+            clock.now.return_value=datetime(2026,10,13,9,0,tzinfo=mail.LOCAL_ZONE)
+            result=mail.pending_summary(self.connect)
+        self.assertEqual(result['todayCount'],4);self.assertEqual(result['attentionCount'],7);self.assertEqual(len(result['previews']),5)
+        self.assertTrue(all(len(m['preview'])==180 for m in result['previews']));self.assertTrue(all(not m['seen'] for m in result['previews']))
+        self.assertNotIn('room',result['previews'][0])
+    def test_read_pending_still_shows_but_read_linked_does_not(self):
+        first=mail.parse(sample());second=dict(first,id='other',room='other-room',messageId='<other@example.test>')
+        mail.store(self.connect,first);mail.store(self.connect,second)
+        mail.link(self.connect,{'id':first['id'],'clientId':1})
+        mail.seen(self.connect,first['id']);mail.seen(self.connect,second['id'])
+        result=mail.pending_summary(self.connect);self.assertEqual(result['unreadCount'],0);self.assertEqual(result['attentionCount'],1);self.assertEqual([m['id'] for m in result['previews']],['other'])
     def test_extract_only_message_and_safe_link(self):
         m=mail.parse(sample());self.assertEqual(m['sender'],'John L.');self.assertEqual(m['project'],'Video Editing');self.assertEqual(m['text'],'Hey Trang, I have a new project.');self.assertEqual(m['room'],'room_abc123');self.assertTrue(m['authenticated']);self.assertTrue(m['url'].startswith('https://www.upwork.com/messages/'))
     def test_ignore_ads_and_lookalike_domains(self):

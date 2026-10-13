@@ -116,7 +116,7 @@ Sửa Windows liên kết thư: client_lifecycle và upwork_mail dùng timezone 
 
 Yêu cầu mới sau bàn giao: tự hiểu tin nhắn khách để điền Việc tiếp theo. mail_actions.py có worker/cache/toggle riêng; default bật theo yêu cầu, dùng AI khi đã có khóa và tin liên kết. Không tự chấm job. Tối đa 8 tin recent/client, vẫn xem previousAction. Giữ nhóm khách và việc thủ công; API lỗi không xóa việc/call lặp. Checkbox trong hộp thư nói rõ phí token. Mail đã nhận từ trước được xử lý lần đầu sau nâng cấp.
 
-Cảnh báo mail chưa ghép: /api/mail/summary trả count/IDs và vài tên, không trả nội dung/token. Web poll song song records/summary, count ở tiêu đề/sidebar/banner khách; bấm mở pending filter. Browser notification nếu đã cấp quyền, dedup ID trong localStorage. Đọc không xóa pending; ghép xong mới hết. Không thông báo khi không có trang đang chạy. pending_mail_smoke.py PASS.
+Cảnh báo mail chưa ghép: /api/mail/summary trả count/IDs và tối đa 5 preview đã xác thực cho Tổng quan; không trả token. Web poll song song records/summary, count ở tiêu đề/sidebar/banner khách; bấm mở pending filter. Browser notification nếu đã cấp quyền, dedup ID trong localStorage. Đọc không xóa pending; ghép xong mới hết. Không thông báo khi không có trang đang chạy. pending_mail_smoke.py PASS.
 
 Tab có job + mail: updateTabBadge dùng hai số và cache key riêng, không chỉ tổng (để title đúng khi tổng không đổi). pending_summary trả unreadCount và attentionCount union SQL seen=0 OR client_id NULL. Giữ riêng job batch-read. combined_tab_smoke.py và tab_badge_smoke.py PASS.
 
@@ -171,3 +171,11 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 - Ép PYTHONUTF8 cho backend child để log Windows ổn định. Không tăng timeout để che lỗi.
 - 124 Python tests PASS; background_server_smoke PASS; desktop_redirector_smoke dùng wrapper + server thật PID khác nhau: ready/reuse/stop kết thúc cả hai, dữ liệu giữ nguyên. GUI Windows vẫn cần kiểm tra trên máy người dùng.
 - Tham chiếu đọc được: https://raw.githubusercontent.com/python/cpython/3.10/PC/launcher.c và https://raw.githubusercontent.com/python/cpython/3.10/PCbuild/venvlauncher.vcxproj (VENV_REDIRECT).
+
+
+## Tổng quan Hôm nay và Tuần này — 13/10/2026
+- Thẻ Hôm nay/Tin nhắn khách nằm trước Trọng tâm tuần này: số tin đến hôm nay theo UTC+7, chưa đọc, chờ liên kết, việc đến hạn; tối đa 5 preview tin cần kiểm tra, kể cả tồn từ trước.
+- /api/mail/summary bổ sung todayCount/day và previews giới hạn 180 ký tự mỗi tin; chỉ qua API đã xác thực, không trả token/room/private OAuth. attentionCount vẫn union unread/unlinked, không cộng trùng.
+- Summary thay đổi (kể cả cùng số lượng) làm Tổng quan và Khách hàng refresh trong poll hiện tại. Preview không tự đánh dấu đã đọc. UpworkMail.open(filter,messageId) mở đúng tin khi người dùng bấm; đọc pending không xóa chờ liên kết.
+- Không gọi AI/Gmail thêm để tạo thẻ này, không thay stage/group hay ưu tiên tuần/lịch sử thống kê.
+- 126 Python tests PASS; Node focus PASS; overview_mail_smoke Chromium PASS: ngày/tuần, live unlinked refresh, direct open/read, pending sau đọc, filter và mobile. Có screenshot light/dark bằng fixture, không dùng dữ liệu thật.

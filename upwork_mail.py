@@ -204,7 +204,18 @@ def pending_summary(connect):
         unread=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE seen=0').fetchone()[0]
         attention=db.execute('SELECT COUNT(*) FROM upwork_mail WHERE seen=0 OR client_id IS NULL').fetchone()[0]
         rows=db.execute("SELECT id,body FROM upwork_mail WHERE client_id IS NULL ORDER BY julianday(json_extract(body,'$.receivedAt')) DESC LIMIT 2000").fetchall()
-    return {'count':count,'unreadCount':unread,'attentionCount':attention,'ids':[r['id'] for r in rows],'senders':list(dict.fromkeys(json.loads(r['body']).get('sender','Khách') for r in rows[:5]))}
+        today=datetime.now(LOCAL_ZONE).date().isoformat()
+        today_count=db.execute("SELECT COUNT(*) FROM upwork_mail WHERE strftime('%Y-%m-%d',json_extract(body,'$.receivedAt'),'+7 hours')=?",(today,)).fetchone()[0]
+        recent=db.execute("SELECT id,body,client_id,seen FROM upwork_mail WHERE seen=0 OR client_id IS NULL ORDER BY julianday(json_extract(body,'$.receivedAt')) DESC LIMIT 5").fetchall()
+    previews=[]
+    for row in recent:
+        body=json.loads(row['body'])
+        previews.append({'id':row['id'],'sender':body.get('sender','Khách'),'project':body.get('project',''),
+                         'preview':body.get('text','')[:180],'receivedAt':body.get('receivedAt',''),
+                         'clientId':row['client_id'],'seen':bool(row['seen'])})
+    return {'count':count,'unreadCount':unread,'attentionCount':attention,'todayCount':today_count,'day':today,'previews':previews,
+            'ids':[r['id'] for r in rows],'senders':list(dict.fromkeys(json.loads(r['body']).get('sender','Khách') for r in rows[:5]))}
+
 
 
 def link(connect, item):

@@ -48,3 +48,5 @@ node --test tests/focus.test.js
 ## Việc Codex tiếp theo cần làm
 
 Tiếp tục yêu cầu người dùng dựa trên mã hiện tại, không viết lại từ đầu. Đọc HANDOFF-VALIDATION.txt để biết kiểm thử và giới hạn. Nếu người dùng chưa mở được desktop, lấy thông báo/báo cáo đã che dữ liệu để chẩn đoán cụ thể. Hoàn tất thay đổi, kiểm thử liên quan, cập nhật tài liệu và tạo gói để người dùng chép vào bản cũ.
+
+Cập nhật 13/10/2026: Tổng quan có thẻ Hôm nay/Tin nhắn khách trước ưu tiên tuần; mail summary trả tối đa 5 preview đã xác thực, nút mở đúng thư, không auto-read preview. 126 Python tests + overview_mail_smoke PASS.
