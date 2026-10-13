@@ -41,4 +41,4 @@ Read `DOC-TRUOC-KHI-SUA.md` first, then the relevant source and README. This pro
 
 - Windows venv redirector PID may differ from backend PID. Bootstrap must adopt PID only from authenticated desktop/status; saved alive/stop must still match actual PID and private token. Preserve desktop_redirector_smoke coverage.
 
-- Overview has daily mail attention before weekly priorities. Keep unread/unlinked union, UTC+7 today counts, live refresh even if counts stay equal, and do not mark mail read just by rendering previews. Direct opening may mark read; unresolved mail remains pending.
+- Overview keeps weekly focus FIRST, with compact daily AI action rows below. Pending mail/AI is a small strip, not a large inbox card. Preserve completion across keep/thanks, show new update requests, never invent deadlines, keep distinct manual due tasks, and do not auto-read from dashboard rendering.

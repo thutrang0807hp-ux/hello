@@ -179,3 +179,11 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 - Summary thay đổi (kể cả cùng số lượng) làm Tổng quan và Khách hàng refresh trong poll hiện tại. Preview không tự đánh dấu đã đọc. UpworkMail.open(filter,messageId) mở đúng tin khi người dùng bấm; đọc pending không xóa chờ liên kết.
 - Không gọi AI/Gmail thêm để tạo thẻ này, không thay stage/group hay ưu tiên tuần/lịch sử thống kê.
 - 126 Python tests PASS; Node focus PASS; overview_mail_smoke Chromium PASS: ngày/tuần, live unlinked refresh, direct open/read, pending sau đọc, filter và mobile. Có screenshot light/dark bằng fixture, không dùng dữ liệu thật.
+
+
+## Tổng quan ưu tiên tuần + việc AI gọn — 13/10/2026 (bố cục hiện tại)
+- Theo yêu cầu sửa: Trọng tâm tuần ở đầu, bỏ khung preview tin lớn. Công việc hôm nay dùng các dòng AI action đã lưu + lịch đến hạn. Chờ liên kết/chờ AI chỉ là strip nhỏ dẫn vào hộp thư.
+- Không bịa deadline hoặc gán followup=hôm nay từ văn bản AI. Hàng AI là gợi ý để chọn làm hôm nay; chưa có ngày thật ghi Chưa gán hạn. Placeholder/decision none không tạo việc giả, nhưng việc AI cũ thật vẫn giữ nếu thư xã giao chưa giải quyết nó.
+- mailTaskSignature giữ qua keep/none; update mới tạo identity từ context signature. Đã làm lưu completedMailTaskSignature, không xóa lịch sử/nextAction thủ công. Thanks keep không mở lại task đã xong; yêu cầu update mới có thể hiện lại cùng nội dung. Nếu lịch hẹn và AI task khác nội dung cùng khách, vẫn giữ riêng.
+- AI worker cached results backfill signature/source-id không gọi nhà cung cấp lại. states API thêm signature, chỉ là hash nội dung để nhận diện task, không phải token quản lý. Không sửa group/stage theo email.
+- 127 Python tests PASS; mail_actions subset 12 PASS sau sửa metadata; overview_actions_smoke và overview_mail_smoke PASS (weekly-first, task completion/reload/thanks/new request, pending strip, no auto-read/no unlinked fake task/mobile), Node focus PASS. Mock provider/dữ liệu tạm, không dùng khóa thật.

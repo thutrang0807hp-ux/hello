@@ -16,17 +16,17 @@ with tempfile.TemporaryDirectory() as tmp:
  try:
   with sync_playwright() as p:
    b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=b.new_page(viewport={'width':1450,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(base);page.wait_for_function('()=>initialized');page.evaluate("changeView('overview')")
-   page.wait_for_selector('[data-overview-message="one"]');assert page.locator('#weeklyFocusTitle').is_visible();assert page.locator('[data-overview-message="one"]').inner_text().find('John L.')>=0
+   page.wait_for_selector('.today-mail-strip');assert page.locator('#weeklyFocusTitle').is_visible();assert page.locator('.overview-daily-mail').count()==0
    summary=page.request.get(base+'/api/mail/summary').json();assert summary['unreadCount']==1 and summary['todayCount']==1
-   assert page.locator('.overview-daily-mail').bounding_box()['y']<page.locator('.dashboard-focus').bounding_box()['y']
+   assert page.locator('.dashboard-focus').bounding_box()['y']<page.locator('#overviewTasks').bounding_box()['y']
    server.upwork_mail.store(server.connect,mail('two','Emma K.','Can you do a test?'))
-   page.evaluate('refresh(true)');page.wait_for_selector('[data-overview-message="two"]')
-   page.locator('[data-overview-message="one"]').click();page.wait_for_selector('[data-mail-read="one"][open]');page.wait_for_function("()=>pendingMail.unreadCount===1");assert page.locator('#upworkMailDialog').is_visible()
-   page.locator('#closeUpworkMail').click();page.wait_for_selector('[data-overview-message="one"]',state='detached')
-   page.locator('[data-overview-message="two"]').click();page.wait_for_function("()=>pendingMail.unreadCount===0");assert page.request.get(base+'/api/mail/summary').json()['count']==1
-   page.locator('#closeUpworkMail').click();assert page.locator('[data-overview-message="two"]').count()==1
-   page.locator('[data-overview-mail-filter="pending"]').click();page.wait_for_selector('[data-mail-filter="pending"].selected');page.locator('#closeUpworkMail').click()
+   page.evaluate('refresh(true)');page.wait_for_function("()=>document.querySelector('.today-mail-strip').textContent.includes('1 tin cần liên kết')")
+   page.locator('.today-mail-strip button').click();page.wait_for_selector('[data-mail-filter="pending"].selected');page.locator('[data-mail-filter="new"]').click()
+   page.locator('[data-mail-read="one"] summary').click();page.wait_for_function("()=>pendingMail.unreadCount===1");page.locator('#closeUpworkMail').click()
+   assert page.locator('.today-action-row').count()==0
+   page.locator('.today-mail-strip button').click();page.wait_for_selector('[data-mail-read="two"]');page.locator('[data-mail-read="two"] summary').click();page.wait_for_function("()=>pendingMail.unreadCount===0");assert page.request.get(base+'/api/mail/summary').json()['count']==1
+   page.locator('#closeUpworkMail').click();assert '1 tin cần liên kết' in page.locator('.today-mail-strip').inner_text()
    Path('/workspace/exports').mkdir(exist_ok=True);page.locator('.overview-action-column').screenshot(path='/workspace/exports/overview-today-preview.png');page.evaluate("document.documentElement.dataset.theme='dark'");page.locator('.overview-action-column').screenshot(path='/workspace/exports/overview-today-dark-preview.png')
    page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert not errors,errors
-   b.close();print('PASS overview daily/weekly, unread preview without auto-read, live unlinked refresh, direct message opening, pending stays after read, filters, mobile.')
+   b.close();print('PASS compact daily strip below weekly, unread preserved, live pending refresh, mail filters/read, unlinked never becomes task, pending retained, mobile.')
  finally:http.shutdown();http.server_close()

@@ -18,6 +18,18 @@ class MailActionTests(unittest.TestCase):
   with self.connect() as db:db.execute('INSERT INTO upwork_mail VALUES (?,?,1)',(ident,json.dumps({'id':ident,'project':'Editing','receivedAt':date,'text':text})))
  def client(self):
   with self.connect() as db:return json.loads(db.execute('SELECT body FROM records WHERE id=1').fetchone()[0])
+ def test_completed_task_not_reopened_by_thanks_but_new_request_is_new_task(self):
+  result={'decision':'update','action':'Dựng hai video','reason':'Khách yêu cầu.'}
+  with patch.object(mail_actions,'evaluate',return_value=result):mail_actions.run_once(self.connect)
+  first=self.client()['mailTaskSignature']
+  with self.connect() as db:
+   client=self.client();client['completedMailTaskSignature']=first;db.execute('UPDATE records SET body=? WHERE id=1',(json.dumps(client),))
+  self.add('3','Thanks','2026-10-11T04:00:00+07:00')
+  with patch.object(mail_actions,'evaluate',return_value=dict(result,decision='keep')):mail_actions.run_once(self.connect)
+  self.assertEqual(self.client()['mailTaskSignature'],first);self.assertEqual(self.client()['completedMailTaskSignature'],first)
+  self.add('4','Two more videos please','2026-10-12T04:00:00+07:00')
+  with patch.object(mail_actions,'evaluate',return_value=result):mail_actions.run_once(self.connect)
+  self.assertNotEqual(self.client()['mailTaskSignature'],first);self.assertEqual(self.client()['mailActionMessageId'],'4')
  def test_whole_context_auto_saved_once_group_preserved(self):
   result={'decision':'update','action':'Chờ khách gửi mẫu vào thứ Hai, rồi xem yêu cầu dự án.','reason':'Khách có dự án và sẽ gửi mẫu.'}
   with patch.object(mail_actions,'evaluate',return_value=result) as call:
