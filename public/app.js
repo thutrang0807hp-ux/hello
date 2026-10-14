@@ -357,3 +357,20 @@ const Sidebar=(()=>{
  function sync(){rail.querySelector('.nav-studio-group').classList.toggle('is-current',['proposal','archive'].includes(view));rail.querySelectorAll('[data-view]').forEach(b=>{if(b.dataset.view===view||(b.dataset.view==='job'&&view==='project')||(b.dataset.view==='overview'&&view==='analytics') || (b.dataset.view==='proposal'&&view==='archive'))b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
  paint();return {sync,afterNavigate:()=>{if(narrow())close();else paint();}};
 })();
+
+// Scroll only in response to opening a customer card, never on refresh.
+
+document.addEventListener('click',event=>{
+ const summary=event.target.closest('.client-summary');if(!summary)return;
+ if(event.target.closest('button,a,input,select,[draggable=true]'))return;
+ const panel=summary.parentElement;if(panel.open)return;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+ if(!panel.open||!panel.isConnected)return;
+ const body=panel.querySelector('.client-expanded-body'),rect=body.getBoundingClientRect();
+ if(rect.bottom>innerHeight-24||rect.top<24){
+ const top=window.scrollY+panel.getBoundingClientRect().top-24;
+ window.scrollTo({top:Math.max(0,top),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ }
+ }));
+});
+

@@ -1,3 +1,9 @@
+## Bổ sung đã chốt: màu thẻ khách và tự cuộn
+
+- Giữ nguyên bố cục thẻ khách. Thêm màu trạng thái, việc tiếp theo và nút.
+- Chỉ khi người dùng mở thẻ khách, cuộn nhẹ nếu nội dung nằm ngoài màn hình; giữ thanh cuộn, không tự cuộn khi refresh hoặc đóng thẻ. Tôn trọng reduced-motion.
+- Người dùng đã hủy phần Hóa đơn; bản mô phỏng đã gỡ và không có chức năng Hóa đơn trong bản cài/bàn giao.
+
 ## Bản cập nhật đã chốt 14/10/2026
 
 - Nền trang trắng; Studio nền mint và nút màu theo node. Khả năng nhận thêm việc nằm dưới trọng tâm tuần; lịch Mỹ và analytics tăng tương phản.
