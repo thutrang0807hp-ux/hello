@@ -21,3 +21,7 @@ console.log('PASS: Vietnam hours/date boundaries, separate posted/received, miss
 
 const librarySnapshot={nodes:[{id:'library',type:'template',libraryMode:true,content:'Generic library fallback'},{id:'draft',type:'draft',referenceShortlist:[{id:'t-77',sourceId:77,name:'Shortlisted template'}]},{id:'final',type:'final'}],edges:[{from:'library',to:'draft'},{from:'draft',to:'final'}]};
 m=A.build([{kind:'sentproposal',sentAt:'2026-10-07T00:00:00Z',workspaceSnapshot:librarySnapshot,finalNodeId:'final',outcome:'pending'}],day,7);assert.equal(m.templates.length,1);assert.equal(m.templates[0].name,'Shortlisted template');
+
+assert.equal(A.build([], '2026-10-14',180).from,'2026-04-15');
+assert.equal(A.build([], '2026-10-14',365).from,'2025-10-15');
+assert.equal(A.build([], '2024-02-29',365).from,'2023-03-01');

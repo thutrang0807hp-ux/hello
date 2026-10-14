@@ -1,3 +1,13 @@
+## Bản cập nhật đã chốt 14/10/2026
+
+- Nền trang trắng; Studio nền mint và nút màu theo node. Khả năng nhận thêm việc nằm dưới trọng tâm tuần; lịch Mỹ và analytics tăng tương phản.
+- Tổng quan thống kê Tuần/Tháng, Năm riêng. Analytics thêm 6 tháng/1 năm theo lịch, biểu đồ gộp tháng cho kỳ dài.
+- public/daily-tasks.js dùng dailyTasks trong hồ sơ khách, lưu vào SQLite qua API records. mail_actions.py giữ từng yêu cầu AI update theo signature, không dùng dữ liệu mẫu/localStorage để thay dữ liệu thật.
+- Đầu việc có ngày giao, hạn sửa được, +1/+3/+7 từ ngày giao, màu theo hạn/tuổi. Chưa xong giữ lại; Đã xong chỉ hiện ngày hoàn thành hiện tại (00:00 UTC+7 làm trống danh sách, vẫn nhớ trạng thái để không hiện lại).
+- Không có nút Qua ngày mai/Đặt lại mẫu trong app thật. daily-tasks.js đã thêm static route và HTML.
+- Kiểm tra: 127 Python tests; analytics.test.js; overview_actions_smoke.py gồm lưu hạn/reload, hoàn thành/keep/new request, đổi ngày và mobile.
+- Windows native/WebView2 vẫn cần xác nhận trên máy người dùng. Không đóng gói khóa, dữ liệu, venv hoặc profile.
+
 # Bàn giao Freelance Desk — 12/10/2026
 
 Đọc file này, AGENTS.md và DOC-TRUOC-KHI-SUA.md trước khi sửa. Đây là mã nguồn đầy đủ, không phụ thuộc tài khoản ChatGPT đã viết nó. Không cần ZIP app cũ để chạy mã trong gói.

@@ -1,0 +1,11 @@
+FREELANCE DESK — CẬP NHẬT 14/10/2026
+
+1. Dừng app cũ bằng Thoát ở biểu tượng khay hệ thống; nếu chạy CMD, Ctrl+C.
+2. Sao lưu thư mục dữ liệu đã chọn trước khi cập nhật.
+3. Giải nén bản cập nhật và chép đè mã chương trình vào thư mục app cũ.
+   Không xóa thư mục dữ liệu, cấu hình kết nối hoặc .desktop-venv.
+4. Mở lại app bằng launcher đang dùng; trình duyệt thì tải lại Ctrl+F5.
+
+Thay đổi: màu và bố cục đã chốt; công việc nhiều dòng có chỉnh hạn;
+việc chưa xong chuyển ngày, Đã xong về 0 lúc 00:00 giờ Việt Nam;
+phân tích 6 tháng/1 năm. Chưa gọi Gmail/AI thật khi kiểm thử.

@@ -1,6 +1,7 @@
 """User-requested automatic next steps from linked mail; persisted and coalesced per client."""
 import hashlib,json,os,threading,time
 from datetime import datetime,timezone
+from zoneinfo import ZoneInfo
 from ai_provider import request as ai_request,model as ai_model
 from services import post_json,ServiceError
 
@@ -88,6 +89,11 @@ def run_once(connect):
      if body['decision']=='update' or not current.get('mailTaskSignature'):
       current['mailTaskSignature']=(old['signature'] if old and old_body.get('state')=='completed' and body['decision'] in ('keep','none') else ctx['signature'])
      if ctx['messages'] and (body['decision']=='update' or not current.get('mailActionMessageId')):current['mailActionMessageId']=ctx['messages'][-1]['id']
+     if body['action'].strip() and body['decision'] in ('update','keep'):
+      tasks=current.setdefault('dailyTasks',[])
+      key=current['mailTaskSignature']
+      if not any(t.get('id')==key for t in tasks) and current.get('completedMailTaskSignature')!=key:
+       tasks.append({'id':key,'title':body['action'].strip(),'assigned':datetime.now(ZoneInfo('Asia/Bangkok')).date().isoformat(),'due':'','done':False,'messageId':current.get('mailActionMessageId')})
      current['mailNextAction']=body['action'];current['mailActionReason']=body['reason']
      # Do not overwrite a user's edit, including edits made while AI was running.
      manual=bool(current.get('nextAction')) and current.get('nextActionSource')!='mail-ai'

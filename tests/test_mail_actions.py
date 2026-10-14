@@ -30,6 +30,8 @@ class MailActionTests(unittest.TestCase):
   self.add('4','Two more videos please','2026-10-12T04:00:00+07:00')
   with patch.object(mail_actions,'evaluate',return_value=result):mail_actions.run_once(self.connect)
   self.assertNotEqual(self.client()['mailTaskSignature'],first);self.assertEqual(self.client()['mailActionMessageId'],'4')
+  self.assertEqual(len(self.client()['dailyTasks']),2)
+  self.assertEqual(self.client()['dailyTasks'][0]['id'],first)
  def test_whole_context_auto_saved_once_group_preserved(self):
   result={'decision':'update','action':'Chờ khách gửi mẫu vào thứ Hai, rồi xem yêu cầu dự án.','reason':'Khách có dự án và sẽ gửi mẫu.'}
   with patch.object(mail_actions,'evaluate',return_value=result) as call:

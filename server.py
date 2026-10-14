@@ -356,7 +356,7 @@ class Handler(BaseHTTPRequestHandler):
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
                 return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
             return self.reply(404, {'error': 'Không tìm thấy.'})
-        files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
+        files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/daily-tasks.js': 'daily-tasks.js', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
         if path in files:
             file = ROOT / 'public' / files[path]
             raw = file.read_bytes()
@@ -731,6 +731,12 @@ class Handler(BaseHTTPRequestHandler):
                                 project['wonAt']=(project.get('wonAt') or datetime.now(timezone.utc).isoformat()) if project['won'] else None
                                 db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(project,ensure_ascii=False),project_row['id']))
                     if kind == 'client':
+                        if 'dailyTasks' in item:
+                            incoming=item['dailyTasks']
+                            if not isinstance(incoming,list) or any(not isinstance(t,dict) or not isinstance(t.get('id'),str) or not isinstance(t.get('title'),str) or not isinstance(t.get('done'),bool) for t in incoming):
+                                raise ServiceError('Danh sách công việc không hợp lệ.')
+                            keys={t['id'] for t in incoming}
+                            item['dailyTasks']=incoming+[t for t in saved.get('dailyTasks',[]) if t.get('id') not in keys]
                         if 'nextAction' in item and item['nextAction']!=saved.get('nextAction'):item['nextActionSource']='manual'
                         item.pop('mailActionStatus',None)
                         item = record_client_events(item, saved)

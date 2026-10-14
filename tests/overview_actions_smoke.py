@@ -12,12 +12,15 @@ with tempfile.TemporaryDirectory() as tmp:
  try:
   with sync_playwright() as p:
    b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=b.new_page(viewport={'width':1500,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(base);page.wait_for_function('()=>initialized');page.evaluate("changeView('overview')")
-   page.wait_for_selector('[data-overview-ai-done]');assert page.locator('.dashboard-focus').bounding_box()['y']<page.locator('#overviewTasks').bounding_box()['y'];assert page.locator('.overview-daily-mail').count()==0
-   assert 'Chưa gán hạn' in page.locator('.today-action-row').inner_text()
+   page.wait_for_selector('[data-task-toggle]');assert page.locator('.dashboard-focus').bounding_box()['y']<page.locator('#overviewTasks').bounding_box()['y'];assert page.locator('.overview-daily-mail').count()==0
+   assert 'Chưa đặt hạn' in page.locator('.prototype-task').inner_text()
    Path('/workspace/exports').mkdir(exist_ok=True);page.locator('.overview-action-column').screenshot(path='/workspace/exports/overview-actions-preview.png')
-   page.locator('[data-overview-ai-done]').click();page.wait_for_selector('[data-overview-ai-done]',state='detached');page.reload();page.wait_for_function('()=>initialized');page.evaluate("changeView('overview')");assert page.locator('[data-overview-ai-done]').count()==0
+   page.locator('.prototype-task-date').click();page.locator('[data-preset="3"]').click();expected=page.locator('#prototypeDue').input_value();page.locator('#prototypeDeadline [type=submit]').click();page.wait_for_selector('#prototypeDeadline',state='hidden');page.reload();page.wait_for_function('()=>initialized');page.evaluate("changeView('overview')");assert expected in page.request.get(base+'/api/records').text()
+   page.locator('[data-task-toggle]').click();page.wait_for_function("()=>document.querySelector('[data-task-tab=done]')?.textContent.includes('1')");page.reload();page.wait_for_function('()=>initialized');page.evaluate("changeView('overview')");assert page.locator('.prototype-task').count()==0
    with server.connect() as db:db.execute('UPDATE mail_action_reviews SET signature=?,body=? WHERE client_id=?',('thanks',json.dumps({'state':'completed','decision':'keep'}),ident))
-   page.evaluate('refresh()');page.wait_for_timeout(100);assert page.locator('[data-overview-ai-done]').count()==0
-   page.request.post(base+'/api/records',data={'id':ident,'kind':'client','name':'John L.','mailTaskSignature':'new-request'});page.evaluate('refresh()');page.wait_for_selector('[data-overview-ai-done]')
+   page.evaluate('refresh()');page.wait_for_timeout(100);assert page.locator('.prototype-task').count()==0
+   page.request.post(base+'/api/records',data={'id':ident,'kind':'client','name':'John L.','mailTaskSignature':'new-request'});page.evaluate('refresh()');page.wait_for_selector('[data-task-toggle]')
+   page.locator('[data-task-tab=done]').click();assert page.locator('.prototype-task').count()==1
+   page.evaluate("Clients.day=()=> '2099-01-01';DailyTasks.tick()");assert page.locator('.prototype-task').count()==0;page.locator('[data-task-tab=todo]').click();assert page.locator('.prototype-task').count()==1
    page.set_viewport_size({'width':390,'height':844});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert not errors,errors;b.close();print('PASS weekly first, compact AI task, no invented date, completion persists, thanks stays completed, new request appears, mobile.')
  finally:http.shutdown();http.server_close()
