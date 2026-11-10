@@ -1,0 +1,89 @@
+name: Build Windows EXE
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/windows-download]
+permissions:
+  contents: read
+concurrency:
+  group: windows-download-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Install build dependencies
+        run: python -m pip install -r packaging/build-requirements.txt
+      - name: Frozen entry tests
+        run: python -m unittest discover -s tests -p "test_frozen_entry.py"
+      - name: Build standalone application
+        run: python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
+      - name: Validate frozen backend
+        run: python tests/frozen_backend_smoke.py dist/FreelanceDesk/FreelanceDesk.exe
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $compiler)) { throw 'Inno Setup 6 compiler unavailable' }
+          & $compiler packaging/installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Validate installed application
+        shell: pwsh
+        run: |
+          $installDir = Join-Path $env:RUNNER_TEMP 'FreelanceDesk-install-smoke'
+          $installer = Start-Process dist/installer/FreelanceDesk-Setup.exe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$installDir" -Wait -PassThru
+          if ($installer.ExitCode -ne 0) { throw "Installer failed: $($installer.ExitCode)" }
+          python tests/frozen_backend_smoke.py "$installDir/FreelanceDesk.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Prepare download website
+        run: python scripts/prepare_download_site.py dist/installer/FreelanceDesk-Setup.exe dist/website
+      - name: Upload installer and website
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreelanceDesk-Windows-x64
+          path: dist/website/
+          if-no-files-found: error
+      - name: Package download website
+        shell: pwsh
+        run: Compress-Archive -Path dist/website/* -DestinationPath dist/FreelanceDesk-Download-Website.zip
+      - name: Publish tested download files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "windows-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            dist/website/FreelanceDesk-Setup.exe \
+            dist/website/FreelanceDesk-Setup.exe.sha256 \
+            dist/FreelanceDesk-Download-Website.zip \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Freelance Desk Windows preview" \
+            --notes "Bộ cài Windows x64. Backend đã kiểm thử sau đóng gói và cài đặt. Cần xác minh giao diện WebView2 trên Windows. Bản cài chưa ký mã."
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/website
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Deploy download website
+        id: deployment
+        uses: actions/deploy-pages@v4

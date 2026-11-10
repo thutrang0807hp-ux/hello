@@ -73,7 +73,8 @@ def start(open_browser=True):
     log=data/'background-server.log'
     if log.exists() and log.stat().st_size>2*1024*1024:log.replace(log.with_suffix('.log.1'))
     with log.open('ab') as output:
-        process=subprocess.Popen([sys.executable,str(ROOT/'server.py')],cwd=ROOT,env=env,stdin=subprocess.DEVNULL,stdout=output,stderr=output,**flags)
+        command = [sys.executable, '--server'] if getattr(sys, 'frozen', False) else [sys.executable, str(ROOT/'server.py')]
+        process=subprocess.Popen(command,cwd=ROOT,env=env,stdin=subprocess.DEVNULL,stdout=output,stderr=output,**flags)
     item={'pid':process.pid,'launcherPid':process.pid,'port':port,'token':token}
     try:
         for _ in range(100):

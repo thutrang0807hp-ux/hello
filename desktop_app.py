@@ -44,7 +44,8 @@ class DesktopController:
             self.stop_server()
         except Exception:
             from desktop_background import message
-            message('Chưa dừng được dịch vụ nền. Dùng stop-background-windows.bat để dừng; dữ liệu vẫn được giữ.', True)
+            hint = 'shortcut Dừng dịch vụ Freelance Desk trong Start Menu' if getattr(sys, 'frozen', False) else 'stop-background-windows.bat'
+            message('Chưa dừng được dịch vụ nền. Dùng '+hint+' để dừng; dữ liệu vẫn được giữ.', True)
         finally:
             if self.tray:
                 self.tray.stop()
@@ -155,11 +156,13 @@ def main():
         return 0
     except ImportError as error:
         report(stage,error)
-        message('Thiếu thư viện desktop: '+safe_error(error)+'\nChạy install-desktop-windows.bat để cài lại. Chi tiết: desktop-diagnostic.txt.', True)
+        hint = 'Cài lại bằng FreelanceDesk-Setup.exe.' if getattr(sys, 'frozen', False) else 'Chạy install-desktop-windows.bat để cài lại.'
+        message('Thiếu thư viện desktop: '+safe_error(error)+'\n'+hint+' Chi tiết: desktop-diagnostic.txt trong thư mục dữ liệu (EXE) hoặc thư mục app (mã nguồn).', True)
         return 1
     except Exception as error:
         report(stage,error)
-        message(stage+'\n'+type(error).__name__+': '+safe_error(error)+'\n\nChạy diagnose-desktop-windows.bat và gửi nội dung desktop-diagnostic.txt nếu vẫn lỗi.', True)
+        hint = 'Mở shortcut chẩn đoán trong Start Menu; báo cáo desktop-diagnostic.txt nằm trong thư mục dữ liệu.' if getattr(sys, 'frozen', False) else 'Chạy diagnose-desktop-windows.bat và gửi nội dung desktop-diagnostic.txt nếu vẫn lỗi.'
+        message(stage+'\n'+type(error).__name__+': '+safe_error(error)+'\n\n'+hint, True)
         return 1
     finally:
         if controller and not controller.exiting:

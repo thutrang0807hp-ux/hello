@@ -8,3 +8,8 @@ __pycache__/
 .desktop-venv/
 .desktop-installed-files.json
 desktop-diagnostic.txt
+
+build/
+dist/
+.build-venv/
+download-site/files/

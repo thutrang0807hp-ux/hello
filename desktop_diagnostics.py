@@ -9,7 +9,11 @@ from pathlib import Path
 
 WEBVIEW_GUID='{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
 NET_KEY=r'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full'
-REPORT=Path(__file__).resolve().parent/'desktop-diagnostic.txt'
+if getattr(sys, 'frozen', False):
+    from data_store import data_directory
+    REPORT=data_directory()/'desktop-diagnostic.txt'
+else:
+    REPORT=Path(__file__).resolve().parent/'desktop-diagnostic.txt'
 
 
 class MissingWebView(RuntimeError):
@@ -64,7 +68,9 @@ def report(stage='diagnostic',error=None):
         except importlib.metadata.PackageNotFoundError:packages[name]='NOT INSTALLED'
     result={'stage':stage,'python':platform.python_version(),'architecture':platform.machine(),'packages':packages,'runtime':windows_runtime()}
     if error:result.update(errorType=type(error).__name__,error=safe_error(error))
-    try:REPORT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+    try:
+        REPORT.parent.mkdir(parents=True, exist_ok=True)
+        REPORT.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     except OSError:pass
     return result
 

@@ -409,3 +409,7 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 - mailTaskSignature giữ qua keep/none; update mới tạo identity từ context signature. Đã làm lưu completedMailTaskSignature, không xóa lịch sử/nextAction thủ công. Thanks keep không mở lại task đã xong; yêu cầu update mới có thể hiện lại cùng nội dung. Nếu lịch hẹn và AI task khác nội dung cùng khách, vẫn giữ riêng.
 - AI worker cached results backfill signature/source-id không gọi nhà cung cấp lại. states API thêm signature, chỉ là hash nội dung để nhận diện task, không phải token quản lý. Không sửa group/stage theo email.
 - 127 Python tests PASS; mail_actions subset 12 PASS sau sửa metadata; overview_actions_smoke và overview_mail_smoke PASS (weekly-first, task completion/reload/thanks/new request, pending strip, no auto-read/no unlinked fake task/mobile), Node focus PASS. Mock provider/dữ liệu tạm, không dùng khóa thật.
+
+## Đóng gói EXE Windows
+
+Xem [hướng dẫn build bộ cài EXE](packaging/README.md). Workflow **Build Windows EXE** tạo `FreelanceDesk-Setup.exe` trên Windows khi chạy thủ công. Cần chạy workflow thành công và kiểm tra trên Windows trước khi phân phối bản cài.
