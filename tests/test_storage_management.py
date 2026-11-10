@@ -4,6 +4,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from contextlib import closing
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -66,7 +67,7 @@ class StorageApiTests(unittest.TestCase):
         self.assertEqual(server.records(sent)[0]['proposalSent'],True)
         self.assertEqual(len(job_cleanup.history(server.connect)),1)
         latest=backup.snapshots(server.DATA/'backups')[-1]
-        with sqlite3.connect(latest) as db:
+        with closing(sqlite3.connect(latest)) as db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM records WHERE kind='job'").fetchone()[0],2)
 
     def test_backup_failure_prevents_deletion(self):
@@ -97,14 +98,14 @@ class StorageFileTests(unittest.TestCase):
     def test_snapshot_forced_twice_in_same_instant_keeps_new_data(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);db=root/'workspace.sqlite3'
-            with sqlite3.connect(db) as con:
+            with closing(sqlite3.connect(db)) as con, con:
                 con.execute('CREATE TABLE records(id INTEGER PRIMARY KEY)')
             one=backup.run_once(db,root/'backups',now=1234567890,force=True)
-            with sqlite3.connect(db) as con:
+            with closing(sqlite3.connect(db)) as con, con:
                 con.execute('INSERT INTO records VALUES(1)')
             two=backup.run_once(db,root/'backups',now=1234567890,force=True)
             self.assertNotEqual(one,two)
-            with sqlite3.connect(two) as con:
+            with closing(sqlite3.connect(two)) as con:
                 self.assertEqual(con.execute('SELECT COUNT(*) FROM records').fetchone()[0],1)
 
     def test_file_sizes_match_and_symlinks_outside_data_are_not_counted(self):
@@ -116,7 +117,7 @@ class StorageFileTests(unittest.TestCase):
             try:(data/'outside-link').symlink_to(root/'outside')
             except OSError:pass
             db=data/'workspace.sqlite3'
-            with sqlite3.connect(db) as con:
+            with closing(sqlite3.connect(db)) as con, con:
                 con.execute('CREATE TABLE records(kind TEXT,body TEXT)')
                 con.execute('CREATE TABLE upwork_mail(body TEXT)')
             class Closing(sqlite3.Connection):
