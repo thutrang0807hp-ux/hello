@@ -6,7 +6,9 @@ result = subprocess.run(sys.argv[1:], stdout=subprocess.PIPE, stderr=subprocess.
                         text=True, encoding='utf-8', errors='replace')
 print(result.stdout, flush=True)
 if result.returncode:
-    for line in result.stdout.splitlines()[-18:]:
-        escaped = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-        print('::error::' + escaped, flush=True)
+    lines = result.stdout.splitlines()
+    # One annotation preserves the final exception even when GitHub truncates the list.
+    detail = '\n'.join(lines[-24:])
+    escaped = detail.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+    print('::error::' + escaped, flush=True)
 sys.exit(result.returncode)
