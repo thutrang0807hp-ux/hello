@@ -16,7 +16,8 @@ for package in ('webview', 'pystray', 'clr_loader'):
     hiddenimports += hidden
 
 a = Analysis([str(root / 'frozen_entry.py')], pathex=[str(root)],
-             binaries=binaries, datas=datas, hiddenimports=hiddenimports)
+             binaries=binaries, datas=datas, hiddenimports=hiddenimports,
+             hookspath=[str(root / 'packaging' / 'hooks')])
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='FreelanceDesk',
           console=False, icon=str(root / 'public' / 'desktop.ico'))
