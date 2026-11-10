@@ -25,9 +25,9 @@ jobs:
       - name: Frozen entry tests
         run: python -m unittest discover -s tests -p "test_frozen_entry.py"
       - name: Build standalone application
-        run: python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
+        run: python scripts/run_build_step.py python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
       - name: Validate frozen backend
-        run: python tests/frozen_backend_smoke.py dist/FreelanceDesk/FreelanceDesk.exe
+        run: python scripts/run_build_step.py python tests/frozen_backend_smoke.py dist/FreelanceDesk/FreelanceDesk.exe
       - name: Build installer
         shell: pwsh
         run: |
