@@ -1,5 +1,6 @@
 """Exercise the actual bundle (Windows CI) or source entry with --source."""
 import json
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import secrets
@@ -65,8 +66,25 @@ def main():
                 if iteration == 0:
                     record = json.loads(request('/api/records', {'kind': 'client', 'name': 'Bundle smoke'}))
                     assert record['id']
+                    old_date = datetime.fromtimestamp(time.time()-60*86400,timezone.utc).isoformat()
+                    old = json.loads(request('/api/records', {'kind':'job','name':'Cleanup fixture','receivedAt':old_date,'status':'Đã lưu'}))
+                    protected = json.loads(request('/api/records', {'kind':'job','name':'Keep sent job','receivedAt':old_date,'status':'Đã lưu'}))
+                    request('/api/jobs/proposal-sent', {'id':protected['id'],'sent':True})
+                    usage = json.loads(request('/api/storage'))
+                    assert usage['jobs']['count'] == 2 and usage['databaseBytes'] > 0
+                    plan = json.loads(request('/api/storage/preview', {}))
+                    assert plan['count'] == 1
+                    result = json.loads(request('/api/storage/cleanup', {'confirm':True,'token':plan['token']}))
+                    assert result['removed'] == 1 and result['usage']['backupBytes'] > 0
+                    assert result['usage']['jobs']['count'] == 1
+                    remaining = json.loads(request('/api/records'))
+                    assert not any(r['id']==old['id'] for r in remaining)
+                    assert any(r['id']==protected['id'] for r in remaining)
+
                 else:
                     assert b'Bundle smoke' in request('/api/records')
+                    assert json.loads(request('/api/storage'))['jobs']['count'] == 1
+                    assert len(json.loads(request('/api/jobs/history'))) == 1
                 request('/api/desktop/stop', {}, authenticated=True)
                 assert process.wait(timeout=15) == 0
             finally:
@@ -74,7 +92,7 @@ def main():
                     process.terminate()
                     process.wait(timeout=10)
         assert (Path(tmp) / 'workspace.sqlite3').is_file()
-    print('PASS backend launch, static assets, private-token stop, restart and persisted data.')
+    print('PASS backend launch, assets, storage counts, manual cleanup, safety backup, protected sent job, history, private-token stop and restart persistence.')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,111 @@
+FREELANCE DESK — CẬP NHẬT 21/10/2026
+
+CÁCH CẬP NHẬT
+1. Dừng app cũ: bấm Thoát ở biểu tượng khay hệ thống; nếu chạy bằng CMD thì nhấn Ctrl+C.
+2. Sao lưu thư mục dữ liệu trước khi cập nhật (mặc định %LOCALAPPDATA%\FreelanceDesk\data).
+3. Giải nén bản này, chép đè mã chương trình vào thư mục app cũ.
+   Không xóa thư mục dữ liệu, cấu hình kết nối hoặc .desktop-venv.
+4. Mở lại app như mọi khi; nếu dùng trình duyệt thì nhấn Ctrl+F5.
+
+ĐÃ SỬA GÌ VÀ GIÚP ĐƯỢC GÌ
+
+1. App không còn tải lại toàn bộ dữ liệu mỗi 10 giây
+   - Trước: cứ 10 giây trang web lại tải về MỌI job, khách và thư đã lưu,
+     kể cả khi không có gì mới. Thử với 2.000 job và 300 thư thì mỗi lần
+     tải khoảng 18 MB.
+   - Giờ: trang chỉ hỏi "có gì thay đổi không?". Nếu không có gì mới,
+     server chỉ trả về khoảng 19 byte. Có job mới hoặc bạn sửa gì thì
+     mới tải lại đầy đủ.
+   - Giúp: dùng lâu, dữ liệu nhiều thì app vẫn nhẹ và mượt, đỡ tốn
+     CPU/RAM. Job mới vẫn hiện và báo như cũ.
+
+2. Tự động sao lưu dữ liệu mỗi ngày
+   - Khi app đang chạy, mỗi ngày tự chụp một bản sao dữ liệu vào thư mục
+     backups (nằm trong thư mục dữ liệu), giữ 7 bản gần nhất.
+   - Giúp: lỡ file dữ liệu bị hỏng hoặc bạn xóa nhầm thì vẫn lấy lại được
+     dữ liệu của tối đa 7 ngày trước.
+   - Cách khôi phục: vào mục "Sao lưu dữ liệu", bấm "Khôi phục" ở bản muốn
+     lấy lại, rồi bấm thêm lần nữa để xác nhận (tránh bấm nhầm). App tự tải
+     lại với dữ liệu của bản đó.
+       + Trước khi khôi phục, app tự sao lưu dữ liệu hiện tại. Chọn nhầm
+         thì khôi phục lại bản vừa được tạo đó là quay về như cũ.
+       + Bản sao lưu bị hỏng hoặc không phải của app sẽ bị từ chối, dữ liệu
+         đang dùng giữ nguyên.
+       + Mọi thay đổi sau thời điểm của bản sao lưu sẽ mất (kể cả job mới),
+         nên chỉ dùng khi có sự cố. Khóa API, kết nối Gmail/Slack/Telegram
+         không bị ảnh hưởng.
+   - Xem và quản lý ngay trong app: vào "Hồ sơ & kết nối" → mở mục
+     "Sao lưu dữ liệu". Ở đó có:
+       + Đường dẫn thư mục sao lưu và danh sách các bản (ngày giờ, dung lượng).
+       + Nút "Sao lưu ngay": tạo thêm một bản ngay lập tức, nên bấm trước
+         khi xóa nhiều dữ liệu hoặc cập nhật app.
+       + Nút "Mở thư mục sao lưu": mở thẳng thư mục trong File Explorer để
+         chép ra USB hoặc lấy file khôi phục.
+   - Lưu ý: bản sao nằm trên cùng máy. Hỏng ổ cứng thì vẫn mất, nên
+     thỉnh thoảng vẫn chép thư mục dữ liệu ra USB hoặc ổ khác.
+
+3. Server không còn bị "đứt" khi gặp dữ liệu lạ
+   - Trước: gặp dữ liệu hỏng hoặc lỗi bất ngờ thì server ngắt kết nối;
+     giao diện báo lỗi mạng và không lưu được.
+   - Giờ: server trả về thông báo lỗi tiếng Việt, app vẫn chạy bình
+     thường. Danh sách việc trong ngày bị sai định dạng cũng bị chặn
+     ngay từ lúc tạo.
+   - Giúp: không còn tình trạng một khách bị "kẹt", bấm Lưu mãi không được.
+
+4. Số liệu thống kê chính xác hơn
+   - Bấm "đã gửi proposal" nhầm rồi bỏ đánh dấu: trước đây vẫn bị tính là
+     đã gửi. Giờ app xóa dự án tự tạo đó, trừ khi bạn đã đánh dấu thắng
+     hợp đồng.
+   - Bỏ đánh dấu "có hợp đồng": trước đây mọi thư của job đó đều quay về
+     "đang chờ", kể cả thư bạn đã ghi là "không có hợp đồng". Giờ chỉ thư
+     đang ghi "có hợp đồng" mới quay về "đang chờ".
+   - Giúp: tỷ lệ thắng và số proposal đã gửi phản ánh đúng thực tế.
+
+5. Tự dọn job cũ cho kho luôn nhẹ
+   - Job thường: tự xóa sau 7 ngày kể từ lúc app nhận.
+   - Job bạn từng bấm "☆ Quan tâm" (hoặc đã bấm phân tích AI): giữ 14 ngày.
+     Dấu Quan tâm vẫn tự tắt sau 7 ngày như cũ, nhưng job vẫn được giữ
+     đủ 14 ngày.
+   - KHÔNG BAO GIỜ xóa: job đã gửi proposal, job bạn đã đổi trạng thái
+     (Phỏng vấn, Đã nhận việc...), job đang gắn với workspace soạn thư,
+     thư đã gửi hoặc dự án.
+   - Job đã xóa sẽ không hiện lại kể cả khi Toolkit gửi lại.
+   - Trang Phân tích vẫn đếm đủ job đã xóa: trước khi xóa, app ghi lại một
+     dòng rất nhỏ (chỉ ngày giờ và màu đánh giá, không giữ nội dung), nên
+     biểu đồ 6 tháng/1 năm vẫn đúng.
+   - Việc dọn chạy tự động mỗi giờ khi app đang mở, lần đầu ngay lúc mở app.
+     Lần đầu mở bản này, job cũ đã quá hạn sẽ bị dọn luôn.
+   - Giúp: dù dùng bao lâu, kho cũng chỉ giữ khoảng 1–2 tuần job gần nhất,
+     nên app luôn nhanh.
+
+6. Sửa kỹ thuật bên trong (người dùng không thấy thay đổi)
+   - Mỗi lần dùng xong, kết nối tới file dữ liệu được đóng ngay. Trên
+     Windows, việc này giảm lỗi "file đang được dùng" khi đổi thư mục
+     dữ liệu hoặc gỡ app.
+   - Khi cần một job, app chỉ đọc đúng job đó thay vì đọc cả kho.
+   - Danh sách đăng nhập sai được dọn dẹp định kỳ.
+   - Công cụ gỡ app xóa cả các bản sao lưu tự động. Tệp khác bạn tự để
+     trong thư mục backups vẫn được giữ.
+
+ĐÃ KIỂM TRA
+- 147 bài kiểm thử Python đều đạt (127 bài cũ + 20 bài mới cho các phần
+  sửa ở trên); 9 bài kiểm thử JavaScript đều đạt.
+- Chạy thử dọn job: job 3 ngày, job Quan tâm 10 ngày và job đã gửi
+  proposal được giữ; job thường 8 ngày và job Quan tâm 20 ngày bị xóa;
+  trang Phân tích vẫn đếm đủ cả job đã xóa.
+- Các bài thử giao diện bằng trình duyệt cho kết quả giống hệt bản trước.
+  Vài bài vốn đã lỗi sẵn từ trước, không liên quan đến lần sửa này.
+- Đo bằng trình duyệt thật: lúc không có gì mới, mỗi lần kiểm tra tải
+  19 byte thay vì 17,9 MB; job mới gửi vào vẫn hiện thông báo.
+- Chạy thử khôi phục: thêm khách A, sao lưu, thêm khách B, bấm Khôi phục
+  → chỉ còn khách A; bản an toàn tự tạo vẫn có cả A và B; job mới đẩy vào
+  sau đó vẫn nhận và báo bình thường.
+- CHƯA chạy thử trên Windows thật; nên mở app và dùng thử vài thao tác
+  quen thuộc sau khi cập nhật.
+
+CHƯA LÀM (để lần sau nếu cần)
+- Định dạng lại các file code đang viết dồn trên một dòng (app.js,
+  style.css...) cho dễ sửa sau này. Phần này không ảnh hưởng tới người dùng.
+- Khi xóa job hoặc khách, các dữ liệu liên quan (dự án, liên kết thư)
+  vẫn được giữ lại như trước.
+- Chưa có nút xóa việc trong ngày tạo nhầm.

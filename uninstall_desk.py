@@ -92,6 +92,10 @@ def plan(root=None,include_data=True):
                 for name in DATA_FILES:
                     file=folder/name
                     if file.is_file() and safe(file,folder):items.append(file)
+                backups=folder/'backups'
+                if backups.is_dir() and not backups.is_symlink():
+                    for file in backups.glob('workspace-*.sqlite3'):
+                        if file.is_file() and safe(file,folder):items.append(file)
         elif folder.exists() and any(folder.iterdir()):notes.append('Giữ thư mục chưa xác định chắc là dữ liệu app: '+str(folder))
     if include_data:
         for file in pointers:

@@ -17,6 +17,9 @@ from ai_provider import model as ai_model, provider as ai_provider, automatic_jo
 import job_radar
 import job_activity
 import upwork_mail
+import backup
+import job_cleanup
+import storage_usage
 import mail_actions
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
@@ -52,26 +55,50 @@ LOGIN_ATTEMPTS = {}
 LOCK = threading.Lock()
 
 
+class ClosingConnection(sqlite3.Connection):
+    """`with connect() as db` commits/rolls back, then releases the file handle (Windows keeps it locked otherwise)."""
+    def __exit__(self, *exc):
+        try:
+            return super().__exit__(*exc)
+        finally:
+            self.close()
+
+
 def connect():
-    db = sqlite3.connect(DB, timeout=15)
+    db = sqlite3.connect(DB, timeout=15, factory=ClosingConnection)
     db.row_factory = sqlite3.Row
     return db
 
 
-with connect() as db:
-    db.execute('CREATE TABLE IF NOT EXISTS records (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT NULL)')
-    db.execute('CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL)')
-    db.execute('CREATE TABLE IF NOT EXISTS imported_jobs (external_id TEXT PRIMARY KEY, record_id INTEGER NOT NULL)')
-    db.execute('CREATE TABLE IF NOT EXISTS outbox (id INTEGER PRIMARY KEY, channel TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT \'pending\', attempts INTEGER NOT NULL DEFAULT 0, next_try REAL NOT NULL DEFAULT 0, error TEXT)')
+def init_schema():
+    """Idempotent; runs at start and again after a restore in case the snapshot predates a table."""
+    with connect() as db:
+        db.execute('CREATE TABLE IF NOT EXISTS records (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS imported_jobs (external_id TEXT PRIMARY KEY, record_id INTEGER NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS outbox (id INTEGER PRIMARY KEY, channel TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT \'pending\', attempts INTEGER NOT NULL DEFAULT 0, next_try REAL NOT NULL DEFAULT 0, error TEXT)')
+    with connect() as db:
+        db.execute('CREATE TABLE IF NOT EXISTS job_interest (record_id INTEGER PRIMARY KEY, expires REAL NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS job_reviews (record_id INTEGER PRIMARY KEY, signature TEXT NOT NULL, body TEXT NOT NULL)')
+    upwork_mail.init(connect)
+    mail_actions.init(connect)
+    job_cleanup.init(connect)
 
 
-with connect() as db:
-    db.execute('CREATE TABLE IF NOT EXISTS job_interest (record_id INTEGER PRIMARY KEY, expires REAL NOT NULL)')
-    db.execute('CREATE TABLE IF NOT EXISTS job_reviews (record_id INTEGER PRIMARY KEY, signature TEXT NOT NULL, body TEXT NOT NULL)')
+init_schema()
+RESTORE_LOCK = threading.Lock()
 
+def maintenance_worker():
+    while True:
+        try:
+            with RESTORE_LOCK:
+                # Finish the safety snapshot before the first automatic deletion.
+                backup.run_once(DB, DATA / 'backups')
+                job_cleanup.run_once(connect, cleanup_assessment)
+        except Exception:
+            print('Storage maintenance skipped after an internal error.', flush=True)
+        time.sleep(3600)
 
-upwork_mail.init(connect)
-mail_actions.init(connect)
 
 def job_signature(job):
     return hashlib.sha256(json.dumps({'job': job_radar.context(job), 'assessmentVersion':job_radar.ASSESSMENT_VERSION, 'provider': ai_provider(), 'model': ai_model()}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
@@ -152,17 +179,20 @@ def client_lifecycle_worker():
         time.sleep(60)
 
 
-def records():
+def records(ident=None):
+    """All records, or only record `ident` (same derived fields) without loading the whole table."""
     with connect() as db:
         db.execute('DELETE FROM job_interest WHERE expires<=?', (time.time(),))
-        for row in db.execute("SELECT id,body FROM records WHERE kind='client'").fetchall():
+        clients = db.execute("SELECT id,body FROM records WHERE kind='client'" + ('' if ident is None else ' AND id=?'), () if ident is None else (ident,)).fetchall()
+        for row in clients:
             archived = archive_unanswered(json.loads(row['body']))
             if archived:
                 db.execute('UPDATE records SET body=? WHERE id=?', (json.dumps(archived,ensure_ascii=False),row['id']))
         action_states=mail_actions.states(db)
         interests = {r['record_id']:r['expires'] for r in db.execute('SELECT * FROM job_interest')}
         reviews = {r['record_id']:r for r in db.execute('SELECT * FROM job_reviews')}
-        items = [dict(json.loads(row['body']), id=row['id'], kind=row['kind']) for row in db.execute('SELECT * FROM records ORDER BY id DESC')]
+        rows = db.execute('SELECT * FROM records ORDER BY id DESC') if ident is None else db.execute('SELECT * FROM records WHERE id=?', (ident,))
+        items = [dict(json.loads(row['body']), id=row['id'], kind=row['kind']) for row in rows]
     for job in items:
         if job['kind']=='client':job['mailActionStatus']=action_states.get(job['id'],{})
         if job['kind'] != 'job': continue
@@ -173,6 +203,17 @@ def records():
         review = json.loads(cached['body']) if cached and cached['signature']==job_signature(job) else None
         job['jobAssessment'] = job_radar.present(job,review)
     return items
+
+
+def cleanup_assessment(job, cached):
+    review = json.loads(cached['body']) if cached and cached['signature']==job_signature(job) else None
+    return job_radar.present(job, review)
+
+
+def records_payload():
+    """Serialized records plus a content version; polls send it back to skip unchanged downloads."""
+    raw = json.dumps(records(), ensure_ascii=False).encode()
+    return raw, hashlib.sha256(raw).hexdigest()[:32]
 
 
 def import_jobs(payload):
@@ -191,7 +232,10 @@ def import_jobs(payload):
                     saved = job_activity.merge(json.loads(old['body']),job['clientActivity'])
                     db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(saved,ensure_ascii=False),old['id']))
                 continue
-            ident = db.execute('INSERT INTO records(kind,body) VALUES (?,?)', ('job', json.dumps(job, ensure_ascii=False))).lastrowid
+            # Deleted highest IDs must not be reused by a fresh feed job: history
+            # and imported-job tombstones still identify the original record.
+            next_id = db.execute('SELECT MAX(COALESCE((SELECT MAX(id) FROM records),0), COALESCE((SELECT MAX(record_id) FROM job_history),0)) + 1').fetchone()[0]
+            ident = db.execute('INSERT INTO records(id,kind,body) VALUES (?,?,?)', (next_id, 'job', json.dumps(job, ensure_ascii=False))).lastrowid
             db.execute('INSERT INTO imported_jobs VALUES (?,?)', (job['externalId'], ident))
             created += 1
             for channel, active in enabled.items():
@@ -237,7 +281,7 @@ class Handler(BaseHTTPRequestHandler):
         return '/api/webhook/[redacted]' if path.startswith('/api/webhook/') else path
 
     def reply(self, status, body, headers=None):
-        raw = json.dumps(body, ensure_ascii=False).encode()
+        raw = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(raw)))
@@ -301,7 +345,29 @@ class Handler(BaseHTTPRequestHandler):
         token=self.headers.get('X-Desktop-Token','')
         return len(DESKTOP_TOKEN)>=24 and self.client_address[0] in ('127.0.0.1','::1') and hmac.compare_digest(token.encode(),DESKTOP_TOKEN.encode())
 
+    def safely(self, action):
+        """Unexpected errors answer 500 in Vietnamese instead of dropping the connection; log only the error type."""
+        try:
+            action()
+        except ServiceError as error:
+            self.reply(error.status, {'error': str(error)})
+        except Exception as error:
+            print(f'{self.command} {self.route} failed: {type(error).__name__}', flush=True)
+            try:
+                self.reply(500, {'error': 'Lỗi nội bộ, thao tác chưa hoàn tất. Vui lòng thử lại.'})
+            except Exception:
+                pass
+
     def do_GET(self):
+        self.safely(self.handle_get)
+
+    def do_POST(self):
+        self.safely(self.handle_post)
+
+    def do_DELETE(self):
+        self.safely(self.handle_delete)
+
+    def handle_get(self):
         path = urlsplit(self.path).path
         if path == '/api/desktop/status':
             if not self.desktop_authorized():return self.reply(403, {'error':'Không được phép.'})
@@ -349,12 +415,20 @@ class Handler(BaseHTTPRequestHandler):
                     return self.reply(200, dict(upwork_mail.status(), autoActions=mail_actions.enabled(connect), aiConfigured=bool(os.environ.get('FREELANCE_AI_KEY')), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))
                 except ServiceError as error:
                     return self.reply(error.status, {'error':str(error)})
+            if path == '/api/storage':
+                return self.reply(200, storage_usage.summary(connect, DATA))
+            if path == '/api/jobs/history':
+                return self.reply(200, job_cleanup.history(connect))
             if path == '/api/records':
-                return self.reply(200, records())
+                raw, version = records_payload()
+                headers = {'X-Records-Version': version}
+                if parse_qs(urlsplit(self.path).query).get('since', [''])[0] == version:
+                    return self.reply(200, {'unchanged': True}, headers)
+                return self.reply(200, raw, headers)
             if path == '/api/settings':
                 with connect() as db:
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
-                return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery})
+                return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery, 'backups': {'folder': str(DATA / 'backups'), 'keep': backup.KEEP, 'items': backup.listing(DATA / 'backups')}})
             return self.reply(404, {'error': 'Không tìm thấy.'})
         files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/daily-tasks.js': 'daily-tasks.js', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
         if path in files:
@@ -372,7 +446,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         self.reply(404, {'error': 'Không tìm thấy.'})
 
-    def do_POST(self):
+    def handle_post(self):
         path = urlsplit(self.path).path
         try:
             if path == '/api/desktop/stop':
@@ -396,6 +470,8 @@ class Handler(BaseHTTPRequestHandler):
                 address = self.client_address[0]
                 now = time.time()
                 with LOCK:
+                    for stale in [key for key, stamps in LOGIN_ATTEMPTS.items() if not stamps or stamps[-1] <= now - 60]:
+                        del LOGIN_ATTEMPTS[stale]
                     attempts = [stamp for stamp in LOGIN_ATTEMPTS.get(address, []) if stamp > now - 60]
                     if len(attempts) >= 10:
                         return self.reply(429, {'error': 'Quá nhiều lần đăng nhập. Thử lại sau một phút.'})
@@ -418,6 +494,60 @@ class Handler(BaseHTTPRequestHandler):
                     with LOCK:
                         SESSIONS.pop(cookie['freelance_session'].value, None)
                 return self.reply(200, {'ok': True}, {'Set-Cookie': 'freelance_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
+            if path == '/api/storage/preview':
+                plan = job_cleanup.preview(connect)
+                plan.pop('ids')
+                return self.reply(200, plan)
+            if path == '/api/storage/cleanup':
+                payload = self.read_json()
+                if not isinstance(payload, dict) or payload.get('confirm') is not True:
+                    raise ServiceError('Cần xem trước và xác nhận trước khi dọn.')
+                if not RESTORE_LOCK.acquire(blocking=False):
+                    raise ServiceError('Đang xử lý dữ liệu. Hãy thử lại sau.', 409)
+                try:
+                    plan = job_cleanup.preview(connect)
+                    if payload.get('token') != plan['token']:
+                        raise ServiceError('Danh sách đã thay đổi. Hãy xem trước lại trước khi dọn.', 409)
+                    if plan['count']:
+                        if not backup.run_once(DB, DATA / 'backups', force=True):
+                            raise ServiceError('Chưa tạo được bản sao lưu. Chưa xóa dữ liệu.')
+                        removed = job_cleanup.run_once(connect, cleanup_assessment, approved_ids=set(plan['ids']))
+                        compacted = storage_usage.compact(connect)
+                    else:
+                        removed, compacted = 0, True
+                    usage = storage_usage.summary(connect, DATA)
+                finally:
+                    RESTORE_LOCK.release()
+                return self.reply(200, {'removed': removed, 'compacted': compacted, 'usage': usage})
+            if path == '/api/backups/now':
+                if not backup.run_once(DB, DATA / 'backups', force=True):
+                    raise ServiceError('Chưa có dữ liệu để sao lưu.')
+                return self.reply(200, {'ok': True, 'items': backup.listing(DATA / 'backups')})
+            if path == '/api/backups/restore':
+                payload = self.read_json()
+                name = payload.get('name') if isinstance(payload, dict) else None
+                if not RESTORE_LOCK.acquire(blocking=False):
+                    raise ServiceError('Đang khôi phục, vui lòng chờ.', 409)
+                try:
+                    safety = backup.restore(DB, DATA / 'backups', name)
+                    init_schema()
+                except backup.RestoreError as error:
+                    raise ServiceError(str(error)) from None
+                finally:
+                    RESTORE_LOCK.release()
+                return self.reply(200, {'ok': True, 'safety': safety.name if safety else ''})
+            if path == '/api/backups/open':
+                folder = DATA / 'backups'
+                folder.mkdir(parents=True, exist_ok=True)
+                try:
+                    if os.name == 'nt':
+                        os.startfile(folder)  # Fixed path only; never a client-supplied one.
+                    else:
+                        import subprocess, sys
+                        subprocess.Popen(['open' if sys.platform == 'darwin' else 'xdg-open', str(folder)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except OSError:
+                    raise ServiceError('Không mở được thư mục. Hãy tự mở theo đường dẫn hiển thị.') from None
+                return self.reply(200, {'ok': True})
             if path == '/api/notifications/retry':
                 with connect() as db:
                     db.execute("UPDATE outbox SET status='pending', attempts=0, next_try=0, error=NULL WHERE status='failed'")
@@ -532,6 +662,11 @@ class Handler(BaseHTTPRequestHandler):
                     saved['proposalSentAt']=(saved.get('proposalSentAt') or datetime.now(timezone.utc).isoformat()) if sent else None
                     saved['proposalSent']=sent
                     if sent: ensure_project(db,ident,saved)
+                    else:
+                        for project_row in db.execute("SELECT id,body FROM records WHERE kind='project'").fetchall():
+                            project=json.loads(project_row['body'])
+                            if project.get('jobId')==ident and not project.get('won'):
+                                db.execute('DELETE FROM records WHERE id=?',(project_row['id'],))
                     db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(saved,ensure_ascii=False),ident))
                 return self.reply(200,{'ok':True,'proposalSent':sent,'proposalSentAt':saved['proposalSentAt']})
             if path == '/api/projects/contract':
@@ -546,7 +681,7 @@ class Handler(BaseHTTPRequestHandler):
                     db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(project,ensure_ascii=False),ident))
                     for letter in db.execute("SELECT id,body FROM records WHERE kind='sentproposal'").fetchall():
                         body=json.loads(letter['body'])
-                        if body.get('jobId')==project.get('jobId'):
+                        if body.get('jobId')==project.get('jobId') and (won or body.get('outcome')=='won'):
                             body['outcome']='won' if won else 'pending'
                             db.execute('UPDATE records SET body=? WHERE id=?',(json.dumps(body,ensure_ascii=False),letter['id']))
                 return self.reply(200,{'ok':True})
@@ -657,7 +792,7 @@ class Handler(BaseHTTPRequestHandler):
             if path in ('/api/jobs/interest', '/api/jobs/retry'):
                 try: ident = int(item.get('id'))
                 except (ValueError,TypeError): raise ServiceError('ID job không hợp lệ.') from None
-                job = next((r for r in records() if r['kind']=='job' and r['id']==ident),None)
+                job = next((r for r in records(ident) if r['kind']=='job'),None)
                 if not job: raise ServiceError('Không tìm thấy job.',404)
                 if path.endswith('/retry'):
                     with job_assessment_lock:
@@ -672,16 +807,15 @@ class Handler(BaseHTTPRequestHandler):
                                        (ident, signature, json.dumps(review,ensure_ascii=False)))
                     return self.reply(200, {'ok':True})
                 with connect() as db:
-                    if path.endswith('/retry'):
-                        db.execute('DELETE FROM job_reviews WHERE record_id=?',(ident,))
-                    elif item.get('interested') is True:
+                    if item.get('interested') is True:
                         db.execute('INSERT OR IGNORE INTO job_interest VALUES (?,?)',(ident,time.time()+7*86400))
+                        job_cleanup.mark_interest(db, ident)
                     else:
                         db.execute('DELETE FROM job_interest WHERE record_id=?',(ident,))
                 return self.reply(200, {'ok':True})
             if path in ('/api/ai/proposal', '/api/ai/review'):
                 job_id = str(item.get('jobId') or '')
-                job = next((r for r in records() if r['kind'] == 'job' and str(r['id']) == job_id), None)
+                job = next((r for r in records(int(job_id)) if r['kind'] == 'job' and str(r['id']) == job_id), None) if job_id.isascii() and job_id.isdigit() else None
                 item.pop('_library_samples', None)
                 if path.endswith('/proposal') and item.get('referenceLibrary') is not None:
                     item['_library_samples'] = library_pool(records(), item['referenceLibrary'])
@@ -709,6 +843,10 @@ class Handler(BaseHTTPRequestHandler):
                 item['interactionAt'] = datetime.now(timezone.utc).isoformat()
             if kind == 'proposal' and 'workspace' in item:
                 validate_workspace(item['workspace'])
+            if kind == 'client' and 'dailyTasks' in item:
+                incoming = item['dailyTasks']
+                if not isinstance(incoming,list) or any(not isinstance(t,dict) or not isinstance(t.get('id'),str) or not isinstance(t.get('title'),str) or not isinstance(t.get('done'),bool) for t in incoming):
+                    raise ServiceError('Danh sách công việc không hợp lệ.')
             if ident is not None and (not isinstance(ident, int) or isinstance(ident, bool)):
                 raise ServiceError('ID không hợp lệ.')
             with connect() as db:
@@ -733,10 +871,9 @@ class Handler(BaseHTTPRequestHandler):
                     if kind == 'client':
                         if 'dailyTasks' in item:
                             incoming=item['dailyTasks']
-                            if not isinstance(incoming,list) or any(not isinstance(t,dict) or not isinstance(t.get('id'),str) or not isinstance(t.get('title'),str) or not isinstance(t.get('done'),bool) for t in incoming):
-                                raise ServiceError('Danh sách công việc không hợp lệ.')
                             keys={t['id'] for t in incoming}
-                            item['dailyTasks']=incoming+[t for t in saved.get('dailyTasks',[]) if t.get('id') not in keys]
+                            previous=saved.get('dailyTasks') if isinstance(saved.get('dailyTasks'),list) else []
+                            item['dailyTasks']=incoming+[t for t in previous if isinstance(t,dict) and t.get('id') not in keys]
                         if 'nextAction' in item and item['nextAction']!=saved.get('nextAction'):item['nextActionSource']='manual'
                         item.pop('mailActionStatus',None)
                         item = record_client_events(item, saved)
@@ -749,7 +886,7 @@ class Handler(BaseHTTPRequestHandler):
         except sqlite3.Error:
             self.reply(503, {'error': 'Chưa thể ghi dữ liệu. Vui lòng thử lại.'})
 
-    def do_DELETE(self):
+    def handle_delete(self):
         if not self.guard():
             return
         try:
@@ -761,6 +898,7 @@ class Handler(BaseHTTPRequestHandler):
                 db.execute('DELETE FROM records WHERE id=?', (ident,))
                 db.execute('DELETE FROM job_interest WHERE record_id=?', (ident,))
                 db.execute('DELETE FROM job_reviews WHERE record_id=?', (ident,))
+                db.execute('DELETE FROM job_interest_ever WHERE record_id=?', (ident,))
             self.reply(200, {'ok': True})
         except ValueError:
             self.reply(400, {'error': 'ID không hợp lệ.'})
@@ -773,6 +911,7 @@ if __name__ == '__main__':
     http = ThreadingHTTPServer((BIND, port), Handler)
     print(f'Freelance Desk listening on port {port}', flush=True)
     threading.Thread(target=client_lifecycle_worker, daemon=True).start()
+    threading.Thread(target=maintenance_worker, daemon=True).start()
     threading.Thread(target=notification_worker, daemon=True).start()
     threading.Thread(target=upwork_mail.worker, args=(connect,), daemon=True).start()
     threading.Thread(target=mail_actions.worker, args=(connect,), daemon=True).start()

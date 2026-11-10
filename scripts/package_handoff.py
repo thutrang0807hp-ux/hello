@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 INCLUDED_DOWNLOADS = {'downloads/Toolkit-Installed-Build-Bridge.zip', 'downloads/Toolkit-Installed-Build-Source.zip'}
 SECRET = re.compile(rb'(?:AIza[0-9A-Za-z_-]{30,}|sk-(?:proj-)?[0-9A-Za-z_-]{32,}|xox[baprs]-[0-9A-Za-z-]{16,}|[0-9]{8,12}:[0-9A-Za-z_-]{30,})')
-PRIVATE_NAMES = {'.git', 'data', '__pycache__', 'node_modules', '.env', '.env.local', 'gmail-private.json', 'local-config.json', 'workspace.sqlite3', 'webhook-token', '.storage-location.json', 'storage-location.json', 'desktop-server.json', 'background-server.log', 'desktop-diagnostic.txt', '.desktop-venv', '.desktop-installed-files.json'}
+PRIVATE_NAMES = {'.git', 'data', '__pycache__', 'node_modules', '.env', '.env.local', 'gmail-private.json', 'local-config.json', 'workspace.sqlite3', 'webhook-token', '.storage-location.json', 'storage-location.json', 'desktop-server.json', 'background-server.log', 'desktop-diagnostic.txt', '.desktop-venv', '.desktop-installed-files.json', 'backups'}
 
 
 def inspect(name, raw):
@@ -41,7 +41,7 @@ def main():
         '- Toolkit-Installed-Build-Bridge.zip: bản extension cầu nối để cài trên Chrome.\n'
         '- Toolkit-Installed-Build-Source.zip: mã nguồn tương ứng và giấy phép.\n'
         'Mã ứng dụng Freelance Desk nằm tại thư mục cha, không cần chép ZIP app cũ.\n').encode()
-    required=['BAN-GIAO-HIEN-TAI.md','CAI-APP-DESKTOP.txt','desktop_app.py','desktop_background.py','install_desktop.py','install-desktop-windows.bat','desktop-requirements.txt','desktop_diagnostics.py','tests/test_desktop_server_identity.py','tests/test_install_desktop.py','DOC-TRUOC-KHI-SUA.md','AGENTS.md','HANDOFF-VALIDATION.txt','PROMPT-CHO-CODEX-MOI.txt','server.py','upwork_mail.py','public/index.html','public/upwork-mail.js','tests/test_upwork_mail.py']
+    required=['storage_usage.py','job_cleanup.py','backup.py','frozen_entry.py', 'BAN-GIAO-HIEN-TAI.md','CAI-APP-DESKTOP.txt','desktop_app.py','desktop_background.py','install_desktop.py','install-desktop-windows.bat','desktop-requirements.txt','desktop_diagnostics.py','tests/test_desktop_server_identity.py','tests/test_install_desktop.py','DOC-TRUOC-KHI-SUA.md','AGENTS.md','HANDOFF-VALIDATION.txt','PROMPT-CHO-CODEX-MOI.txt','server.py','upwork_mail.py','public/index.html','public/upwork-mail.js','tests/test_upwork_mail.py']
     for name in required:
         if name not in files:raise RuntimeError('Missing tracked handoff file: '+name)
     manifest={'project':'Freelance Desk','created_at':datetime.now(ZoneInfo('Asia/Bangkok')).isoformat(),

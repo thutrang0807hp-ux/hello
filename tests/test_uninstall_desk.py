@@ -37,4 +37,8 @@ class UninstallTests(unittest.TestCase):
   folder=self.data/'desktop-webview';folder.mkdir();cache=folder/'cache';cache.write_text('cache');self.assertNotIn(cache,uninstall.plan(self.root)['files'])
   (folder/'.freelance-profile.json').write_text(json.dumps({'application':'Freelance Desk WebView'}));preview=uninstall.plan(self.root);self.assertIn(cache,preview['files']);self.assertNotIn(self.data/'own-document.txt',preview['files'])
 
+ def test_automatic_backups_removed_but_other_backup_files_kept(self):
+  folder=self.data/'backups';folder.mkdir();snapshot=folder/'workspace-20261021-090000.sqlite3';snapshot.write_text('db');other=folder/'my-copy.sqlite3';other.write_text('keep')
+  preview=uninstall.plan(self.root);self.assertIn(snapshot,preview['files']);self.assertNotIn(other,preview['files'])
+
 if __name__=='__main__':unittest.main()

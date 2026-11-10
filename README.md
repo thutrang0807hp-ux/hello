@@ -30,7 +30,7 @@ cd /workspace/hello
 python3 server.py
 ```
 
-Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng. `FREELANCE_DATA_DIR` đổi thư mục lưu dữ liệu, mặc định trên Windows là `%LOCALAPPDATA%\FreelanceDesk\data` (dùng APPDATA nếu không có LOCALAPPDATA); Linux/macOS là `data/` cạnh mã nguồn. Sao lưu toàn bộ thư mục dữ liệu khi máy chủ đã dừng, gồm SQLite và token webhook. Nút xuất JSON xuất các bản ghi để bạn lưu thêm; chưa có chức năng nhập lại JSON.
+Mặc định máy chủ chạy nội bộ ở cổng 8000. `PORT` đổi cổng. `FREELANCE_DATA_DIR` đổi thư mục lưu dữ liệu, mặc định trên Windows là `%LOCALAPPDATA%\FreelanceDesk\data` (dùng APPDATA nếu không có LOCALAPPDATA); Linux/macOS là `data/` cạnh mã nguồn. Sao lưu toàn bộ thư mục dữ liệu khi máy chủ đã dừng, gồm SQLite và token webhook. Nút xuất JSON xuất các bản ghi để bạn lưu thêm; chưa có chức năng nhập lại JSON. Khi máy chủ chạy, mỗi ngày app tự chụp một bản SQLite vào `backups/` trong thư mục dữ liệu (`workspace-NGÀY-GIỜ.sqlite3`, giữ 7 bản mới nhất). Mục **Sao lưu dữ liệu** trong **Hồ sơ & kết nối** hiển thị đường dẫn, danh sách bản sao lưu, nút Sao lưu ngay, Mở thư mục sao lưu và Khôi phục (bấm hai lần; app tự sao lưu dữ liệu hiện tại trước khi thay). Bản sao lưu nằm cùng máy, không thay cho việc sao lưu ra USB/ổ khác.
 
 ## Luồng làm việc
 
@@ -90,7 +90,7 @@ Bản GitHub khác tại commit `e75003468d373353e69ff46c1c54cec02100ae41` có *
 
 Nếu chạy web trên máy cá nhân cùng Chrome, địa chỉ nội bộ trong phần kết nối dùng được trên máy đó. Nếu chạy web trên máy chủ, cần địa chỉ HTTPS mà Chrome trên máy bạn truy cập được. **Publish môi trường Codex không tự tạo địa chỉ web công khai.**
 
-Ứng dụng này nhận JSON từ tiện ích, không gọi API Upwork, giữ cookie Upwork hoặc thay đổi cách tiện ích lấy job. Định dạng nhận: POST tới đường dẫn bí mật, `Content-Type: application/json`, body có `event: "new_jobs"` và `jobs` gồm `id`, `title`, `url`, `description`, `budget`, `skills`, `client`, `postedAt`. Chống trùng theo `id`; gửi lại cùng ID không ghi đè các ghi chú hoặc trạng thái bạn đã chỉnh. ID job đã xóa vẫn được ghi nhớ để không tự xuất hiện lại ở lần gửi sau.
+Ứng dụng này nhận JSON từ tiện ích, không gọi API Upwork, giữ cookie Upwork hoặc thay đổi cách tiện ích lấy job. Định dạng nhận: POST tới đường dẫn bí mật, `Content-Type: application/json`, body có `event: "new_jobs"` và `jobs` gồm `id`, `title`, `url`, `description`, `budget`, `skills`, `client`, `postedAt`. Job tự được dọn để kho luôn nhẹ: job thường xóa sau 7 ngày kể từ lúc nhận, job từng bấm Quan tâm hoặc đã phân tích AI giữ 14 ngày; job đã gửi proposal, đã đổi trạng thái hoặc đang gắn với workspace/thư đã gửi/dự án được giữ mãi. Trang Phân tích vẫn đếm job đã dọn qua bản ghi rút gọn (chỉ ngày giờ và màu đánh giá). Chống trùng theo `id`; gửi lại cùng ID không ghi đè các ghi chú hoặc trạng thái bạn đã chỉnh. ID job đã xóa vẫn được ghi nhớ để không tự xuất hiện lại ở lần gửi sau.
 
 Bản GitHub có Webhook cắt mô tả còn 350 ký tự; cầu nối bản cài đọc toàn bộ mô tả đang có trong cache, tối đa 20.000 ký tự. Web hiển thị phần nhận được; mở job trên Upwork và bổ sung mô tả đầy đủ trước khi dùng AI. Thông tin quốc gia, chi tiêu, rating của khách hàng từ feed chưa đủ để tự tạo một khách hàng CRM có danh tính, nên bạn liên kết khách hàng khi đã xác định được họ.
 
@@ -413,3 +413,7 @@ CPython 3.10 PC/launcher.c VENV_REDIRECT dùng CreateProcessW + wait cho runtime
 ## Đóng gói EXE Windows
 
 Xem [hướng dẫn build bộ cài EXE](packaging/README.md). Workflow **Build Windows EXE** tạo `FreelanceDesk-Setup.exe` trên Windows khi chạy thủ công. Cần chạy workflow thành công và kiểm tra trên Windows trước khi phân phối bản cài.
+
+## Quản lý lưu trữ (bản EXE 1.1)
+
+Trong Hồ sơ & kết nối → Quản lý lưu trữ có số job, thư nháp/báo giá, email và dung lượng thư mục dữ liệu, cơ sở dữ liệu, sao lưu, tệp khác; số byte nội dung từng nhóm là ước tính. Dọn thủ công xem trước số job quá hạn, xác nhận rồi sao lưu trước khi xóa; không xóa thư hoặc khách hàng. Job thường quá 7 ngày được dọn, job từng Quan tâm/AI giữ 14 ngày; giữ job đã gửi, đổi trạng thái hoặc gắn với thư/dự án. Tự dọn chạy mỗi giờ và lần đầu mở, sau bước sao lưu. Sao lưu giữ 7 bản và vẫn chiếm dung lượng. SQLite được thu gọn sau dọn thủ công khi không bị bận.

@@ -1,3 +1,16 @@
+FREELANCE DESK — KIỂM CHỨNG CẬP NHẬT 21/10/2026 (UTC+7)
+
+Chạy trên Linux (Python 3.13, Node 22, Chromium Playwright):
+- python -m unittest discover -s tests -p 'test_*.py': 147 tests, PASS.
+- node --test tests/*.test.js tests/*.test.mjs: 9 tệp, PASS.
+- Smoke giao diện: kết quả giống bản 14/10; browser_smoke, combined_tab_smoke,
+  gemini_browser_smoke, pending_mail_smoke, upwork_mail_smoke vốn lỗi ở bản gốc
+  (selector/kịch bản cũ), không do thay đổi này.
+- Đo thật: poll 10 giây khi không đổi trả 19 byte thay vì ~17,9 MB (2.000 job);
+  job mới qua webhook vẫn hiện thông báo.
+- Dọn job, Phân tích đếm job đã dọn, Sao lưu ngay, Khôi phục 2 lần bấm: PASS trên trình duyệt.
+Chưa kiểm chứng trên Windows thật (WebView2, khay, nút Mở thư mục sao lưu).
+
 FREELANCE DESK — KIỂM CHỨNG BÀN GIAO 12/10/2026 (UTC+7)
 
 Chạy lại ở môi trường Linux trước khi đóng gói:
@@ -132,3 +145,11 @@ Fresh extraction of FreelanceDesk-Handoff.zip PASS: 124 Python unittest tests, d
 - mailTaskSignature giữ qua keep/none; update mới tạo identity từ context signature. Đã làm lưu completedMailTaskSignature, không xóa lịch sử/nextAction thủ công. Thanks keep không mở lại task đã xong; yêu cầu update mới có thể hiện lại cùng nội dung. Nếu lịch hẹn và AI task khác nội dung cùng khách, vẫn giữ riêng.
 - AI worker cached results backfill signature/source-id không gọi nhà cung cấp lại. states API thêm signature, chỉ là hash nội dung để nhận diện task, không phải token quản lý. Không sửa group/stage theo email.
 - 127 Python tests PASS; mail_actions subset 12 PASS sau sửa metadata; overview_actions_smoke và overview_mail_smoke PASS (weekly-first, task completion/reload/thanks/new request, pending strip, no auto-read/no unlinked fake task/mobile), Node focus PASS. Mock provider/dữ liệu tạm, không dùng khóa thật.
+
+Cloud integration validation 10/11/2026 — EXE 1.1 preparation:
+- Python unittest discovery: 159 passed.
+- Node test runner: 14 passed, including compact job history analytics.
+- storage_management_smoke.py: Chromium passed real storage counts, preview, cancel, confirmation, safety snapshot, preservation of mail/proposals/sent job, reload and mobile.
+- frozen_backend_smoke.py --source: passed startup, storage API, manual cleanup/snapshot, protected sent job, compact history and restart persistence.
+- Added forced-snapshot filename collision prevention and shared maintenance lock; ordinary backups finish before automatic cleanup starts.
+- Windows frozen/installed verification belongs to the new workflow run, not to the Linux checks above. Native interactive WebView2 GUI and real account integrations remain unverified.

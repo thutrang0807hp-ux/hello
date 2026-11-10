@@ -1,3 +1,12 @@
+## Cập nhật 21/10/2026
+
+- Poll `/api/records?since=` trả `{unchanged:true}` khi không đổi; `records(ident)` cho một bản ghi.
+- `connect()` tự đóng kết nối sau `with`; handler bọc `safely()` trả JSON 500.
+- backup.py: sao lưu hằng ngày vào `<data>/backups`, giữ 7; mục Sao lưu dữ liệu trong Hồ sơ & kết nối có Sao lưu ngay, Mở thư mục, Khôi phục (bấm 2 lần, tự sao lưu trước).
+- job_cleanup.py: job thường xóa sau 7 ngày, từng Quan tâm/đã phân tích AI 14 ngày; giữ job đã gửi, đổi trạng thái hoặc được tham chiếu. job_history giữ dòng rút gọn cho Phân tích.
+- Bỏ đánh dấu đã gửi xóa project chưa thắng; bỏ hợp đồng chỉ đưa thư `won` về pending.
+- Chi tiết người dùng: CAP-NHAT-21-10-2026.txt. Quy tắc cho agent: cuối AGENTS.md.
+
 ## Bổ sung đã chốt: màu thẻ khách và tự cuộn
 
 - Giữ nguyên bố cục thẻ khách. Thêm màu trạng thái, việc tiếp theo và nút.
