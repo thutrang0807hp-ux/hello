@@ -172,3 +172,9 @@ Telegram expandable description update 1.2.1 (12/11/2026):
 - No AI call is made to view job details; no real Telegram message was sent for validation.
 - Frozen-backend smoke includes Telegram callback schema initialization; packaged and installed checks run in Windows CI.
 - Expansion requires the app running. It presents the full description received from Toolkit, not unseen Upwork content. Existing webhooks are never removed automatically; polling conflicts are reported in settings.
+
+Native Telegram quote redesign 1.2.2 (12/11/2026):
+- 174 Python tests passed. Native-quote tests replace the superseded paged-callback tests and cover full in-limit content, explicit overflow notice, UTF-16 message limits, escaped HTML, legacy queued payloads and complete source hrefs.
+- Source-entry backend smoke passed existing workflows. No Telegram message, webhook change, polling or AI call was made during validation.
+- Removes the callback polling worker and paged-message code. Native expanding is performed by the Telegram client; delivered content no longer needs the app to answer a button press.
+- Long descriptions beyond the single-message limit are explicitly abbreviated and linked to Upwork. Rendering of the quote's expansion affordance depends on Telegram client version; the design image is a mockup, not a tested live Telegram screenshot.

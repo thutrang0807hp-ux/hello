@@ -14,7 +14,7 @@ class TelegramJobNotificationTests(unittest.TestCase):
     def job(self):
         return services.normalize_job({'id':'~notice','title':'Build <Dashboard> & CRM','url':'https://www.upwork.com/jobs/~notice','description':'Long details do not belong in the compact notification.','budget':'$500','skills':['Python'],'client':{'rating':4.9,'country':'United States','totalHires':25,'hireRate':80,'paymentVerified':True}})
 
-    def test_compact_title_stars_and_safe_clickable_source_without_ai(self):
+    def test_native_expandable_description_title_stars_link_without_ai(self):
         job=self.job()
         with patch.dict(os.environ,{'FREELANCE_TELEGRAM_TOKEN':'test-only','FREELANCE_TELEGRAM_CHAT_ID':'fixture'}),patch('services.post_json',return_value={'ok':True}) as send,patch('services.ai_request',side_effect=AssertionError('AI must not run')):
             services.send_notification('telegram',job)
@@ -22,10 +22,12 @@ class TelegramJobNotificationTests(unittest.TestCase):
         self.assertEqual(payload['parse_mode'],'HTML')
         self.assertIn('★★★★★',payload['text'])
         self.assertIn('Build &lt;Dashboard&gt; &amp; CRM',payload['text'])
-        self.assertIn('Xem đầy đủ trên Upwork',payload['text'])
+        self.assertIn('Mở job trên Upwork',payload['text'])
         self.assertIn(job['url'],payload['text'])
-        self.assertNotIn(job['notes'],payload['text'])
-        self.assertEqual(payload['text'].count('\n'),2)
+        self.assertIn('<blockquote expandable>',payload['text'])
+        self.assertIn(job['notes'],payload['text'])
+        self.assertNotIn('reply_markup',payload)
+        self.assertNotIn('callback_data',payload['text'])
         self.assertTrue(payload['link_preview_options']['is_disabled'])
         self.assertEqual(send.call_count,1)
 

@@ -21,7 +21,6 @@ import backup
 import job_cleanup
 import storage_usage
 import chatgpt_bridge
-import telegram_details
 import mail_actions
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
@@ -86,7 +85,6 @@ def init_schema():
     mail_actions.init(connect)
     job_cleanup.init(connect)
     chatgpt_bridge.init(connect)
-    telegram_details.init(connect)
 
 
 init_schema()
@@ -254,12 +252,7 @@ def process_outbox():
     if not row:
         return False
     try:
-        job=json.loads(row['body'])
-        if row['channel']=='telegram' and not job.get('_telegramDetails'):
-            job['_telegramDetails']=secrets.token_urlsafe(12)
-            with connect() as db:db.execute('UPDATE outbox SET body=? WHERE id=?',(json.dumps(job,ensure_ascii=False),row['id']))
-        result=send_notification(row['channel'],job)
-        if row['channel']=='telegram':telegram_details.register(connect,job,row['id'],result)
+        send_notification(row['channel'],json.loads(row['body']))
         with connect() as db:
             db.execute("UPDATE outbox SET status='sent', error=NULL, attempts=attempts+1 WHERE id=?", (row['id'],))
     except ServiceError as error:
@@ -449,7 +442,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/settings':
                 with connect() as db:
                     delivery = [dict(row) for row in db.execute('SELECT id,channel,status,attempts,error FROM outbox ORDER BY id DESC LIMIT 20')]
-                return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery, 'telegramButtonsStatus':telegram_details.last_error, 'backups': {'folder': str(DATA / 'backups'), 'keep': backup.KEEP, 'items': backup.listing(DATA / 'backups')}})
+                return self.reply(200, {'profile': settings(), 'storagePath':str(DATA), 'aiConfigured': bool(os.environ.get('FREELANCE_AI_KEY')), 'aiModel': ai_model(), 'aiProvider': ai_provider(), 'aiAutoJobs': ai_auto_jobs(), 'passwordConfigured': bool(PASSWORD), 'webhookPath': '/api/webhook/' + WEBHOOK_TOKEN, 'channels': channels(), 'channelTargets': {'slack':os.environ.get('FREELANCE_SLACK_CHANNEL',''),'telegram':os.environ.get('FREELANCE_TELEGRAM_CHAT_ID','')}, 'deliveries': delivery, 'backups': {'folder': str(DATA / 'backups'), 'keep': backup.KEEP, 'items': backup.listing(DATA / 'backups')}})
             return self.reply(404, {'error': 'Không tìm thấy.'})
         files = {'/theme.js': 'theme.js', '/message-templates.js': 'message-templates.js', '/': 'index.html', '/daily-tasks.js': 'daily-tasks.js', '/app.js': 'app.js', '/focus.js': 'focus.js', '/analytics.js': 'analytics.js', '/excel.js': 'excel.js', '/us-context.js': 'us-context.js', '/studio.js': 'studio.js', '/template-library.js': 'template-library.js', '/jobs.js': 'jobs.js', '/job-filters.js': 'job-filters.js', '/style.css': 'style.css', '/upwork-mail.js': 'upwork-mail.js'}
         if path in files:
@@ -943,7 +936,6 @@ if __name__ == '__main__':
     threading.Thread(target=client_lifecycle_worker, daemon=True).start()
     threading.Thread(target=maintenance_worker, daemon=True).start()
     threading.Thread(target=notification_worker, daemon=True).start()
-    threading.Thread(target=telegram_details.worker,args=(connect,),daemon=True).start()
     threading.Thread(target=upwork_mail.worker, args=(connect,), daemon=True).start()
     threading.Thread(target=mail_actions.worker, args=(connect,), daemon=True).start()
     http.serve_forever()

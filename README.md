@@ -429,3 +429,7 @@ Giữ job, hồ sơ, workspace và bản nháp trong Freelance Desk, dùng exten
 ## Mở mô tả job ngay trên Telegram (1.2.1)
 
 Tin job mới có nút Xem mô tả đầy đủ: bot mở toàn bộ mô tả mà app nhận được, không dịch/không dùng AI. Nội dung dài chia trang, có Trang trước/Trang sau, Thu gọn và nút Upwork riêng. Giữ Freelance Desk chạy để xử lý nút. App nhận callback_query bằng getUpdates, không tự xóa webhook đã có của bot. Nếu dùng chung bot với ứng dụng nhận cập nhật khác hoặc webhook, xem trạng thái cảnh báo trong Hồ sơ & kết nối; cần xử lý xung đột trước khi nút hoạt động. Các nút chỉ truy cập đúng bot/chat/message đã nhận job. Tin cũ không tự được gửi lại.
+
+## Một tin Telegram với mô tả thu gọn (1.2.2)
+
+Bản 1.2.2 thay thiết kế phân trang của 1.2.1 bằng blockquote expandable có sẵn trong Telegram. Tiêu đề/sao khách, ngân sách/quốc gia, mô tả và link Upwork nằm trong một tin. Không PDF, không tin nối tiếp, không callback/getUpdates. Khi đã nhận tin, mở rộng không cần app đang chạy; nguồn lấy job mới vẫn cần Chrome/Toolkit và app. Telegram giới hạn 4096 ký tự sau khi phân tích HTML: mô tả quá dài được cắt có dấu rõ ràng và hướng dẫn xem phần còn lại tại link Upwork; không giả vờ đầy đủ nếu quá giới hạn. Các kiểu nút/mũi tên thu gọn phụ thuộc phiên bản Telegram của người nhận. Không dùng AI cho thông báo.

@@ -165,8 +165,7 @@ def send_notification(channel, job):
         if channel == 'slack':
             result = post_json('https://slack.com/api/chat.postMessage', {'channel': os.environ['FREELANCE_SLACK_CHANNEL'], 'text': message, 'mrkdwn': False, 'unfurl_links': False, 'unfurl_media': False}, {'Authorization': 'Bearer ' + os.environ['FREELANCE_SLACK_TOKEN']})
         elif channel == 'telegram':
-            from telegram_details import keyboard
-            result = post_json('https://api.telegram.org/bot' + os.environ['FREELANCE_TELEGRAM_TOKEN'] + '/sendMessage', {'chat_id': os.environ['FREELANCE_TELEGRAM_CHAT_ID'], 'text': message, 'parse_mode': 'HTML', 'reply_markup': keyboard(job), 'link_preview_options': {'is_disabled': True}})
+            result = post_json('https://api.telegram.org/bot' + os.environ['FREELANCE_TELEGRAM_TOKEN'] + '/sendMessage', {'chat_id': os.environ['FREELANCE_TELEGRAM_CHAT_ID'], 'text': message, 'parse_mode': 'HTML', 'link_preview_options': {'is_disabled': True}})
         else:
             raise ServiceError('Kênh thông báo không hợp lệ.')
         if not isinstance(result, dict) or result.get('ok') is not True:
