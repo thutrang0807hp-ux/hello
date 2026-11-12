@@ -26,6 +26,8 @@ jobs:
         run: python -m unittest discover -s tests -p "test_frozen_entry.py"
       - name: Storage and cleanup tests
         run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_storage_management.py"
+      - name: Compact Telegram notification tests
+        run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_job_notification.py"
       - name: Build standalone application
         run: python scripts/run_build_step.py python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
       - name: Validate frozen backend
@@ -66,8 +68,8 @@ jobs:
             dist/website/FreelanceDesk-Setup.exe.sha256 \
             dist/FreelanceDesk-Download-Website.zip \
             --target "$GITHUB_SHA" --prerelease \
-            --title "Freelance Desk 1.1 - Storage and cleanup" \
-            --notes "Bản 1.1 Windows x64: Cài đặt có dung lượng dữ liệu, số job/thư và dọn thủ công có xem trước, xác nhận, sao lưu. Tự dọn job thường sau 7 ngày, từng Quan tâm/AI sau 14 ngày; giữ job đã gửi hoặc gắn thư/dự án. Lần đầu mở sẽ dọn job đã quá hạn sau khi sao lưu. Backend đã kiểm thử trước và sau cài đặt. Cần xác minh GUI WebView2; bản cài chưa ký mã."
+            --title "Freelance Desk 1.1.1 - Compact Telegram notifications" \
+            --notes "Bản 1.1.1: tin Telegram gọn gồm tiêu đề, sao khách tính bằng quy tắc giống ứng dụng và link mở đầy đủ trên Upwork. Không dịch, không gọi AI để thông báo, không phát sinh phí AI. Giữ quản lý dung lượng và dọn job 7/14 ngày của bản 1.1. Backend kiểm thử trước và sau cài đặt; GUI Windows và bot thật chưa kiểm thử. Bản cài chưa ký mã."
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

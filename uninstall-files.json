@@ -25,6 +25,7 @@
     "install_desktop.py",
     "job_activity.py",
     "job_cleanup.py",
+    "job_notification.py",
     "job_radar.py",
     "local_config.py",
     "mail_actions.py",

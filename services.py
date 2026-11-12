@@ -159,12 +159,13 @@ def channels():
 
 def send_notification(channel, job):
     # External values are plain text; disable Slack markup and link unfurls.
-    message = '\n'.join(filter(None, ['Job Upwork mới: ' + job['name'], job.get('budget'), ', '.join(job.get('skills', [])), job.get('notes', '')[:350], job['url']]))
+    from job_notification import render
+    message = render(job) if channel == 'telegram' else '\n'.join(filter(None, ['Job Upwork mới: ' + job['name'], job.get('budget'), ', '.join(job.get('skills', [])), job.get('notes', '')[:350], job['url']]))
     try:
         if channel == 'slack':
             result = post_json('https://slack.com/api/chat.postMessage', {'channel': os.environ['FREELANCE_SLACK_CHANNEL'], 'text': message, 'mrkdwn': False, 'unfurl_links': False, 'unfurl_media': False}, {'Authorization': 'Bearer ' + os.environ['FREELANCE_SLACK_TOKEN']})
         elif channel == 'telegram':
-            result = post_json('https://api.telegram.org/bot' + os.environ['FREELANCE_TELEGRAM_TOKEN'] + '/sendMessage', {'chat_id': os.environ['FREELANCE_TELEGRAM_CHAT_ID'], 'text': message, 'link_preview_options': {'is_disabled': True}})
+            result = post_json('https://api.telegram.org/bot' + os.environ['FREELANCE_TELEGRAM_TOKEN'] + '/sendMessage', {'chat_id': os.environ['FREELANCE_TELEGRAM_CHAT_ID'], 'text': message, 'parse_mode': 'HTML', 'link_preview_options': {'is_disabled': True}})
         else:
             raise ServiceError('Kênh thông báo không hợp lệ.')
         if not isinstance(result, dict) or result.get('ok') is not True:

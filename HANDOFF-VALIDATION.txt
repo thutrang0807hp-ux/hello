@@ -153,3 +153,8 @@ Cloud integration validation 10/11/2026 — EXE 1.1 preparation:
 - frozen_backend_smoke.py --source: passed startup, storage API, manual cleanup/snapshot, protected sent job, compact history and restart persistence.
 - Added forced-snapshot filename collision prevention and shared maintenance lock; ordinary backups finish before automatic cleanup starts.
 - Windows frozen/installed verification belongs to the new workflow run, not to the Linux checks above. Native interactive WebView2 GUI and real account integrations remain unverified.
+
+Telegram compact notification update (12/11/2026):
+- 164 Python tests passed, including parity against the existing JavaScript customer-star rules.
+- Telegram payload verified with mocked transport: escaped title, local customer stars or missing-data label, valid Upwork link, no description and no AI calls.
+- Slack payload unchanged. No real Telegram message or provider request was sent for validation.

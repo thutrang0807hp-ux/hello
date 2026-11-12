@@ -417,3 +417,7 @@ Xem [hướng dẫn build bộ cài EXE](packaging/README.md). Workflow **Build 
 ## Quản lý lưu trữ (bản EXE 1.1)
 
 Trong Hồ sơ & kết nối → Quản lý lưu trữ có số job, thư nháp/báo giá, email và dung lượng thư mục dữ liệu, cơ sở dữ liệu, sao lưu, tệp khác; số byte nội dung từng nhóm là ước tính. Dọn thủ công xem trước số job quá hạn, xác nhận rồi sao lưu trước khi xóa; không xóa thư hoặc khách hàng. Job thường quá 7 ngày được dọn, job từng Quan tâm/AI giữ 14 ngày; giữ job đã gửi, đổi trạng thái hoặc gắn với thư/dự án. Tự dọn chạy mỗi giờ và lần đầu mở, sau bước sao lưu. Sao lưu giữ 7 bản và vẫn chiếm dung lượng. SQLite được thu gọn sau dọn thủ công khi không bị bận.
+
+## Telegram gọn (1.1.1)
+
+Tin job mới hiển thị tiêu đề bên cạnh sao khách theo cùng quy tắc miễn phí với ứng dụng, kèm nút mở đầy đủ trên Upwork. Thiếu dữ liệu thì ghi Chưa đủ dữ liệu chấm sao. Đây là điểm khách theo quy tắc, không phải điểm phân tích AI job. Không dịch và không gọi AI để gửi thông báo. Job cũ đã gửi không được gửi lại; tin mới dùng định dạng mới sau khi cập nhật và khởi động lại.
