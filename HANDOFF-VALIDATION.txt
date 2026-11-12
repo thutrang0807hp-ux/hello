@@ -166,3 +166,9 @@ ChatGPT bridge preview 1.2 (12/11/2026):
 - frozen_backend_smoke.py --source passed handoff queue/results across server restart along with existing storage/cleanup checks.
 - Toolkit upgrade verified original bundle hashes and ZIP integrity; adds scripting and optional ChatGPT origin. Original Toolkit already declares cookies permission; new ChatGPT bridge code never calls the cookies API.
 - This is a preview adapter: actual Chrome/ChatGPT login and current live DOM are not verified. Do not claim indefinite session retention or real-account compatibility from fixture checks.
+
+Telegram expandable description update 1.2.1 (12/11/2026):
+- 174 Python tests passed; six tests cover real callback payload formatting with mocked transport, message-bound expansion/collapse, complete Unicode pagination, rejection of other chat/message/bot, persistent callback-only update cursor and invalid page handling.
+- No AI call is made to view job details; no real Telegram message was sent for validation.
+- Frozen-backend smoke includes Telegram callback schema initialization; packaged and installed checks run in Windows CI.
+- Expansion requires the app running. It presents the full description received from Toolkit, not unseen Upwork content. Existing webhooks are never removed automatically; polling conflicts are reported in settings.

@@ -1,7 +1,7 @@
 [Setup]
 AppId={{45F21EEB-FA7B-44A3-8255-89C62AC0567F}
 AppName=Freelance Desk
-AppVersion=1.2.0
+AppVersion=1.2.1
 DefaultDirName={localappdata}\Programs\FreelanceDesk
 DefaultGroupName=Freelance Desk
 PrivilegesRequired=lowest

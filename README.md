@@ -425,3 +425,7 @@ Tin job mới hiển thị tiêu đề bên cạnh sao khách theo cùng quy t�
 ## ChatGPT qua extension Chrome (bản thử 1.2)
 
 Giữ job, hồ sơ, workspace và bản nháp trong Freelance Desk, dùng extension Toolkit để điền yêu cầu vào tab ChatGPT đang đăng nhập. Trong node thư chọn Chuẩn bị yêu cầu; xem trước trong popup, đưa vào ChatGPT và tự bấm Gửi. Chọn câu trả lời trong popup để mang về app, xem trước rồi áp dụng. Không dùng API cho luồng này; vẫn chịu hạn mức gói ChatGPT. Không đọc cookie hay tự giữ phiên đăng nhập. Ngắt kết nối không đăng xuất Chrome và không ảnh hưởng cầu nối lấy job. Bản thử đã kiểm tra bằng trang mô phỏng, chưa xác minh đăng nhập/DOM ChatGPT thật. Xem toolkit-bridge/INSTALL-WINDOWS.txt.
+
+## Mở mô tả job ngay trên Telegram (1.2.1)
+
+Tin job mới có nút Xem mô tả đầy đủ: bot mở toàn bộ mô tả mà app nhận được, không dịch/không dùng AI. Nội dung dài chia trang, có Trang trước/Trang sau, Thu gọn và nút Upwork riêng. Giữ Freelance Desk chạy để xử lý nút. App nhận callback_query bằng getUpdates, không tự xóa webhook đã có của bot. Nếu dùng chung bot với ứng dụng nhận cập nhật khác hoặc webhook, xem trạng thái cảnh báo trong Hồ sơ & kết nối; cần xử lý xung đột trước khi nút hoạt động. Các nút chỉ truy cập đúng bot/chat/message đã nhận job. Tin cũ không tự được gửi lại.

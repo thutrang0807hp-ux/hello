@@ -32,6 +32,8 @@ jobs:
         run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_chatgpt_bridge.py"
       - name: Package updated Toolkit bridge
         run: python toolkit-bridge/package.py --upgrade downloads/Toolkit-Installed-Build-Bridge.zip dist/chatgpt-extension
+      - name: Telegram expandable description tests
+        run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_telegram_details.py"
       - name: Build standalone application
         run: python scripts/run_build_step.py python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
       - name: Validate frozen backend
@@ -73,8 +75,8 @@ jobs:
             dist/FreelanceDesk-Download-Website.zip \
             dist/chatgpt-extension/Toolkit-ChatGPT-Bridge.zip \
             --target "$GITHUB_SHA" --prerelease \
-            --title "Freelance Desk 1.2 - ChatGPT Chrome bridge preview" \
-            --notes "Bản thử 1.2: cầu nối ChatGPT ngay trong Toolkit. Workspace, hồ sơ, bản nháp và phiên bản giữ trong app; extension điền yêu cầu vào tab ChatGPT đang đăng nhập, bạn tự bấm Gửi, chọn câu trả lời và xem trước trong app. Không đọc cookie, không dùng API cho luồng ChatGPT. Ngắt kết nối không đăng xuất Chrome. Cần cả EXE và Toolkit-ChatGPT-Bridge.zip. Đã kiểm thử backend và DOM mô phỏng; CHƯA xác minh đăng nhập/giao diện ChatGPT thật. Có thể cần sửa selector khi ChatGPT thay đổi. Giữ Telegram gọn và dọn dữ liệu 7/14 ngày. Bản cài chưa ký mã."
+            --title "Freelance Desk 1.2.1 - Expand job descriptions inside Telegram" \
+            --notes "Bản 1.2.1: Telegram giữ tiêu đề và sao khách gọn, nút Xem mô tả đầy đủ mở nội dung ngay trong Telegram; dài thì phân trang, có Thu gọn và link Upwork riêng. Không dùng AI để hiển thị. Cần giữ app chạy và bot không bị webhook/poller khác chiếm. Job mới dùng nút mới; tin cũ không tự gửi lại. Đã kiểm thử bằng Bot API giả lập, backend trước/sau cài đặt Windows; chưa gửi vào bot thật. Giữ cầu nối ChatGPT thử nghiệm 1.2, dọn job và dữ liệu hiện có. Bản cài chưa ký mã."
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -57,6 +57,7 @@
     "start.sh",
     "stop-background-windows.bat",
     "storage_usage.py",
+    "telegram_details.py",
     "uninstall-files.json",
     "uninstall-windows.bat",
     "uninstall_desk.py",

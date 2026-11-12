@@ -43,13 +43,18 @@ def render(job):
     title=clip(job.get('name') or 'Job Upwork',240)
     message='<b>'+escape(score)+' · '+escape(title)+'</b>\nĐiểm khách theo quy tắc, không dùng AI.'
     url=job.get('url')
-    try:
-        parsed=urlsplit(url) if isinstance(url,str) else None
-        valid=parsed and parsed.scheme=='https' and parsed.hostname in ('upwork.com','www.upwork.com') and not parsed.username and not parsed.password
-    except ValueError:
-        valid=False
+    valid=valid_url(url)
+    if job.get('_telegramDetails'):return message
     if valid:
         message+='\n<a href="'+escape(url,quote=True)+'">Xem đầy đủ trên Upwork ↗</a>'
     else:
         message+='\nChưa có đường dẫn Upwork hợp lệ.'
     return message
+
+
+def valid_url(url):
+    try:
+        parsed=urlsplit(url) if isinstance(url,str) else None
+        return bool(parsed and parsed.scheme=='https' and parsed.hostname in ('upwork.com','www.upwork.com') and not parsed.username and not parsed.password)
+    except ValueError:
+        return False

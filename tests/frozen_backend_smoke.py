@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import secrets
 import socket
+import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tempfile
@@ -103,6 +105,9 @@ def main():
                     process.terminate()
                     process.wait(timeout=10)
         assert (Path(tmp) / 'workspace.sqlite3').is_file()
+        with closing(sqlite3.connect(Path(tmp)/'workspace.sqlite3')) as db:
+            tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            assert {'telegram_delivery','telegram_poll'}<=tables
     print('PASS backend launch, assets, storage counts, manual cleanup, safety backup, protected sent job, history, ChatGPT bridge context/result persistence, private-token stop and restart persistence.')
 
 
