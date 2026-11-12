@@ -8,6 +8,7 @@
     "README.md",
     "ai_provider.py",
     "backup.py",
+    "chatgpt_bridge.py",
     "choose-data-windows.bat",
     "choose_data.py",
     "client_lifecycle.py",

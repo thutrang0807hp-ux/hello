@@ -30,7 +30,9 @@ def package(original, destination):
     manifest.pop('key', None)  # Keep the installed Web Store edition available under its own ID.
     manifest.pop('update_url', None)  # The store must not overwrite this additive patch.
     manifest['name'] = 'Upwork Toolkit · Freelance Desk Bridge'
-    manifest['version_name'] = '1.6.0 + Freelance Desk bridge 2'
+    manifest['version_name'] = '1.6.0 + Freelance Desk ChatGPT bridge 3'
+    manifest['permissions']=list(dict.fromkeys(manifest.get('permissions',[])+['scripting']))
+    manifest['optional_host_permissions']=list(dict.fromkeys(manifest.get('optional_host_permissions',[])+['https://chatgpt.com/*']))
     manifest['options_ui'] = {'open_in_tab': True, 'page': 'desk-bridge.html'}
     manifest['action']['default_popup'] = 'desk-bridge.html'
     manifest['host_permissions'] += ['http://127.0.0.1/*', 'http://localhost/*']
@@ -59,7 +61,47 @@ def package(original, destination):
         z.write(HERE / 'INSTALL-WINDOWS.txt', 'HUONG-DAN.txt')
     return extension, archive
 
+
+
+def upgrade(archive, destination):
+    """Upgrade our prior verified bridge without rebuilding or modifying Toolkit bundles."""
+    destination=Path(destination).resolve();extension=destination/'toolkit-desk-bridge'
+    if extension.exists():raise ValueError('Output already exists; choose an empty destination.')
+    expected=json.loads((HERE/'original-hashes.json').read_text())
+    with zipfile.ZipFile(archive) as source:
+        names={name.removeprefix('toolkit-desk-bridge/'):name for name in source.namelist() if name.startswith('toolkit-desk-bridge/') and not name.endswith('/')}
+        for name,digest in expected.items():
+            if name=='manifest.json':continue
+            raw=source.read(names[name])
+            if name=='background.js':
+                if not raw.endswith(APPEND.encode()):raise ValueError('Unknown background bridge patch.')
+                raw=raw[:-len(APPEND.encode())]
+            if name=='options.html':raw=raw.replace((SCRIPT+'\n  </body>').encode(),b'</body>')
+            if hashlib.sha256(raw).hexdigest()!=digest:raise ValueError('Original bundle verification failed: '+name)
+        for name,full in names.items():
+            part=Path(name)
+            if part.is_absolute() or '..' in part.parts:raise ValueError('Unsafe archive path.')
+            target=extension/part;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(source.read(full))
+    manifest=json.loads((extension/'manifest.json').read_text())
+    manifest['version_name']='1.6.0 + Freelance Desk ChatGPT bridge 3'
+    manifest['permissions']=list(dict.fromkeys(manifest.get('permissions',[])+['scripting']))
+    manifest['optional_host_permissions']=list(dict.fromkeys(manifest.get('optional_host_permissions',[])+['https://chatgpt.com/*']))
+    (extension/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
+    for file in HERE.glob('desk-bridge*'):
+        if file.is_file():shutil.copy2(file,extension/file.name)
+    shutil.copy2(HERE/'INSTALL-WINDOWS.txt',destination/'HUONG-DAN.txt')
+    result=destination/'Toolkit-ChatGPT-Bridge.zip'
+    with zipfile.ZipFile(result,'w',zipfile.ZIP_DEFLATED) as output:
+        for path in extension.rglob('*'):
+            if path.is_file():output.write(path,'toolkit-desk-bridge/'+path.relative_to(extension).as_posix())
+        output.write(destination/'HUONG-DAN.txt','HUONG-DAN.txt')
+    return extension,result
+
+
 if __name__ == '__main__':
-    extension, archive = package(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else '/tmp/toolkit-bridge-package')
+    if sys.argv[1:2]==['--upgrade']:
+        extension,archive=upgrade(sys.argv[2],sys.argv[3])
+    else:
+        extension,archive=package(sys.argv[1],sys.argv[2] if len(sys.argv)>2 else '/tmp/toolkit-bridge-package')
     print(extension)
     print(archive)

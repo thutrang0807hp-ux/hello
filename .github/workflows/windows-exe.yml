@@ -28,6 +28,10 @@ jobs:
         run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_storage_management.py"
       - name: Compact Telegram notification tests
         run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_job_notification.py"
+      - name: Local ChatGPT bridge tests
+        run: python scripts/run_build_step.py python -m unittest discover -s tests -p "test_chatgpt_bridge.py"
+      - name: Package updated Toolkit bridge
+        run: python toolkit-bridge/package.py --upgrade downloads/Toolkit-Installed-Build-Bridge.zip dist/chatgpt-extension
       - name: Build standalone application
         run: python scripts/run_build_step.py python -m PyInstaller --noconfirm --clean packaging/FreelanceDesk.spec
       - name: Validate frozen backend
@@ -67,9 +71,10 @@ jobs:
             dist/website/FreelanceDesk-Setup.exe \
             dist/website/FreelanceDesk-Setup.exe.sha256 \
             dist/FreelanceDesk-Download-Website.zip \
+            dist/chatgpt-extension/Toolkit-ChatGPT-Bridge.zip \
             --target "$GITHUB_SHA" --prerelease \
-            --title "Freelance Desk 1.1.1 - Compact Telegram notifications" \
-            --notes "Bản 1.1.1: tin Telegram gọn gồm tiêu đề, sao khách tính bằng quy tắc giống ứng dụng và link mở đầy đủ trên Upwork. Không dịch, không gọi AI để thông báo, không phát sinh phí AI. Giữ quản lý dung lượng và dọn job 7/14 ngày của bản 1.1. Backend kiểm thử trước và sau cài đặt; GUI Windows và bot thật chưa kiểm thử. Bản cài chưa ký mã."
+            --title "Freelance Desk 1.2 - ChatGPT Chrome bridge preview" \
+            --notes "Bản thử 1.2: cầu nối ChatGPT ngay trong Toolkit. Workspace, hồ sơ, bản nháp và phiên bản giữ trong app; extension điền yêu cầu vào tab ChatGPT đang đăng nhập, bạn tự bấm Gửi, chọn câu trả lời và xem trước trong app. Không đọc cookie, không dùng API cho luồng ChatGPT. Ngắt kết nối không đăng xuất Chrome. Cần cả EXE và Toolkit-ChatGPT-Bridge.zip. Đã kiểm thử backend và DOM mô phỏng; CHƯA xác minh đăng nhập/giao diện ChatGPT thật. Có thể cần sửa selector khi ChatGPT thay đổi. Giữ Telegram gọn và dọn dữ liệu 7/14 ngày. Bản cài chưa ký mã."
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

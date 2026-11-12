@@ -158,3 +158,11 @@ Telegram compact notification update (12/11/2026):
 - 164 Python tests passed, including parity against the existing JavaScript customer-star rules.
 - Telegram payload verified with mocked transport: escaped title, local customer stars or missing-data label, valid Upwork link, no description and no AI calls.
 - Slack payload unchanged. No real Telegram message or provider request was sent for validation.
+
+ChatGPT bridge preview 1.2 (12/11/2026):
+- 168 Python tests passed, including local endpoint secret/origin checks, saved graph/profile context, result persistence without changing the workspace, supersession/disconnect and invalid target rejection.
+- Node runner: 16 passed, including user-driven ChatGPT handoff and disconnect preserving the existing job bridge.
+- chatgpt_bridge_ui_smoke.py: real local Studio create/preview/apply/version preservation passed. Intercepted ChatGPT DOM fixture passed composer insertion without send, nonempty composer refusal, task-bound reply selection, changed reply refusal and streaming refusal. No real ChatGPT request/account was used.
+- frozen_backend_smoke.py --source passed handoff queue/results across server restart along with existing storage/cleanup checks.
+- Toolkit upgrade verified original bundle hashes and ZIP integrity; adds scripting and optional ChatGPT origin. Original Toolkit already declares cookies permission; new ChatGPT bridge code never calls the cookies API.
+- This is a preview adapter: actual Chrome/ChatGPT login and current live DOM are not verified. Do not claim indefinite session retention or real-account compatibility from fixture checks.

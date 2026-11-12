@@ -421,3 +421,7 @@ Trong Hồ sơ & kết nối → Quản lý lưu trữ có số job, thư nháp/
 ## Telegram gọn (1.1.1)
 
 Tin job mới hiển thị tiêu đề bên cạnh sao khách theo cùng quy tắc miễn phí với ứng dụng, kèm nút mở đầy đủ trên Upwork. Thiếu dữ liệu thì ghi Chưa đủ dữ liệu chấm sao. Đây là điểm khách theo quy tắc, không phải điểm phân tích AI job. Không dịch và không gọi AI để gửi thông báo. Job cũ đã gửi không được gửi lại; tin mới dùng định dạng mới sau khi cập nhật và khởi động lại.
+
+## ChatGPT qua extension Chrome (bản thử 1.2)
+
+Giữ job, hồ sơ, workspace và bản nháp trong Freelance Desk, dùng extension Toolkit để điền yêu cầu vào tab ChatGPT đang đăng nhập. Trong node thư chọn Chuẩn bị yêu cầu; xem trước trong popup, đưa vào ChatGPT và tự bấm Gửi. Chọn câu trả lời trong popup để mang về app, xem trước rồi áp dụng. Không dùng API cho luồng này; vẫn chịu hạn mức gói ChatGPT. Không đọc cookie hay tự giữ phiên đăng nhập. Ngắt kết nối không đăng xuất Chrome và không ảnh hưởng cầu nối lấy job. Bản thử đã kiểm tra bằng trang mô phỏng, chưa xác minh đăng nhập/DOM ChatGPT thật. Xem toolkit-bridge/INSTALL-WINDOWS.txt.

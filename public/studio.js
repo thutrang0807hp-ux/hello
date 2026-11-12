@@ -178,6 +178,7 @@ const Studio = (() => {
     }
     if(node.type==='final')content+=`<div class="final-tools"><button type="button" id="copyDraftToFinal">Lấy nội dung thư nháp</button><button type="button" id="runNodeAI" class="primary">✦ Hoàn thiện theo đánh giá</button></div>`+area('Nội dung thư cuối','nodeContent',node.content)+`<button type="button" id="copyFinal">Sao chép thư</button><button type="button" id="archiveFinal" class="primary">Tôi đã gửi → Lưu vào kho</button><p class="hint">Chỉ ghi nhận sau khi bạn gửi trên Upwork. Kho sẽ giữ nguyên nội dung của lần gửi này.</p>`;
     if(['draft','final'].includes(node.type))content+=`<div class=writing-tools><button id=focusWriting>${$('.studio-workarea')?.classList.contains('writing-focus')?'Quay lại node':'Tập trung viết'}</button><button id=saveDraftVersion>Lưu phiên bản</button></div><details class=writing-versions><summary>Phiên bản đã lưu · ${(node.versions||[]).length}</summary>${(node.versions||[]).map((v,i)=>`<div><span>${esc(v.label)} · ${esc(new Date(v.at).toLocaleString('vi-VN'))}</span><button data-restore-version=${i}>Khôi phục</button></div>`).join('')||'<p>Chưa có phiên bản. Bản hiện tại tự được giữ lại trước khi AI sửa.</p>'}</details><label>Muốn sửa đoạn đã chọn thế nào?<input id=paragraphInstruction placeholder="Ví dụ: gọn hơn, bớt sáo rỗng"></label><button id=rewriteParagraph>✦ Sửa đoạn bôi đen</button><p class=hint>Bôi đen đoạn trong ô thư rồi bấm sửa. Những đoạn khác được giữ nguyên.</p>`;
+    if(['draft','final'].includes(node.type))content+=`<details class="editor-section" id="chatgptControls" ${node.chatgptTaskId?'open':''}><summary>ChatGPT qua extension Chrome</summary><div class="editor-section-body"><p class="hint">Dùng tài khoản ChatGPT đang đăng nhập, không gọi API. Workspace và hồ sơ được giữ trên máy; bạn kiểm tra yêu cầu trong extension trước khi đưa vào chat. Chỉ mẫu nối trực tiếp và mẫu bạn chọn thủ công được gửi; không tự đọc toàn bộ kho.</p><label>Muốn viết hoặc sửa thế nào?<textarea id="nodeChatGPTRevision">${esc(node.chatgptRevision||'')}</textarea></label><button type="button" id="prepareChatGPT">Chuẩn bị yêu cầu cho ChatGPT</button><button type="button" id="receiveChatGPT" ${node.chatgptTaskId?'':'disabled'}>Kiểm tra câu trả lời từ extension</button><button type="button" id="disconnectChatGPT">Gỡ yêu cầu node này</button><p class="hint">Trong popup Toolkit: bật ChatGPT → làm mới yêu cầu → đưa vào ChatGPT → tự bấm Gửi. Khi xong, chọn câu trả lời và lấy về app. Không tự gửi proposal lên Upwork.</p></div></details>`;
     content+=`<div class="node-inputs"><h3>Node đầu vào (${up.length})</h3>${up.map(e=>`<div><span>${esc(get(e.from)?.title || '')}</span><button type="button" data-disconnect="${esc(e.from)}" aria-label="Bỏ kết nối">×</button></div>`).join('')}${choice('Nối thêm đầu vào','connectSource',[['','Chọn node…'],...state.nodes.filter(n=>n.id!==node.id).map(n=>[n.id,labels[n.type]+' · '+n.title])],'')}</div><button type="button" id="deleteNode" class="delete-node">Xóa node này</button>`;
     $('#nodeInspector').className='node-inspector inspector-'+node.type;
     $('#nodeInspector').innerHTML=`<div class="inspector-heading"><span>${icons[node.type]} ${labels[node.type]}</span><button type="button" id="closeNodeInspector" aria-label="Đóng nội dung node">✕</button></div><div class="inspector-fields">${content}<p id="nodeMessage" role="status"></p></div>`;
@@ -226,6 +227,46 @@ const Studio = (() => {
     if($('#saveDraftVersion'))$('#saveDraftVersion').onclick=()=>{remember(node,'Lưu thủ công');dirty();inspect();};
     document.querySelectorAll('[data-restore-version]').forEach(b=>b.onclick=()=>{const v=node.versions[Number(b.dataset.restoreVersion)];if(!v)return;const restored=JSON.parse(JSON.stringify(v));remember(node,'Trước khôi phục');node.content=restored.content;node.referenceShortlist=restored.referenceShortlist;node.referenceSynthesis=restored.referenceSynthesis;dirty();draw();inspect();});
     if($('#rewriteParagraph'))$('#rewriteParagraph').onclick=()=>rewriteParagraph(node);
+    if($('#prepareChatGPT')){
+      $('#nodeChatGPTRevision').oninput=e=>{node.chatgptRevision=e.target.value;dirty();};
+      $('#prepareChatGPT').onclick=async()=>{
+        const holder=state,button=$('#prepareChatGPT');button.disabled=true;
+        try{
+          await save();if(state!==holder)return;
+          const task=await post('/api/chatgpt/tasks',{proposalId:state.record.id,nodeId:node.id,revision:node.chatgptRevision||''});
+          if(state!==holder)return;
+          node.chatgptTaskId=task.id;dirty();await save();inspect();
+          notice('Đã lưu yêu cầu. Mở popup Toolkit → ChatGPT → Làm mới yêu cầu, xem trước rồi đưa vào chat.');
+        }catch(error){notice(error.message);}finally{button.disabled=false;}
+      };
+      $('#receiveChatGPT').onclick=async()=>{
+        const holder=state;
+        try{
+          const task=await api('/api/chatgpt/tasks/'+encodeURIComponent(node.chatgptTaskId));
+          if(state!==holder)return;
+          if(task.proposalId!==state.record.id||task.nodeId!==node.id)throw Error('Yêu cầu không thuộc node này.');
+          if(task.status!=='ready')throw Error('Chưa có câu trả lời. Chọn câu trả lời và Lấy về app trong popup Toolkit trước.');
+          const dialog=document.createElement('dialog');dialog.className='editor-dialog';
+          const changed=(node.content||'')!==task.baseContent;
+          dialog.innerHTML='<h2>Xem thư từ ChatGPT</h2><p class="hint"></p><textarea aria-label="Thư từ ChatGPT" maxlength="20000" style="width:100%;min-height:280px"></textarea><div class="actions"><button data-chat-close>Đóng</button><button data-chat-apply class="primary">Dùng làm nội dung node</button></div>';
+          dialog.querySelector('textarea').value=task.answer;
+          dialog.querySelector('p').textContent=changed?'Bản nháp đã đổi sau khi gửi yêu cầu. Giữ bản hiện tại; tạo yêu cầu mới để tránh ghi đè.':'Kiểm tra nội dung trước khi đưa vào node. Bản cũ được giữ trong Phiên bản đã lưu.';
+          dialog.querySelector('[data-chat-apply]').disabled=changed;
+          dialog.querySelector('[data-chat-close]').onclick=()=>dialog.close();
+          dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+          dialog.querySelector('[data-chat-apply]').onclick=async event=>{
+            if(state!==holder||(node.content||'')!==task.baseContent){notice('Bản nháp đã thay đổi. Không ghi đè.');dialog.close();return;}
+            event.target.disabled=true;
+            try{remember(node,'Trước nhận thư ChatGPT');node.content=dialog.querySelector('textarea').value;delete node.chatgptTaskId;dirty();await save();dialog.close();draw();inspect();notice('Đã lưu thư vào workspace.');}catch(error){notice(error.message);event.target.disabled=false;}
+          };
+          document.body.append(dialog);dialog.showModal();
+        }catch(error){notice(error.message);}
+      };
+      $('#disconnectChatGPT').onclick=async()=>{
+        try{if(!node.chatgptTaskId)return notice('Node này chưa có yêu cầu ChatGPT.');await post('/api/chatgpt/disconnect',{id:node.chatgptTaskId});delete node.chatgptTaskId;dirty();await save();inspect();notice('Đã gỡ yêu cầu khỏi app. Không xóa cookie hay đăng xuất ChatGPT.');}catch(error){notice(error.message);}
+      };
+    }
+
     if($('#runNodeAI'))$('#runNodeAI').onclick=()=>runAI(node);
     if($('#copyDraftToFinal'))$('#copyDraftToFinal').onclick=()=>{const c=context(node);if(!c.existingDraft)return notice('Nối node thư nháp hoặc AI đánh giá vào thư cuối.');if(node.content&&!confirm('Thay nội dung thư cuối bằng thư nháp?'))return;remember(node,'Trước lấy nháp');node.content=c.existingDraft;dirty();draw();inspect();};
     if($('#copyFinal'))$('#copyFinal').onclick=async()=>{try{await navigator.clipboard.writeText(node.content||'');notice('Đã sao chép thư cuối.');}catch{notice('Chọn nội dung thư để sao chép thủ công.');}};

@@ -23,8 +23,10 @@ def main():
     token = secrets.token_urlsafe(32)
     base = f'http://127.0.0.1:{port}'
 
-    def request(path, body=None, authenticated=False):
+    def request(path, body=None, authenticated=False, extension=False):
         headers = {'Content-Type': 'application/json', 'Origin': base}
+        if extension:
+            headers['Origin']='chrome-extension://'+'a'*32
         if authenticated:
             headers['X-Desktop-Token'] = token
         req = urllib.request.Request(base + path,
@@ -80,11 +82,20 @@ def main():
                     remaining = json.loads(request('/api/records'))
                     assert not any(r['id']==old['id'] for r in remaining)
                     assert any(r['id']==protected['id'] for r in remaining)
+                    proposal=json.loads(request('/api/records',{'kind':'proposal','name':'Bridge smoke','workspace':{'version':1,'nodes':[{'id':'job','type':'job','title':'Job','content':'Build dashboard','x':0,'y':0},{'id':'draft','type':'draft','title':'Draft','content':'Original letter','x':100,'y':0}],'edges':[{'from':'job','to':'draft'}]}}))
+                    task=json.loads(request('/api/chatgpt/tasks',{'proposalId':proposal['id'],'nodeId':'draft'}))
+                    settings=json.loads(request('/api/settings'))
+                    bridge='/api/chatgpt-bridge/'+settings['webhookPath'].split('/')[-1]
+                    queue=json.loads(request(bridge,extension=True));assert queue['tasks'][0]['id']==task['id']
+                    request(bridge,{'id':task['id'],'answer':'Selected letter from fixture'},extension=True)
+                    assert json.loads(request('/api/chatgpt/tasks/'+task['id']))['status']=='ready'
+
 
                 else:
                     assert b'Bundle smoke' in request('/api/records')
                     assert json.loads(request('/api/storage'))['jobs']['count'] == 1
                     assert len(json.loads(request('/api/jobs/history'))) == 1
+                    assert json.loads(request('/api/chatgpt/tasks/'+task['id']))['answer']=='Selected letter from fixture'
                 request('/api/desktop/stop', {}, authenticated=True)
                 assert process.wait(timeout=15) == 0
             finally:
@@ -92,7 +103,7 @@ def main():
                     process.terminate()
                     process.wait(timeout=10)
         assert (Path(tmp) / 'workspace.sqlite3').is_file()
-    print('PASS backend launch, assets, storage counts, manual cleanup, safety backup, protected sent job, history, private-token stop and restart persistence.')
+    print('PASS backend launch, assets, storage counts, manual cleanup, safety backup, protected sent job, history, ChatGPT bridge context/result persistence, private-token stop and restart persistence.')
 
 
 if __name__ == '__main__':

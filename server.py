@@ -20,6 +20,7 @@ import upwork_mail
 import backup
 import job_cleanup
 import storage_usage
+import chatgpt_bridge
 import mail_actions
 from client_lifecycle import archive_unanswered, record_client_events
 from local_config import load
@@ -83,6 +84,7 @@ def init_schema():
     upwork_mail.init(connect)
     mail_actions.init(connect)
     job_cleanup.init(connect)
+    chatgpt_bridge.init(connect)
 
 
 init_schema()
@@ -278,6 +280,7 @@ class Handler(BaseHTTPRequestHandler):
     @property
     def route(self):
         path = urlsplit(self.path).path
+        if path.startswith('/api/chatgpt-bridge/'):return '/api/chatgpt-bridge/[redacted]'
         return '/api/webhook/[redacted]' if path.startswith('/api/webhook/') else path
 
     def reply(self, status, body, headers=None):
@@ -345,6 +348,12 @@ class Handler(BaseHTTPRequestHandler):
         token=self.headers.get('X-Desktop-Token','')
         return len(DESKTOP_TOKEN)>=24 and self.client_address[0] in ('127.0.0.1','::1') and hmac.compare_digest(token.encode(),DESKTOP_TOKEN.encode())
 
+    def chatgpt_bridge_authorized(self, path):
+        token=path.removeprefix('/api/chatgpt-bridge/')
+        origin=self.headers.get('Origin','')
+        parsed=urlsplit(origin) if origin else None
+        return self.client_address[0] in ('127.0.0.1','::1') and hmac.compare_digest(token.encode(),WEBHOOK_TOKEN.encode()) and (not origin or (parsed.scheme=='chrome-extension' and len(parsed.netloc)==32 and all(c in 'abcdefghijklmnop' for c in parsed.netloc)))
+
     def safely(self, action):
         """Unexpected errors answer 500 in Vietnamese instead of dropping the connection; log only the error type."""
         try:
@@ -369,6 +378,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_get(self):
         path = urlsplit(self.path).path
+        if path.startswith('/api/chatgpt-bridge/'):
+            if not self.chatgpt_bridge_authorized(path):return self.reply(403,{'error':'Kết nối không được phép.'})
+            return self.reply(200,{'tasks':chatgpt_bridge.pending(connect)})
         if path == '/api/desktop/status':
             if not self.desktop_authorized():return self.reply(403, {'error':'Không được phép.'})
             return self.reply(200, {'ok':True,'pid':os.getpid()})
@@ -415,6 +427,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self.reply(200, dict(upwork_mail.status(), autoActions=mail_actions.enabled(connect), aiConfigured=bool(os.environ.get('FREELANCE_AI_KEY')), messages=upwork_mail.inbox(connect), redirectUri=f'http://127.0.0.1:{self.server.server_port}/api/mail/callback'))
                 except ServiceError as error:
                     return self.reply(error.status, {'error':str(error)})
+            if path.startswith('/api/chatgpt/tasks/'):
+                return self.reply(200,chatgpt_bridge.get(connect,path.removeprefix('/api/chatgpt/tasks/')))
             if path == '/api/storage':
                 return self.reply(200, storage_usage.summary(connect, DATA))
             if path == '/api/jobs/history':
@@ -455,6 +469,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(200, {'ok':True})
                 threading.Thread(target=self.server.shutdown,daemon=True).start()
                 return
+            if path.startswith('/api/chatgpt-bridge/'):
+                if not self.chatgpt_bridge_authorized(path):return self.reply(403,{'error':'Kết nối không được phép.'})
+                return self.reply(200,chatgpt_bridge.complete(connect,self.read_json()))
             if path.startswith('/api/webhook/'):
                 token = path.removeprefix('/api/webhook/')
                 if not hmac.compare_digest(token.encode(), WEBHOOK_TOKEN.encode()):
@@ -494,6 +511,12 @@ class Handler(BaseHTTPRequestHandler):
                     with LOCK:
                         SESSIONS.pop(cookie['freelance_session'].value, None)
                 return self.reply(200, {'ok': True}, {'Set-Cookie': 'freelance_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'})
+            if path == '/api/chatgpt/tasks':
+                return self.reply(200,chatgpt_bridge.create(connect,self.read_json(),settings()))
+            if path == '/api/chatgpt/disconnect':
+                payload=self.read_json()
+                if not isinstance(payload,dict):raise ServiceError('Yêu cầu không hợp lệ.')
+                return self.reply(200,chatgpt_bridge.disconnect(connect,payload.get('id')))
             if path == '/api/storage/preview':
                 plan = job_cleanup.preview(connect)
                 plan.pop('ids')

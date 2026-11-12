@@ -38,3 +38,32 @@ không tự đọc bộ nhớ của bản Web Store cũ.
 Hàng đợi giới hạn 500 job / khoảng 4 MB; trang kết nối báo rõ nếu đầy.
 Upwork Toolkit: https://github.com/neeilya/upwork-toolkit, GPL-3.0.
 Mã nguồn tương ứng bản gốc và mã cầu nối được cung cấp kèm trên GitHub.
+
+BẢN THỬ CHATGPT BRIDGE 3 — đi kèm Freelance Desk 1.2
+- Nếu đã dùng bản Toolkit Bridge này: giải nén bản mới vào thư mục tạm,
+  chép các tệp mới vào ĐÚNG thư mục tiện ích đã nạp trước đó, rồi vào
+  chrome://extensions bấm Reload. Giữ cùng đường dẫn để giữ URL/cài đặt.
+  Không nạp hai bản chạy song song. Nếu Chrome yêu cầu quyền mới, kiểm tra
+  quyền scripting; quyền trang chatgpt.com chỉ xin khi bấm Bật ChatGPT.
+- Trong app: Proposal Studio → chọn node thư nháp/thư cuối → ChatGPT qua
+  extension Chrome. Nhập ý muốn viết/sửa → Chuẩn bị yêu cầu.
+- Trong popup Toolkit: phần ChatGPT → Bật kết nối (cho phép chatgpt.com).
+  Mở ChatGPT bằng Chrome bình thường, đăng nhập tài khoản của bạn.
+  Làm mới yêu cầu → chọn yêu cầu → xem trước nội dung → Đưa yêu cầu vào.
+  Extension chỉ điền ô chat, KHÔNG tự gửi. Tự kiểm tra và bấm Gửi trên ChatGPT.
+  Không xóa mã [Freelance Desk task: ...] nếu muốn lấy câu trả lời về app.
+- Khi chat xong: mở popup → Xem câu trả lời → chọn đúng bản → Lấy về app.
+  Trong node thư của app bấm Kiểm tra câu trả lời, xem/sửa rồi Dùng làm nội dung node.
+- Có thể chat sửa tiếp trong cùng cuộc chat trước khi lấy bản ưng ý.
+  Muốn sửa sau khi đã áp dụng vào app: tạo yêu cầu mới từ node hiện tại.
+- Nếu ChatGPT báo đăng nhập lại, đăng nhập trong Chrome. Extension không
+  giữ cookie, mật khẩu hay tự gia hạn phiên. Thay tài khoản vẫn dùng lại
+  hồ sơ và workspace trong app bằng yêu cầu mới.
+- Ngắt kết nối ChatGPT chỉ gỡ liên kết tiện ích, không ảnh hưởng kết nối
+  lấy job, không xóa cookie Chrome. Gỡ yêu cầu khỏi phần mềm chỉ xóa các
+  yêu cầu cầu nối, không xóa bản nháp hay workspace.
+- Bản thử chỉ gửi mẫu nối trực tiếp và mẫu chọn thủ công, không tự đọc
+  toàn bộ kho mẫu. Dữ liệu nằm trong bản xem trước trước khi đưa vào chat.
+- Không dùng API trong luồng này, vẫn áp dụng giới hạn gói ChatGPT.
+  ChatGPT thay đổi giao diện có thể khiến thao tác điền/lấy thư tạm lỗi.
+  Đã kiểm thử bằng DOM mô phỏng, chưa xác minh tài khoản ChatGPT thật.

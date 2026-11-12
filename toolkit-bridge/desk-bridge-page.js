@@ -24,3 +24,30 @@ async function act(action) {
 for (const action of ['connect', 'sync', 'stop']) $(action).addEventListener('click', () => act(action));
 act('status');
 setInterval(() => { if (!busy) act('status'); }, 5000);
+
+let chatTasks=[];
+const chatCommand=(action,extra={})=>chrome.runtime.sendMessage({target:'freelance-desk-chatgpt',action,...extra});
+async function chatAct(action,extra={}){
+ const status=$('chatStatus');
+ try{
+  const result=await chatCommand(action,extra);if(result?.error)throw Error(result.error);
+  if(action==='tasks'){
+   chatTasks=result.tasks||[];$('chatTask').replaceChildren(...chatTasks.map(t=>new Option('Workspace '+t.proposalId+' · '+new Date(t.createdAt).toLocaleString('vi-VN'),t.id)));
+   $('chatTask').dispatchEvent(new Event('change'));
+   status.textContent=chatTasks.length?'Chọn yêu cầu và kiểm tra nội dung trước khi đưa sang ChatGPT.':'Chưa có yêu cầu. Tạo từ node thư trong Proposal Studio.';
+  }else if(action==='answers'){
+   $('chatAnswer').replaceChildren(...(result.answers||[]).map(a=>new Option(a.preview,a.index)));
+   status.textContent=result.answers?.length?'Chọn câu trả lời đúng rồi bấm Lấy câu trả lời về app.':'Chưa có câu trả lời hoàn chỉnh.';
+  }else status.textContent=result.message||('enabled' in result?(result.enabled?'Kết nối ChatGPT đã bật.':'Chưa kết nối ChatGPT.'):'Đã mở ChatGPT.');
+  if(action==='disconnect'){chatTasks=[];$('chatTask').replaceChildren();$('chatAnswer').replaceChildren();$('chatPrompt').value='';}
+ }catch(error){status.textContent=error.message;}
+}
+$('chatEnable').onclick=async()=>{try{const granted=await chrome.permissions.request({origins:['https://chatgpt.com/*']});if(granted)await chatAct('enable');else $('chatStatus').textContent='Chưa cấp quyền cho trang ChatGPT.';}catch{$('chatStatus').textContent='Hãy Reload bản tiện ích mới có quyền ChatGPT.';}};
+$('chatOpen').onclick=()=>chatAct('open');
+$('chatDisconnect').onclick=()=>chatAct('disconnect');
+$('chatRefresh').onclick=()=>chatAct('tasks');
+$('chatTask').onchange=()=>{$('chatPrompt').value=chatTasks.find(t=>t.id===$('chatTask').value)?.prompt||'';};
+$('chatPrepare').onclick=()=>chatAct('prepare',{id:$('chatTask').value});
+$('chatAnswers').onclick=()=>chatAct('answers');
+$('chatTake').onclick=()=>chatAct('take',{index:$('chatAnswer').value===''?-1:Number($('chatAnswer').value)});
+chatAct('status');
